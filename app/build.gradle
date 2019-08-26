@@ -1,0 +1,21 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        applicationId "org.mokee.fileshare"
+
+        minSdkVersion 28
+        targetSdkVersion 28
+
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.recyclerview:recyclerview:1.1.0-beta03'
+    implementation 'com.google.android.material:material:1.0.0'
+}
