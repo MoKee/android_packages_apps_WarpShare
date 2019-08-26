@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WarpShare</string>
+
+    <string name="select_to_share">Select a device to share…</string>
+
+    <plurals name="send_files_to">
+        <item quantity="one">Send %d file to…</item>
+        <item quantity="other">Send %d files to…</item>
+    </plurals>
+
+    <string name="send_cancel">Cancel</string>
+    <string name="send_confirm">Send</string>
+
+    <string name="status_waiting_for_confirm">Waiting for confirmation…</string>
+    <string name="status_sending">Sending…</string>
+    <string name="status_rejected">Rejected</string>
+
+    <string name="toast_completed">Files sent</string>
+    <string name="toast_rejected">Device rejected</string>
+
+</resources>
