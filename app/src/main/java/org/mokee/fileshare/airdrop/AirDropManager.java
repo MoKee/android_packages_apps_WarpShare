@@ -1,12 +1,18 @@
 package org.mokee.fileshare.airdrop;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Random;
+
+import okio.ByteString;
 
 public class AirDropManager {
 
@@ -23,6 +29,11 @@ public class AirDropManager {
 
     private final AirDropClient mClient;
 
+    private final SharedPreferences mPref;
+
+    private final HashMap<String, String> mPeers = new HashMap<>();
+
+    @SuppressLint("ApplySharedPref")
     public AirDropManager(Context context, Callback callback) {
         mCallback = callback;
 
@@ -30,6 +41,12 @@ public class AirDropManager {
         mNsdController = new AirDropNsdController(context, this);
 
         mClient = new AirDropClient(context);
+
+        mPref = context.getSharedPreferences("airdrop", Context.MODE_PRIVATE);
+        if (!mPref.contains("id")) {
+            mPref.edit().putString("id", generateId()).commit();
+            Log.d(TAG, "Generate id: " + mPref.getString("id", null));
+        }
     }
 
     public int ready() {
@@ -54,7 +71,7 @@ public class AirDropManager {
         mNsdController.stopDiscover();
     }
 
-    void onServiceResolved(final String id, String url) {
+    void onServiceResolved(final String id, final String url) {
         final NSDictionary req = new NSDictionary();
 
         mClient.post(url + "/Discover", req, new AirDropClient.AirDropClientCallback() {
@@ -71,13 +88,54 @@ public class AirDropManager {
                     return;
                 }
 
+                mPeers.put(id, url);
+
                 mCallback.onAirDropPeerFound(id, nameNode.toJavaObject(String.class));
             }
         });
     }
 
     void onServiceLost(String id) {
+        mPeers.remove(id);
         mCallback.onAirDropPeerDisappeared(id);
+    }
+
+    public void ask(final String id, String fileName, final AskCallback callback) {
+        final String url = mPeers.get(id);
+
+        final NSDictionary req = new NSDictionary();
+        req.put("SenderID", mPref.getString("id", null));
+        req.put("SenderComputerName", "Android");
+        req.put("BundleID", "com.apple.finder");
+        req.put("ConvertMediaFormats", false);
+
+        final NSDictionary file = new NSDictionary();
+        file.put("FileName", fileName);
+        file.put("FileType", "public.content");
+        file.put("FileIsDirectory", false);
+        file.put("ConvertMediaFormats", 0);
+
+        req.put("Files", new NSDictionary[]{file});
+
+        mClient.post(url + "/Ask", req, new AirDropClient.AirDropClientCallback() {
+            @Override
+            public void onFailure(IOException e) {
+                Log.w(TAG, "Failed to ask: " + id, e);
+                callback.onAskResult(false);
+            }
+
+            @Override
+            public void onResponse(NSDictionary response) {
+                Log.d(TAG, "Ask accepted");
+                callback.onAskResult(true);
+            }
+        });
+    }
+
+    private String generateId() {
+        byte[] id = new byte[6];
+        new Random().nextBytes(id);
+        return ByteString.of(id).hex();
     }
 
     public interface Callback {
@@ -85,6 +143,12 @@ public class AirDropManager {
         void onAirDropPeerFound(String id, String name);
 
         void onAirDropPeerDisappeared(String id);
+
+    }
+
+    public interface AskCallback {
+
+        void onAskResult(boolean accepted);
 
     }
 
