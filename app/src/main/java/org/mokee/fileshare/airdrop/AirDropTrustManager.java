@@ -1,6 +1,8 @@
-package org.mokee.fileshare;
+package org.mokee.fileshare.airdrop;
 
 import android.content.Context;
+
+import org.mokee.fileshare.R;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,29 +20,29 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-class AppleTrustManager {
+class AirDropTrustManager {
 
-    private X509TrustManager trustManager;
-    private SSLSocketFactory sslSocketFactory;
+    private X509TrustManager mTrustManager;
+    private SSLSocketFactory mSslSocketFactory;
 
-    AppleTrustManager(Context context) {
+    AirDropTrustManager(Context context) {
         try {
             final InputStream ca = context.getResources().openRawResource(R.raw.apple_root_ca);
-            trustManager = trustManagerForCertificates(ca);
+            mTrustManager = trustManagerForCertificates(ca);
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{trustManager}, null);
-            sslSocketFactory = sslContext.getSocketFactory();
+            sslContext.init(null, new TrustManager[]{mTrustManager}, null);
+            mSslSocketFactory = sslContext.getSocketFactory();
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
     }
 
     X509TrustManager getTrustManager() {
-        return trustManager;
+        return mTrustManager;
     }
 
     SSLSocketFactory getSslSocketFactory() {
-        return sslSocketFactory;
+        return mSslSocketFactory;
     }
 
     private X509TrustManager trustManagerForCertificates(InputStream in)
