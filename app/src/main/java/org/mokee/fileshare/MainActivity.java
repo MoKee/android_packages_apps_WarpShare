@@ -1,5 +1,6 @@
 package org.mokee.fileshare;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.AdvertiseCallback;
@@ -13,9 +14,28 @@ import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.dd.plist.NSDictionary;
+import com.dd.plist.PropertyListParser;
+
+import org.jetbrains.annotations.NotNull;
 import org.mokee.fileshare.utils.AirDropUtils;
 
+import java.io.IOException;
+import java.net.Inet6Address;
+import java.util.Locale;
 import java.util.Objects;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okio.Buffer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothLeAdvertiser advertiser;
     private NsdManager nsdManager;
+
+    private OkHttpClient httpClient;
 
     private final AdvertiseCallback advertiseCallback = new AdvertiseCallback() {
         @Override
@@ -80,6 +102,18 @@ public class MainActivity extends AppCompatActivity {
         advertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
 
         nsdManager = (NsdManager) getSystemService(NSD_SERVICE);
+
+        final AppleTrustManager trustManager = new AppleTrustManager(this);
+        httpClient = new OkHttpClient.Builder()
+                .sslSocketFactory(trustManager.getSslSocketFactory(), trustManager.getTrustManager())
+                .hostnameVerifier(new HostnameVerifier() {
+                    @SuppressLint("BadHostnameVerifier")
+                    @Override
+                    public boolean verify(String hostname, SSLSession session) {
+                        return true;
+                    }
+                })
+                .build();
     }
 
     @Override
@@ -123,6 +157,45 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleServiceResolved(NsdServiceInfo serviceInfo) {
         Log.d(TAG, "Resolved: " + serviceInfo.toString());
+
+        if (serviceInfo.getHost() instanceof Inet6Address) {
+            Log.w(TAG, "IPv6 is not supported yet");
+            return;
+        }
+
+        final Buffer buffer = new Buffer();
+
+        final NSDictionary body = new NSDictionary();
+        try {
+            PropertyListParser.saveAsBinary(body, buffer.outputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        final String url = String.format(Locale.US, "https://%s:%d/Discover",
+                serviceInfo.getHost().getHostName(), serviceInfo.getPort());
+
+        final Request request = new Request.Builder()
+                .url(url)
+                .post(RequestBody.create(buffer.readByteString(), MediaType.get("application/octet-stream")))
+                .build();
+
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Log.e(TAG, "failed", e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try {
+                    NSDictionary rootDict = (NSDictionary) PropertyListParser.parse(Objects.requireNonNull(response.body()).byteStream());
+                    Log.d(TAG, rootDict.get("ReceiverComputerName").toJavaObject(String.class));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
 }
