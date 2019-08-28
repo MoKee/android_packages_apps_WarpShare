@@ -3,4 +3,10 @@
 
     <string name="app_name">File Share</string>
 
+    <string name="select_to_share">Select a device to share…</string>
+
+    <string name="status_waiting_for_confirm">Waiting for confirmation…</string>
+    <string name="status_sending">Sending…</string>
+    <string name="status_rejected">Rejected</string>
+
 </resources>

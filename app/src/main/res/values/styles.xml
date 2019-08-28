@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light" />
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light">
+        <item name="colorPrimary">@android:color/white</item>
+        <item name="colorPrimaryDark">@android:color/white</item>
+    </style>
 
-    <style name="ShareTheme" parent="Theme.MaterialComponents.Light.Dialog" />
+    <style name="ShareTheme" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="colorPrimary">#4CAF50</item>
+    </style>
 
 </resources>

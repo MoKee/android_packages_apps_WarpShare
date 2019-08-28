@@ -10,24 +10,14 @@ public class MainActivity extends BasePeersActivity {
 
     private static final int REQUEST_PICK = 1;
 
-    private String mPeerPicked = null;
-
     @Override
     protected int provideContentViewId() {
         return R.layout.activity_main;
     }
 
     @Override
-    public void onAirDropPeerDisappeared(String id) {
-        super.onAirDropPeerDisappeared(id);
-        if (id.equals(mPeerPicked)) {
-            mPeerPicked = null;
-        }
-    }
-
-    @Override
     protected void handleItemClick(String id) {
-        mPeerPicked = id;
+        super.handleItemClick(id);
         Intent requestIntent = new Intent(Intent.ACTION_GET_CONTENT);
         requestIntent.addCategory(Intent.CATEGORY_OPENABLE);
         requestIntent.setType("*/*");
@@ -48,14 +38,6 @@ public class MainActivity extends BasePeersActivity {
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
-    }
-
-    @Override
-    protected void handleSendSucceed() {
-    }
-
-    @Override
-    protected void handleSendFailed() {
     }
 
 }

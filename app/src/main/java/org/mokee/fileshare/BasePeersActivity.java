@@ -30,6 +30,9 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
 
     private PeersAdapter mAdapter;
 
+    protected String mPeerPicked = null;
+    private int mPeerStatus = 0;
+
     private AirDropManager mAirDropManager;
 
     @LayoutRes
@@ -75,15 +78,49 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
     @CallSuper
     public void onAirDropPeerDisappeared(String id) {
         Log.d(TAG, "Disappeared: " + id);
+        if (id.equals(mPeerPicked)) {
+            mPeerPicked = null;
+        }
         mPeers.remove(id);
         mAdapter.notifyDataSetChanged();
     }
 
-    protected abstract void handleItemClick(String id);
+    @CallSuper
+    protected void handleItemClick(String id) {
+        mPeerPicked = id;
+    }
 
-    protected abstract void handleSendSucceed();
+    @CallSuper
+    protected void handleSendConfirming() {
+        mPeerStatus = R.string.status_waiting_for_confirm;
+        mAdapter.notifyDataSetChanged();
+    }
 
-    protected abstract void handleSendFailed();
+    @CallSuper
+    protected void handleSendRejected() {
+        mPeerStatus = R.string.status_rejected;
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @CallSuper
+    protected void handleSending() {
+        mPeerStatus = R.string.status_sending;
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @CallSuper
+    protected void handleSendSucceed() {
+        mPeerPicked = null;
+        mPeerStatus = 0;
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @CallSuper
+    protected void handleSendFailed() {
+        mPeerPicked = null;
+        mPeerStatus = 0;
+        mAdapter.notifyDataSetChanged();
+    }
 
     protected final void sendFile(String id, Uri rawUri) {
         final ResolvedUri uri = new ResolvedUri(this, rawUri);
@@ -124,19 +161,21 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
     }
 
     private void sendFile(final String id, final List<ResolvedUri> uris) {
+        handleSendConfirming();
         mAirDropManager.ask(id, uris, new AirDropManager.AskCallback() {
             @Override
             public void onAskResult(boolean accepted) {
                 if (accepted) {
                     upload(id, uris);
                 } else {
-                    handleSendFailed();
+                    handleSendRejected();
                 }
             }
         });
     }
 
     private void upload(String id, List<ResolvedUri> uris) {
+        handleSending();
         mAirDropManager.upload(id, uris, new AirDropManager.UploadCallback() {
             @Override
             public void onUploadResult(boolean done) {
@@ -168,6 +207,17 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
             final String id = mPeers.keyAt(position);
             final String name = mPeers.valueAt(position);
             holder.nameView.setText(name);
+            if (id.equals(mPeerPicked) && mPeerStatus != 0) {
+                holder.statusView.setVisibility(View.VISIBLE);
+                holder.statusView.setText(mPeerStatus);
+            } else {
+                holder.statusView.setVisibility(View.GONE);
+            }
+            if (id.equals(mPeerPicked) && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
+                holder.itemView.setEnabled(false);
+            } else {
+                holder.itemView.setEnabled(true);
+            }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -184,10 +234,12 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
         class ViewHolder extends RecyclerView.ViewHolder {
 
             TextView nameView;
+            TextView statusView;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 nameView = itemView.findViewById(R.id.name);
+                statusView = itemView.findViewById(R.id.status);
             }
 
         }
