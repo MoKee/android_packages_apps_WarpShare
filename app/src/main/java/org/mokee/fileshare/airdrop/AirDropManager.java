@@ -109,7 +109,7 @@ public class AirDropManager {
 
         final NSDictionary req = new NSDictionary();
         req.put("SenderID", mPref.getString("id", null));
-        req.put("SenderComputerName", "Android");
+        req.put("SenderComputerName", mBleController.getName());
         req.put("BundleID", "com.apple.finder");
         req.put("ConvertMediaFormats", false);
 

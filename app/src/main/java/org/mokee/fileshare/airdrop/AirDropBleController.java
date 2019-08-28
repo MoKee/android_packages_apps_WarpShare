@@ -43,6 +43,20 @@ class AirDropBleController {
         mContext = context;
     }
 
+    String getName() {
+        final BluetoothManager manager = (BluetoothManager) mContext.getSystemService(BLUETOOTH_SERVICE);
+        if (manager == null) {
+            return null;
+        }
+
+        final BluetoothAdapter adapter = manager.getAdapter();
+        if (adapter == null || !adapter.isEnabled()) {
+            return null;
+        }
+
+        return adapter.getName();
+    }
+
     private void getAdvertiser() {
         final BluetoothManager manager = (BluetoothManager) mContext.getSystemService(BLUETOOTH_SERVICE);
         if (manager == null) {
