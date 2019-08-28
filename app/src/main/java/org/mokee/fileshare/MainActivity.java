@@ -4,6 +4,8 @@ import android.content.Intent;
 
 import androidx.annotation.Nullable;
 
+import org.mokee.fileshare.airdrop.AirDropManager;
+
 public class MainActivity extends BasePeersActivity {
 
     private static final String TAG = "MainActivity";
@@ -16,8 +18,8 @@ public class MainActivity extends BasePeersActivity {
     }
 
     @Override
-    protected void handleItemClick(String id) {
-        super.handleItemClick(id);
+    protected void handleItemClick(AirDropManager.Peer peer) {
+        super.handleItemClick(peer);
         Intent requestIntent = new Intent(Intent.ACTION_GET_CONTENT);
         requestIntent.addCategory(Intent.CATEGORY_OPENABLE);
         requestIntent.setType("*/*");
@@ -30,9 +32,9 @@ public class MainActivity extends BasePeersActivity {
         if (requestCode == REQUEST_PICK) {
             if (resultCode == RESULT_OK && mPeerPicked != null && data != null) {
                 if (data.getClipData() == null) {
-                    sendFile(mPeerPicked, data.getData());
+                    sendFile(mPeers.get(mPeerPicked), data.getData());
                 } else {
-                    sendFile(mPeerPicked, data.getClipData());
+                    sendFile(mPeers.get(mPeerPicked), data.getClipData());
                 }
             }
         } else {

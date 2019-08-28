@@ -35,7 +35,7 @@ public class AirDropManager {
 
     private final SharedPreferences mPref;
 
-    private final HashMap<String, String> mPeers = new HashMap<>();
+    private final HashMap<String, Peer> mPeers = new HashMap<>();
 
     @SuppressLint("ApplySharedPref")
     public AirDropManager(Context context, Callback callback) {
@@ -92,21 +92,22 @@ public class AirDropManager {
                     return;
                 }
 
-                mPeers.put(id, url);
+                final Peer peer = new Peer(id, nameNode.toJavaObject(String.class), url);
+                mPeers.put(id, peer);
 
-                mCallback.onAirDropPeerFound(id, nameNode.toJavaObject(String.class));
+                mCallback.onAirDropPeerFound(peer);
             }
         });
     }
 
     void onServiceLost(String id) {
-        mPeers.remove(id);
-        mCallback.onAirDropPeerDisappeared(id);
+        final Peer peer = mPeers.remove(id);
+        if (peer != null) {
+            mCallback.onAirDropPeerDisappeared(peer);
+        }
     }
 
-    public void ask(final String id, List<ResolvedUri> uris, final AskCallback callback) {
-        final String url = mPeers.get(id);
-
+    public void ask(final Peer peer, List<ResolvedUri> uris, final AskCallback callback) {
         final NSDictionary req = new NSDictionary();
         req.put("SenderID", mPref.getString("id", null));
         req.put("SenderComputerName", mBleController.getName());
@@ -126,10 +127,10 @@ public class AirDropManager {
 
         req.put("Files", files);
 
-        mClient.post(url + "/Ask", req, new AirDropClient.AirDropClientCallback() {
+        mClient.post(peer.url + "/Ask", req, new AirDropClient.AirDropClientCallback() {
             @Override
             public void onFailure(IOException e) {
-                Log.w(TAG, "Failed to ask: " + id, e);
+                Log.w(TAG, "Failed to ask: " + peer.id, e);
                 callback.onAskResult(false);
             }
 
@@ -141,12 +142,11 @@ public class AirDropManager {
         });
     }
 
-    public void upload(final String id, List<ResolvedUri> uris, final UploadCallback callback) {
-        final String url = mPeers.get(id);
-        mClient.post(url + "/Upload", uris, new AirDropClient.AirDropClientCallback() {
+    public void upload(final Peer peer, List<ResolvedUri> uris, final UploadCallback callback) {
+        mClient.post(peer.url + "/Upload", uris, new AirDropClient.AirDropClientCallback() {
             @Override
             public void onFailure(IOException e) {
-                Log.w(TAG, "Failed to upload: " + id, e);
+                Log.w(TAG, "Failed to upload: " + peer.id, e);
                 callback.onUploadResult(false);
             }
 
@@ -163,11 +163,26 @@ public class AirDropManager {
         return ByteString.of(id).hex();
     }
 
+    public class Peer {
+
+        public final String id;
+        public final String name;
+
+        final String url;
+
+        Peer(String id, String name, String url) {
+            this.id = id;
+            this.name = name;
+            this.url = url;
+        }
+
+    }
+
     public interface Callback {
 
-        void onAirDropPeerFound(String id, String name);
+        void onAirDropPeerFound(Peer peer);
 
-        void onAirDropPeerDisappeared(String id);
+        void onAirDropPeerDisappeared(Peer peer);
 
     }
 

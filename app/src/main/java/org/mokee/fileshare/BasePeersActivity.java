@@ -26,7 +26,7 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
 
     private static final String TAG = "BasePeersActivity";
 
-    protected ArrayMap<String, String> mPeers = new ArrayMap<>();
+    protected ArrayMap<String, AirDropManager.Peer> mPeers = new ArrayMap<>();
 
     private PeersAdapter mAdapter;
 
@@ -68,26 +68,26 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
 
     @Override
     @CallSuper
-    public void onAirDropPeerFound(String id, String name) {
-        Log.d(TAG, "Found: " + id + " (" + name + ")");
-        mPeers.put(id, name);
+    public void onAirDropPeerFound(AirDropManager.Peer peer) {
+        Log.d(TAG, "Found: " + peer.id + " (" + peer.name + ")");
+        mPeers.put(peer.id, peer);
         mAdapter.notifyDataSetChanged();
     }
 
     @Override
     @CallSuper
-    public void onAirDropPeerDisappeared(String id) {
-        Log.d(TAG, "Disappeared: " + id);
-        if (id.equals(mPeerPicked)) {
+    public void onAirDropPeerDisappeared(AirDropManager.Peer peer) {
+        Log.d(TAG, "Disappeared: " + peer.id + " (" + peer.name + ")");
+        if (peer.id.equals(mPeerPicked)) {
             mPeerPicked = null;
         }
-        mPeers.remove(id);
+        mPeers.remove(peer.id);
         mAdapter.notifyDataSetChanged();
     }
 
     @CallSuper
-    protected void handleItemClick(String id) {
-        mPeerPicked = id;
+    protected void handleItemClick(AirDropManager.Peer peer) {
+        mPeerPicked = peer.id;
     }
 
     @CallSuper
@@ -122,7 +122,7 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
         mAdapter.notifyDataSetChanged();
     }
 
-    protected final void sendFile(String id, Uri rawUri) {
+    protected final void sendFile(AirDropManager.Peer peer, Uri rawUri) {
         final ResolvedUri uri = new ResolvedUri(this, rawUri);
         if (!uri.ok) {
             Log.w(TAG, "No file was selected");
@@ -133,10 +133,10 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
         final List<ResolvedUri> uris = new ArrayList<>();
         uris.add(uri);
 
-        sendFile(id, uris);
+        sendFile(peer, uris);
     }
 
-    protected final void sendFile(String id, ClipData clipData) {
+    protected final void sendFile(AirDropManager.Peer peer, ClipData clipData) {
         if (clipData == null) {
             Log.w(TAG, "ClipData should not be null");
             handleSendFailed();
@@ -157,16 +157,16 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
             return;
         }
 
-        sendFile(id, uris);
+        sendFile(peer, uris);
     }
 
-    private void sendFile(final String id, final List<ResolvedUri> uris) {
+    private void sendFile(final AirDropManager.Peer peer, final List<ResolvedUri> uris) {
         handleSendConfirming();
-        mAirDropManager.ask(id, uris, new AirDropManager.AskCallback() {
+        mAirDropManager.ask(peer, uris, new AirDropManager.AskCallback() {
             @Override
             public void onAskResult(boolean accepted) {
                 if (accepted) {
-                    upload(id, uris);
+                    upload(peer, uris);
                 } else {
                     handleSendRejected();
                 }
@@ -174,9 +174,9 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
         });
     }
 
-    private void upload(String id, List<ResolvedUri> uris) {
+    private void upload(AirDropManager.Peer peer, List<ResolvedUri> uris) {
         handleSending();
-        mAirDropManager.upload(id, uris, new AirDropManager.UploadCallback() {
+        mAirDropManager.upload(peer, uris, new AirDropManager.UploadCallback() {
             @Override
             public void onUploadResult(boolean done) {
                 if (done) {
@@ -205,8 +205,8 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             final String id = mPeers.keyAt(position);
-            final String name = mPeers.valueAt(position);
-            holder.nameView.setText(name);
+            final AirDropManager.Peer peer = mPeers.valueAt(position);
+            holder.nameView.setText(peer.name);
             if (id.equals(mPeerPicked) && mPeerStatus != 0) {
                 holder.statusView.setVisibility(View.VISIBLE);
                 holder.statusView.setText(mPeerStatus);
@@ -221,7 +221,7 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    handleItemClick(id);
+                    handleItemClick(peer);
                 }
             });
         }

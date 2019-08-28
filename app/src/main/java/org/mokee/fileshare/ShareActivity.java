@@ -2,6 +2,8 @@ package org.mokee.fileshare;
 
 import android.os.Bundle;
 
+import org.mokee.fileshare.airdrop.AirDropManager;
+
 public class ShareActivity extends BasePeersActivity {
 
     private static final String TAG = "ShareActivity";
@@ -18,9 +20,9 @@ public class ShareActivity extends BasePeersActivity {
     }
 
     @Override
-    protected void handleItemClick(String id) {
-        super.handleItemClick(id);
-        sendFile(id, getIntent().getClipData());
+    protected void handleItemClick(AirDropManager.Peer peer) {
+        super.handleItemClick(peer);
+        sendFile(peer, getIntent().getClipData());
     }
 
     @Override
