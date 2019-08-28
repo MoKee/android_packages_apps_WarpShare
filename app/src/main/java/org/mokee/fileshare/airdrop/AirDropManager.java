@@ -8,8 +8,10 @@ import android.util.Log;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 
+import org.mokee.fileshare.ResolvedUri;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -101,7 +103,7 @@ public class AirDropManager {
         mCallback.onAirDropPeerDisappeared(id);
     }
 
-    public void ask(final String id, String fileName, final AskCallback callback) {
+    public void ask(final String id, ResolvedUri uri, final AskCallback callback) {
         final String url = mPeers.get(id);
 
         final NSDictionary req = new NSDictionary();
@@ -111,9 +113,9 @@ public class AirDropManager {
         req.put("ConvertMediaFormats", false);
 
         final NSDictionary file = new NSDictionary();
-        file.put("FileName", fileName);
+        file.put("FileName", uri.name);
         file.put("FileType", "public.content");
-        file.put("FileBomPath", "./" + fileName);
+        file.put("FileBomPath", uri.path);
         file.put("FileIsDirectory", false);
         file.put("ConvertMediaFormats", 0);
 
@@ -134,9 +136,9 @@ public class AirDropManager {
         });
     }
 
-    public void upload(final String id, String fileName, InputStream stream) {
+    public void upload(final String id, ResolvedUri uri) throws FileNotFoundException {
         final String url = mPeers.get(id);
-        mClient.post(url + "/Upload", fileName, stream, new AirDropClient.AirDropClientCallback() {
+        mClient.post(url + "/Upload", uri.name, uri.stream(), new AirDropClient.AirDropClientCallback() {
             @Override
             public void onFailure(IOException e) {
                 Log.w(TAG, "Failed to upload: " + id, e);

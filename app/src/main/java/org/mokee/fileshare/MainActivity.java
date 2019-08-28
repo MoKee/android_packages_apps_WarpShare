@@ -2,10 +2,8 @@ package org.mokee.fileshare;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.OpenableColumns;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -108,36 +106,27 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Ca
         }
     }
 
-    private void sendFile(final String id, final Uri uri) {
-        Cursor cursor = getContentResolver().query(
-                uri, null, null, null, null);
+    private void sendFile(final String id, Uri uri) {
+        final ResolvedUri resolvedUri = new ResolvedUri(this, uri);
 
-        if (cursor == null) {
+        if (!resolvedUri.ok) {
             return;
         }
 
-        final int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-
-        cursor.moveToFirst();
-
-        final String name = cursor.getString(nameIndex);
-
-        cursor.close();
-
-        mAirDropManager.ask(id, name, new AirDropManager.AskCallback() {
+        mAirDropManager.ask(id, resolvedUri, new AirDropManager.AskCallback() {
             @Override
             public void onAskResult(boolean accepted) {
                 Log.d(TAG, "Accepted: " + accepted);
                 if (accepted) {
-                    upload(id, name, uri);
+                    upload(id, resolvedUri);
                 }
             }
         });
     }
 
-    private void upload(String id, String name, Uri uri) {
+    private void upload(String id, ResolvedUri resolvedUri) {
         try {
-            mAirDropManager.upload(id, name, getContentResolver().openInputStream(uri));
+            mAirDropManager.upload(id, resolvedUri);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
