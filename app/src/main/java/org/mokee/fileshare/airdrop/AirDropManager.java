@@ -3,6 +3,8 @@ package org.mokee.fileshare.airdrop;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.dd.plist.NSDictionary;
@@ -163,7 +165,19 @@ public class AirDropManager {
         return ByteString.of(id).hex();
     }
 
-    public class Peer {
+    public static class Peer implements Parcelable {
+
+        public static final Creator<Peer> CREATOR = new Creator<Peer>() {
+            @Override
+            public Peer createFromParcel(Parcel in) {
+                return new Peer(in);
+            }
+
+            @Override
+            public Peer[] newArray(int size) {
+                return new Peer[size];
+            }
+        };
 
         public final String id;
         public final String name;
@@ -176,6 +190,23 @@ public class AirDropManager {
             this.url = url;
         }
 
+        Peer(Parcel in) {
+            id = in.readString();
+            name = in.readString();
+            url = in.readString();
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(id);
+            dest.writeString(name);
+            dest.writeString(url);
+        }
     }
 
     public interface Callback {

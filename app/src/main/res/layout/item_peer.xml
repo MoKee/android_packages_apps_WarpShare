@@ -19,12 +19,4 @@
         android:textSize="16sp"
         tools:text="XiNGRZ\'s iPhone" />
 
-    <TextView
-        android:id="@+id/status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        tools:text="Sending…"
-        tools:visibility="visible" />
-
 </LinearLayout>

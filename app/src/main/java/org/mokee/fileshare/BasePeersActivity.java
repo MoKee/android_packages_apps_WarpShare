@@ -2,6 +2,7 @@ package org.mokee.fileshare;
 
 import android.content.ClipData;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.ArrayMap;
@@ -31,7 +32,6 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
     private PeersAdapter mAdapter;
 
     protected String mPeerPicked = null;
-    private int mPeerStatus = 0;
 
     private AirDropManager mAirDropManager;
 
@@ -90,43 +90,10 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
         mPeerPicked = peer.id;
     }
 
-    @CallSuper
-    protected void handleSendConfirming() {
-        mPeerStatus = R.string.status_waiting_for_confirm;
-        mAdapter.notifyDataSetChanged();
-    }
-
-    @CallSuper
-    protected void handleSendRejected() {
-        mPeerStatus = R.string.status_rejected;
-        mAdapter.notifyDataSetChanged();
-    }
-
-    @CallSuper
-    protected void handleSending() {
-        mPeerStatus = R.string.status_sending;
-        mAdapter.notifyDataSetChanged();
-    }
-
-    @CallSuper
-    protected void handleSendSucceed() {
-        mPeerPicked = null;
-        mPeerStatus = 0;
-        mAdapter.notifyDataSetChanged();
-    }
-
-    @CallSuper
-    protected void handleSendFailed() {
-        mPeerPicked = null;
-        mPeerStatus = 0;
-        mAdapter.notifyDataSetChanged();
-    }
-
     protected final void sendFile(AirDropManager.Peer peer, Uri rawUri) {
         final ResolvedUri uri = new ResolvedUri(this, rawUri);
         if (!uri.ok) {
             Log.w(TAG, "No file was selected");
-            handleSendFailed();
             return;
         }
 
@@ -139,7 +106,6 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
     protected final void sendFile(AirDropManager.Peer peer, ClipData clipData) {
         if (clipData == null) {
             Log.w(TAG, "ClipData should not be null");
-            handleSendFailed();
             return;
         }
 
@@ -153,39 +119,22 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
 
         if (uris.isEmpty()) {
             Log.w(TAG, "No file was selected");
-            handleSendFailed();
             return;
         }
 
         sendFile(peer, uris);
     }
 
-    private void sendFile(final AirDropManager.Peer peer, final List<ResolvedUri> uris) {
-        handleSendConfirming();
-        mAirDropManager.ask(peer, uris, new AirDropManager.AskCallback() {
-            @Override
-            public void onAskResult(boolean accepted) {
-                if (accepted) {
-                    upload(peer, uris);
-                } else {
-                    handleSendRejected();
-                }
-            }
-        });
-    }
+    private void sendFile(AirDropManager.Peer peer, final List<ResolvedUri> uris) {
+        final ArrayList<Uri> rawUris = new ArrayList<>();
+        for (ResolvedUri uri : uris) {
+            rawUris.add(uri.uri);
+        }
 
-    private void upload(AirDropManager.Peer peer, List<ResolvedUri> uris) {
-        handleSending();
-        mAirDropManager.upload(peer, uris, new AirDropManager.UploadCallback() {
-            @Override
-            public void onUploadResult(boolean done) {
-                if (done) {
-                    handleSendSucceed();
-                } else {
-                    handleSendFailed();
-                }
-            }
-        });
+        startService(new Intent(this, SenderService.class)
+                .putExtra(SenderService.EXTRA_PEER, peer)
+                .putParcelableArrayListExtra(SenderService.EXTRA_URIS, rawUris)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
     }
 
     private class PeersAdapter extends RecyclerView.Adapter<PeersAdapter.ViewHolder> {
@@ -204,20 +153,8 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            final String id = mPeers.keyAt(position);
             final AirDropManager.Peer peer = mPeers.valueAt(position);
             holder.nameView.setText(peer.name);
-            if (id.equals(mPeerPicked) && mPeerStatus != 0) {
-                holder.statusView.setVisibility(View.VISIBLE);
-                holder.statusView.setText(mPeerStatus);
-            } else {
-                holder.statusView.setVisibility(View.GONE);
-            }
-            if (id.equals(mPeerPicked) && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
-                holder.itemView.setEnabled(false);
-            } else {
-                holder.itemView.setEnabled(true);
-            }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -234,12 +171,10 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
         class ViewHolder extends RecyclerView.ViewHolder {
 
             TextView nameView;
-            TextView statusView;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 nameView = itemView.findViewById(R.id.name);
-                statusView = itemView.findViewById(R.id.status);
             }
 
         }

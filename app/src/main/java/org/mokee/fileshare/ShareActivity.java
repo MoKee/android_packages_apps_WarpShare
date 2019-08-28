@@ -23,12 +23,7 @@ public class ShareActivity extends BasePeersActivity {
     protected void handleItemClick(AirDropManager.Peer peer) {
         super.handleItemClick(peer);
         sendFile(peer, getIntent().getClipData());
-    }
-
-    @Override
-    protected void handleSendSucceed() {
-        super.handleSendSucceed();
-        finish();
+//        finish();
     }
 
 }
