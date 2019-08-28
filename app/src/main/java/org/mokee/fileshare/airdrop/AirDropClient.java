@@ -14,11 +14,12 @@ import org.apache.commons.compress.archivers.cpio.CpioArchiveEntry;
 import org.apache.commons.compress.archivers.cpio.CpioArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.jetbrains.annotations.NotNull;
+import org.mokee.fileshare.ResolvedUri;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.ParseException;
+import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
@@ -81,35 +82,28 @@ class AirDropClient {
         buffer.close();
     }
 
-    void post(final String url, String fileName, InputStream stream, AirDropClientCallback callback) {
-        final Buffer buffer = new Buffer();
+    void post(final String url, List<ResolvedUri> uris, AirDropClientCallback callback) {
         final Buffer archive = new Buffer();
 
-        try {
-            buffer.readFrom(stream);
-            stream.close();
-        } catch (IOException e) {
-            buffer.close();
-            callback.onFailure(e);
-            return;
-        }
+        try (final GzipCompressorOutputStream gzip = new GzipCompressorOutputStream(archive.outputStream());
+             final CpioArchiveOutputStream cpio = new CpioArchiveOutputStream(gzip, FORMAT_OLD_ASCII)) {
+            for (ResolvedUri uri : uris) {
+                final Buffer buffer = new Buffer();
+                buffer.readFrom(uri.stream());
+                final byte[] content = buffer.readByteArray();
+                buffer.close();
 
-        final byte[] content = buffer.readByteArray();
+                final CpioArchiveEntry entry = new CpioArchiveEntry(FORMAT_OLD_ASCII, uri.path, content.length);
+                entry.setMode(C_ISREG | C_IRUSR | C_IWUSR | C_IRGRP | C_IROTH);
 
-        try (final GzipCompressorOutputStream gzipStream = new GzipCompressorOutputStream(archive.outputStream());
-             final CpioArchiveOutputStream cpioStream = new CpioArchiveOutputStream(gzipStream, FORMAT_OLD_ASCII)) {
-            final CpioArchiveEntry entry = new CpioArchiveEntry(FORMAT_OLD_ASCII, "./" + fileName, content.length);
-            entry.setMode(C_ISREG | C_IRUSR | C_IWUSR | C_IRGRP | C_IROTH);
-            cpioStream.putArchiveEntry(entry);
-            cpioStream.write(content);
-            cpioStream.closeArchiveEntry();
-            cpioStream.finish();
+                cpio.putArchiveEntry(entry);
+                cpio.write(content);
+                cpio.closeArchiveEntry();
+            }
         } catch (IOException e) {
             archive.close();
             callback.onFailure(e);
             return;
-        } finally {
-            buffer.close();
         }
 
         post(url, RequestBody.create(

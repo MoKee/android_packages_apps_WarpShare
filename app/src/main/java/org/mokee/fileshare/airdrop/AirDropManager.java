@@ -10,9 +10,10 @@ import com.dd.plist.NSObject;
 
 import org.mokee.fileshare.ResolvedUri;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import okio.ByteString;
@@ -103,7 +104,7 @@ public class AirDropManager {
         mCallback.onAirDropPeerDisappeared(id);
     }
 
-    public void ask(final String id, ResolvedUri uri, final AskCallback callback) {
+    public void ask(final String id, List<ResolvedUri> uris, final AskCallback callback) {
         final String url = mPeers.get(id);
 
         final NSDictionary req = new NSDictionary();
@@ -112,14 +113,18 @@ public class AirDropManager {
         req.put("BundleID", "com.apple.finder");
         req.put("ConvertMediaFormats", false);
 
-        final NSDictionary file = new NSDictionary();
-        file.put("FileName", uri.name);
-        file.put("FileType", "public.content");
-        file.put("FileBomPath", uri.path);
-        file.put("FileIsDirectory", false);
-        file.put("ConvertMediaFormats", 0);
+        final List<NSDictionary> files = new ArrayList<>();
+        for (ResolvedUri uri : uris) {
+            final NSDictionary file = new NSDictionary();
+            file.put("FileName", uri.name);
+            file.put("FileType", "public.content");
+            file.put("FileBomPath", uri.path);
+            file.put("FileIsDirectory", false);
+            file.put("ConvertMediaFormats", 0);
+            files.add(file);
+        }
 
-        req.put("Files", new NSDictionary[]{file});
+        req.put("Files", files);
 
         mClient.post(url + "/Ask", req, new AirDropClient.AirDropClientCallback() {
             @Override
@@ -136,9 +141,9 @@ public class AirDropManager {
         });
     }
 
-    public void upload(final String id, ResolvedUri uri) throws FileNotFoundException {
+    public void upload(final String id, List<ResolvedUri> uris) {
         final String url = mPeers.get(id);
-        mClient.post(url + "/Upload", uri.name, uri.stream(), new AirDropClient.AirDropClientCallback() {
+        mClient.post(url + "/Upload", uris, new AirDropClient.AirDropClientCallback() {
             @Override
             public void onFailure(IOException e) {
                 Log.w(TAG, "Failed to upload: " + id, e);
