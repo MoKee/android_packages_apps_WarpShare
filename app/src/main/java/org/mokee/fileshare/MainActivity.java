@@ -20,6 +20,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.mokee.fileshare.airdrop.AirDropManager;
 
+import java.io.FileNotFoundException;
+
 public class MainActivity extends AppCompatActivity implements AirDropManager.Callback {
 
     private static final String TAG = "MainActivity";
@@ -106,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Ca
         }
     }
 
-    private void sendFile(String id, Uri uri) {
+    private void sendFile(final String id, final Uri uri) {
         Cursor cursor = getContentResolver().query(
                 uri, null, null, null, null);
 
@@ -126,8 +128,19 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Ca
             @Override
             public void onAskResult(boolean accepted) {
                 Log.d(TAG, "Accepted: " + accepted);
+                if (accepted) {
+                    upload(id, name, uri);
+                }
             }
         });
+    }
+
+    private void upload(String id, String name, Uri uri) {
+        try {
+            mAirDropManager.upload(id, name, getContentResolver().openInputStream(uri));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private class PeersAdapter extends RecyclerView.Adapter<PeersAdapter.ViewHolder> {

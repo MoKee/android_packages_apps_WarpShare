@@ -9,6 +9,7 @@ import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -112,6 +113,7 @@ public class AirDropManager {
         final NSDictionary file = new NSDictionary();
         file.put("FileName", fileName);
         file.put("FileType", "public.content");
+        file.put("FileBomPath", "./" + fileName);
         file.put("FileIsDirectory", false);
         file.put("ConvertMediaFormats", 0);
 
@@ -128,6 +130,20 @@ public class AirDropManager {
             public void onResponse(NSDictionary response) {
                 Log.d(TAG, "Ask accepted");
                 callback.onAskResult(true);
+            }
+        });
+    }
+
+    public void upload(final String id, String fileName, InputStream stream) {
+        final String url = mPeers.get(id);
+        mClient.post(url + "/Upload", fileName, stream, new AirDropClient.AirDropClientCallback() {
+            @Override
+            public void onFailure(IOException e) {
+                Log.w(TAG, "Failed to upload: " + id, e);
+            }
+
+            @Override
+            public void onResponse(NSDictionary response) {
             }
         });
     }

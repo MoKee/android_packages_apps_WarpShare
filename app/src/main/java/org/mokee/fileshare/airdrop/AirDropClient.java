@@ -10,10 +10,14 @@ import com.dd.plist.NSDictionary;
 import com.dd.plist.PropertyListFormatException;
 import com.dd.plist.PropertyListParser;
 
+import org.apache.commons.compress.archivers.cpio.CpioArchiveEntry;
+import org.apache.commons.compress.archivers.cpio.CpioArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 
 import javax.net.ssl.HostnameVerifier;
@@ -29,6 +33,13 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
+
+import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IRGRP;
+import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IROTH;
+import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IRUSR;
+import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_ISREG;
+import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IWUSR;
+import static org.apache.commons.compress.archivers.cpio.CpioConstants.FORMAT_OLD_ASCII;
 
 class AirDropClient {
 
@@ -53,7 +64,7 @@ class AirDropClient {
                 .build();
     }
 
-    void post(final String url, NSDictionary body, final AirDropClientCallback callback) {
+    void post(final String url, NSDictionary body, AirDropClientCallback callback) {
         final Buffer buffer = new Buffer();
 
         try {
@@ -63,11 +74,55 @@ class AirDropClient {
             return;
         }
 
+        post(url, RequestBody.create(
+                buffer.readByteString(), MediaType.get("application/octet-stream")),
+                callback);
+
+        buffer.close();
+    }
+
+    void post(final String url, String fileName, InputStream stream, AirDropClientCallback callback) {
+        final Buffer buffer = new Buffer();
+        final Buffer archive = new Buffer();
+
+        try {
+            buffer.readFrom(stream);
+            stream.close();
+        } catch (IOException e) {
+            buffer.close();
+            callback.onFailure(e);
+            return;
+        }
+
+        final byte[] content = buffer.readByteArray();
+
+        try (final GzipCompressorOutputStream gzipStream = new GzipCompressorOutputStream(archive.outputStream());
+             final CpioArchiveOutputStream cpioStream = new CpioArchiveOutputStream(gzipStream, FORMAT_OLD_ASCII)) {
+            final CpioArchiveEntry entry = new CpioArchiveEntry(FORMAT_OLD_ASCII, "./" + fileName, content.length);
+            entry.setMode(C_ISREG | C_IRUSR | C_IWUSR | C_IRGRP | C_IROTH);
+            cpioStream.putArchiveEntry(entry);
+            cpioStream.write(content);
+            cpioStream.closeArchiveEntry();
+            cpioStream.finish();
+        } catch (IOException e) {
+            archive.close();
+            callback.onFailure(e);
+            return;
+        } finally {
+            buffer.close();
+        }
+
+        post(url, RequestBody.create(
+                archive.readByteArray(), MediaType.get("application/x-cpio")),
+                callback);
+
+        archive.close();
+    }
+
+    private void post(final String url, RequestBody body, final AirDropClientCallback callback) {
         mHttpClient.newCall(new Request.Builder()
                 .url(url)
-                .post(RequestBody.create(
-                        buffer.readByteString(),
-                        MediaType.get("application/octet-stream")))
+                .post(body)
                 .build())
                 .enqueue(new Callback() {
                     @Override
@@ -102,7 +157,8 @@ class AirDropClient {
                 });
     }
 
-    private void postResponse(final AirDropClientCallback callback, final NSDictionary response) {
+    private void postResponse(final AirDropClientCallback callback,
+                              final NSDictionary response) {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
