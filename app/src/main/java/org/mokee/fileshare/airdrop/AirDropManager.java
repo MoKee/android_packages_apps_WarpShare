@@ -141,16 +141,18 @@ public class AirDropManager {
         });
     }
 
-    public void upload(final String id, List<ResolvedUri> uris) {
+    public void upload(final String id, List<ResolvedUri> uris, final UploadCallback callback) {
         final String url = mPeers.get(id);
         mClient.post(url + "/Upload", uris, new AirDropClient.AirDropClientCallback() {
             @Override
             public void onFailure(IOException e) {
                 Log.w(TAG, "Failed to upload: " + id, e);
+                callback.onUploadResult(false);
             }
 
             @Override
             public void onResponse(NSDictionary response) {
+                callback.onUploadResult(true);
             }
         });
     }
@@ -172,6 +174,12 @@ public class AirDropManager {
     public interface AskCallback {
 
         void onAskResult(boolean accepted);
+
+    }
+
+    public interface UploadCallback {
+
+        void onUploadResult(boolean done);
 
     }
 

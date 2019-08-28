@@ -3,4 +3,6 @@
 
     <style name="AppTheme" parent="Theme.MaterialComponents.Light" />
 
+    <style name="ShareTheme" parent="Theme.MaterialComponents.Light.Dialog" />
+
 </resources>
