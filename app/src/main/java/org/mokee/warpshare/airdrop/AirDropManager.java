@@ -10,7 +10,12 @@ import com.dd.plist.NSObject;
 import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,6 +35,7 @@ public class AirDropManager {
     private final AirDropNsdController mNsdController;
 
     private final AirDropClient mClient;
+    private final AirDropServer mServer;
 
     private final HashMap<String, Peer> mPeers = new HashMap<>();
 
@@ -45,6 +51,7 @@ public class AirDropManager {
         final AirDropTrustManager trustManager = new AirDropTrustManager(context);
 
         mClient = new AirDropClient(trustManager);
+        mServer = new AirDropServer(trustManager, mConfigManager);
     }
 
     public int ready() {
@@ -67,6 +74,45 @@ public class AirDropManager {
     public void stopDiscover() {
         mBleController.stop();
         mNsdController.stopDiscover();
+    }
+
+    public void startDiscoverable() {
+        final NetworkInterface iface;
+        try {
+            iface = NetworkInterface.getByName("wlan0");
+        } catch (SocketException e) {
+            Log.e(TAG, "Failed getting wlan0", e);
+            return;
+        }
+
+        Inet4Address address = null;
+        final Enumeration<InetAddress> addresses = iface.getInetAddresses();
+        while (addresses.hasMoreElements()) {
+            final InetAddress addr = addresses.nextElement();
+            if (addr instanceof Inet4Address) {
+                address = (Inet4Address) addr;
+                break;
+            }
+        }
+        if (address == null) {
+            Log.e(TAG, "No IPv4 address found on wlan0");
+            return;
+        }
+
+        final int port;
+        try {
+            port = mServer.start(address.getHostAddress());
+        } catch (IOException e) {
+            Log.e(TAG, "Failed starting server");
+            return;
+        }
+
+        mNsdController.publish(mConfigManager.getId(), address, port);
+    }
+
+    public void stopDiscoverable() {
+        mNsdController.unpublish();
+        mServer.stop();
     }
 
     void onServiceResolved(final String id, final String url) {
