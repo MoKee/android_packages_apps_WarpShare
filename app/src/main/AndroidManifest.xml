@@ -49,6 +49,8 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".ReceiverService" />
+
     </application>
 
 </manifest>
