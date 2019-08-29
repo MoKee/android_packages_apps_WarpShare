@@ -54,12 +54,14 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Ca
     protected void onResume() {
         super.onResume();
         mAirDropManager.startDiscover();
+        mAirDropManager.startDiscoverable();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mAirDropManager.stopDiscover();
+        mAirDropManager.stopDiscoverable();
     }
 
     @Override

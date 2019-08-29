@@ -10,9 +10,14 @@ import com.dd.plist.NSObject;
 import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 
@@ -34,8 +39,11 @@ public class AirDropManager {
     private final AirDropNsdController mNsdController;
 
     private final AirDropClient mClient;
+    private final AirDropServer mServer;
 
     private final HashMap<String, Peer> mPeers = new HashMap<>();
+
+    private InetAddress mLocalAddress;
 
     @SuppressLint("ApplySharedPref")
     public AirDropManager(Context context, Callback callback) {
@@ -49,6 +57,7 @@ public class AirDropManager {
         final AirDropTrustManager trustManager = new AirDropTrustManager(context);
 
         mClient = new AirDropClient(trustManager);
+        mServer = new AirDropServer(trustManager, mConfigManager);
     }
 
     public int ready() {
@@ -77,6 +86,27 @@ public class AirDropManager {
         mNsdController.stopDiscover();
     }
 
+    public void startDiscoverable() {
+        if (ready() != STATUS_OK) {
+            return;
+        }
+
+        final int port;
+        try {
+            port = mServer.start(mLocalAddress.getHostAddress());
+        } catch (IOException e) {
+            Log.e(TAG, "Failed starting server");
+            return;
+        }
+
+        mNsdController.publish(mConfigManager.getId(), mLocalAddress, port);
+    }
+
+    public void stopDiscoverable() {
+        mNsdController.unpublish();
+        mServer.stop();
+    }
+
     private boolean checkNetwork() {
         NetworkInterface iface = null;
         try {
@@ -89,6 +119,29 @@ public class AirDropManager {
 
         if (iface == null) {
             Log.e(TAG, "Cannot get " + INTERFACE_NAME);
+            return false;
+        }
+
+        final Enumeration<InetAddress> addresses = iface.getInetAddresses();
+        Inet6Address address6 = null;
+        Inet4Address address4 = null;
+        while (addresses.hasMoreElements()) {
+            final InetAddress address = addresses.nextElement();
+            if (address6 == null && address instanceof Inet6Address) {
+                try {
+                    // Recreate a non-scoped address since we are going to advertise it out
+                    address6 = (Inet6Address) Inet6Address.getByAddress(null, address.getAddress());
+                } catch (UnknownHostException ignored) {
+                }
+            } else if (address4 == null && address instanceof Inet4Address) {
+                address4 = (Inet4Address) address;
+            }
+        }
+
+        mLocalAddress = address4 != null ? address4 : address6;
+
+        if (mLocalAddress == null) {
+            Log.e(TAG, "No address on interface " + INTERFACE_NAME);
             return false;
         }
 
