@@ -2,7 +2,6 @@ package org.mokee.fileshare.airdrop;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.dd.plist.NSDictionary;
@@ -14,9 +13,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
-
-import okio.ByteString;
 
 public class AirDropManager {
 
@@ -28,12 +24,12 @@ public class AirDropManager {
 
     private final Callback mCallback;
 
+    private final AirDropConfigManager mConfigManager;
+
     private final AirDropBleController mBleController;
     private final AirDropNsdController mNsdController;
 
     private final AirDropClient mClient;
-
-    private final SharedPreferences mPref;
 
     private final HashMap<String, Peer> mPeers = new HashMap<>();
 
@@ -44,15 +40,11 @@ public class AirDropManager {
         mBleController = new AirDropBleController(context);
         mNsdController = new AirDropNsdController(context, this);
 
+        mConfigManager = new AirDropConfigManager(context, mBleController);
+
         final AirDropTrustManager trustManager = new AirDropTrustManager(context);
 
         mClient = new AirDropClient(trustManager);
-
-        mPref = context.getSharedPreferences("airdrop", Context.MODE_PRIVATE);
-        if (!mPref.contains("id")) {
-            mPref.edit().putString("id", generateId()).commit();
-            Log.d(TAG, "Generate id: " + mPref.getString("id", null));
-        }
     }
 
     public int ready() {
@@ -111,8 +103,8 @@ public class AirDropManager {
 
     public void ask(final Peer peer, List<ResolvedUri> uris, final AskCallback callback) {
         final NSDictionary req = new NSDictionary();
-        req.put("SenderID", mPref.getString("id", null));
-        req.put("SenderComputerName", mBleController.getName());
+        req.put("SenderID", mConfigManager.getId());
+        req.put("SenderComputerName", mConfigManager.getName());
         req.put("BundleID", "com.apple.finder");
         req.put("ConvertMediaFormats", false);
 
@@ -157,12 +149,6 @@ public class AirDropManager {
                 callback.onUploadResult(true);
             }
         });
-    }
-
-    private String generateId() {
-        byte[] id = new byte[6];
-        new Random().nextBytes(id);
-        return ByteString.of(id).hex();
     }
 
     public class Peer {
