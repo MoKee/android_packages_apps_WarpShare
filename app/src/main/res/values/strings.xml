@@ -21,4 +21,9 @@
     <string name="toast_completed">Files sent</string>
     <string name="toast_rejected">Device rejected</string>
 
+    <string name="notification_channel">Receiver actions</string>
+
+    <string name="notification_receiver_running">WarpShare is active</string>
+    <string name="notification_receiver_description">Your devices is now discoverable by people nearby</string>
+
 </resources>
