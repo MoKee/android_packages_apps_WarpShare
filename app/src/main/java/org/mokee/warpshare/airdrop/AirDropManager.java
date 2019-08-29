@@ -1,18 +1,27 @@
 package org.mokee.warpshare.airdrop;
 
+import android.app.Service;
 import android.content.Context;
 import android.util.Log;
 
+import com.dd.plist.NSArray;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 
 import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import okio.Buffer;
@@ -25,6 +34,8 @@ public class AirDropManager {
 
     private static final String TAG = "AirDropManager";
 
+    private static final int MOKEE_API_VERSION = 1;
+
     private static final String INTERFACE_NAME = "wlan0";
 
     private final AirDropConfigManager mConfigManager;
@@ -33,20 +44,27 @@ public class AirDropManager {
     private final AirDropNsdController mNsdController;
 
     private final AirDropClient mClient;
+    private final AirDropServer mServer;
 
     private final HashMap<String, Peer> mPeers = new HashMap<>();
 
     private DiscoveryListener mDiscoveryListener;
+    private ReceiverListener mReceiverListener;
+
+    private InetAddress mLocalAddress;
+
+    private String mReceivingIp = null;
+    private List<String> mReceivingFiles = null;
 
     public AirDropManager(Context context) {
         mBleController = new AirDropBleController(context);
-        mNsdController = new AirDropNsdController(context, this);
-
         mConfigManager = new AirDropConfigManager(context, mBleController);
+        mNsdController = new AirDropNsdController(context, mConfigManager, this);
 
         final AirDropTrustManager trustManager = new AirDropTrustManager(context);
 
         mClient = new AirDropClient(trustManager);
+        mServer = new AirDropServer(trustManager, this);
     }
 
     public int ready() {
@@ -77,6 +95,27 @@ public class AirDropManager {
         mNsdController.stopDiscover();
     }
 
+    public void startDiscoverable(ReceiverListener receiverListener) {
+        if (ready() != STATUS_OK) {
+            return;
+        }
+
+        mReceiverListener = receiverListener;
+
+        final int port = mServer.start(mLocalAddress.getHostAddress());
+
+        mNsdController.publish(mLocalAddress, port);
+    }
+
+    public void stopDiscoverable() {
+        mNsdController.unpublish();
+        mServer.stop();
+    }
+
+    public void registerTrigger(Class<? extends Service> receiverService) {
+        mBleController.registerTrigger(receiverService);
+    }
+
     private boolean checkNetwork() {
         NetworkInterface iface = null;
         try {
@@ -89,6 +128,29 @@ public class AirDropManager {
 
         if (iface == null) {
             Log.e(TAG, "Cannot get " + INTERFACE_NAME);
+            return false;
+        }
+
+        final Enumeration<InetAddress> addresses = iface.getInetAddresses();
+        Inet6Address address6 = null;
+        Inet4Address address4 = null;
+        while (addresses.hasMoreElements()) {
+            final InetAddress address = addresses.nextElement();
+            if (address6 == null && address instanceof Inet6Address) {
+                try {
+                    // Recreate a non-scoped address since we are going to advertise it out
+                    address6 = (Inet6Address) Inet6Address.getByAddress(null, address.getAddress());
+                } catch (UnknownHostException ignored) {
+                }
+            } else if (address4 == null && address instanceof Inet4Address) {
+                address4 = (Inet4Address) address;
+            }
+        }
+
+        mLocalAddress = address4 != null ? address4 : address6;
+
+        if (mLocalAddress == null) {
+            Log.e(TAG, "No address on interface " + INTERFACE_NAME);
             return false;
         }
 
@@ -112,7 +174,13 @@ public class AirDropManager {
                     return;
                 }
 
-                final Peer peer = new Peer(id, nameNode.toJavaObject(String.class), url);
+                int mokeeVersion = 0;
+                NSObject mokeeNode = response.get("ReceiverMokeeApi");
+                if (mokeeNode != null) {
+                    mokeeVersion = mokeeNode.toJavaObject(Integer.class);
+                }
+
+                final Peer peer = new Peer(id, nameNode.toJavaObject(String.class), url, mokeeVersion);
                 mPeers.put(id, peer);
 
                 mDiscoveryListener.onAirDropPeerFound(peer);
@@ -187,6 +255,100 @@ public class AirDropManager {
         });
     }
 
+    void handleDiscover(String ip, NSDictionary request, AirDropServer.ResultCallback callback) {
+        final NSDictionary response = new NSDictionary();
+        response.put("ReceiverComputerName", mConfigManager.getName());
+        response.put("ReceiverMokeeApi", MOKEE_API_VERSION);
+        callback.call(response);
+    }
+
+    void handleAsk(final String ip, NSDictionary request, final AirDropServer.ResultCallback callback) {
+        final NSObject nameNode = request.get("SenderComputerName");
+        if (nameNode == null) {
+            Log.w(TAG, "Invalid ask from " + ip + ": Missing SenderComputerName");
+            callback.call(null);
+            return;
+        }
+
+        final NSObject filesNode = request.get("Files");
+        if (filesNode == null) {
+            Log.w(TAG, "Invalid ask from " + ip + ": Missing Files");
+            callback.call(null);
+            return;
+        } else if (!(filesNode instanceof NSArray)) {
+            Log.w(TAG, "Invalid ask from " + ip + ": Files is not a array");
+            callback.call(null);
+            return;
+        }
+
+        final NSObject[] files = ((NSArray) filesNode).getArray();
+        final List<String> fileNames = new ArrayList<>();
+        final List<String> filePaths = new ArrayList<>();
+        for (NSObject file : files) {
+            final NSDictionary fileNode = (NSDictionary) file;
+            final NSObject fileNameNode = fileNode.get("FileName");
+            final NSObject filePathNode = fileNode.get("FileBomPath");
+            if (fileNameNode != null && filePathNode != null) {
+                fileNames.add(fileNameNode.toJavaObject(String.class));
+                filePaths.add(filePathNode.toJavaObject(String.class));
+            }
+        }
+
+        if (fileNames.isEmpty()) {
+            Log.w(TAG, "Invalid ask from " + ip + ": No file asked");
+            callback.call(null);
+            return;
+        }
+
+        final String name = nameNode.toJavaObject(String.class);
+
+        mReceiverListener.onAirDropRequest(name, fileNames, new ReceiverAcceptCallback() {
+            @Override
+            public void accept() {
+                final NSDictionary response = new NSDictionary();
+                response.put("ReceiverModelName", "Android");
+                response.put("ReceiverComputerName", mConfigManager.getName());
+
+                mReceivingIp = ip;
+                mReceivingFiles = filePaths;
+
+                callback.call(response);
+            }
+
+            @Override
+            public void reject() {
+                callback.call(null);
+            }
+        });
+    }
+
+    void handleUpload(String ip, InputStream stream, AirDropServer.ResultCallback callback) {
+        if (mReceivingIp == null || mReceivingFiles == null) {
+            Log.w(TAG, "Not in transferring state");
+            callback.call(null);
+            return;
+        }
+
+        if (!mReceivingIp.equals(ip)) {
+            Log.w(TAG, "Not the accepted IP");
+            callback.call(null);
+            return;
+        }
+
+        try {
+            AirDropArchiveUtil.unpack(stream, new HashSet<>(mReceivingFiles), new AirDropArchiveUtil.FileFactory() {
+                @Override
+                public void onFile(String name, InputStream input) {
+                    mReceiverListener.onAirDropTransfer(name, input);
+                }
+            });
+            callback.call(new NSDictionary());
+        } catch (IOException e) {
+            Log.e(TAG, "Failed receiving files", e);
+            callback.call(null);
+        }
+    }
+
     public interface DiscoveryListener {
 
         void onAirDropPeerFound(Peer peer);
@@ -207,17 +369,35 @@ public class AirDropManager {
 
     }
 
+    public interface ReceiverListener {
+
+        void onAirDropRequest(String name, List<String> fileNames, ReceiverAcceptCallback callback);
+
+        void onAirDropTransfer(String fileName, InputStream input);
+
+    }
+
+    public interface ReceiverAcceptCallback {
+
+        void accept();
+
+        void reject();
+
+    }
+
     public class Peer {
 
         public final String id;
         public final String name;
+        public final int mokeeVersion;
 
         final String url;
 
-        Peer(String id, String name, String url) {
+        Peer(String id, String name, String url, int mokeeVersion) {
             this.id = id;
             this.name = name;
             this.url = url;
+            this.mokeeVersion = mokeeVersion;
         }
 
     }
