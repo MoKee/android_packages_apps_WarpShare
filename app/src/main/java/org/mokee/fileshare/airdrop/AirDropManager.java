@@ -44,7 +44,9 @@ public class AirDropManager {
         mBleController = new AirDropBleController(context);
         mNsdController = new AirDropNsdController(context, this);
 
-        mClient = new AirDropClient(context);
+        final AirDropTrustManager trustManager = new AirDropTrustManager(context);
+
+        mClient = new AirDropClient(trustManager);
 
         mPref = context.getSharedPreferences("airdrop", Context.MODE_PRIVATE);
         if (!mPref.contains("id")) {

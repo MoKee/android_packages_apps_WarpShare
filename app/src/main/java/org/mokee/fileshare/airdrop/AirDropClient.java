@@ -1,7 +1,6 @@
 package org.mokee.fileshare.airdrop;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -50,9 +49,7 @@ class AirDropClient {
 
     private OkHttpClient mHttpClient;
 
-    AirDropClient(Context context) {
-        final AirDropTrustManager trustManager = new AirDropTrustManager(context);
-
+    AirDropClient(AirDropTrustManager trustManager) {
         mHttpClient = new OkHttpClient.Builder()
                 .sslSocketFactory(trustManager.getSslSocketFactory(), trustManager.getTrustManager())
                 .hostnameVerifier(new HostnameVerifier() {
