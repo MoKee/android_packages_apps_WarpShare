@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
 
     defaultConfig {
-        applicationId "org.mokee.fileshare"
+        applicationId "org.mokee.warpshare"
 
         minSdkVersion 28
         targetSdkVersion 28

@@ -1,4 +1,4 @@
-package org.mokee.fileshare;
+package org.mokee.warpshare;
 
 import android.content.ClipData;
 import android.content.Context;
@@ -17,7 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.mokee.fileshare.airdrop.AirDropManager;
+import org.mokee.warpshare.airdrop.AirDropManager;
 
 import java.util.ArrayList;
 import java.util.List;

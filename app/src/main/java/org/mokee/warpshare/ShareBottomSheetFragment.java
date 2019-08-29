@@ -1,4 +1,4 @@
-package org.mokee.fileshare;
+package org.mokee.warpshare;
 
 import android.app.Activity;
 import android.content.ClipData;
@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
-import org.mokee.fileshare.airdrop.AirDropManager;
+import org.mokee.warpshare.airdrop.AirDropManager;
 
 import java.util.ArrayList;
 import java.util.List;

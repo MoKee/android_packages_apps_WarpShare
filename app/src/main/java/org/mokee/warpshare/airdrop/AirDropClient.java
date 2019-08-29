@@ -1,4 +1,4 @@
-package org.mokee.fileshare.airdrop;
+package org.mokee.warpshare.airdrop;
 
 import android.annotation.SuppressLint;
 import android.os.Handler;
@@ -13,7 +13,7 @@ import org.apache.commons.compress.archivers.cpio.CpioArchiveEntry;
 import org.apache.commons.compress.archivers.cpio.CpioArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.jetbrains.annotations.NotNull;
-import org.mokee.fileshare.ResolvedUri;
+import org.mokee.warpshare.ResolvedUri;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;

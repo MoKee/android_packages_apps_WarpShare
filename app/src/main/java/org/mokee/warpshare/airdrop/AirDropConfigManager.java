@@ -1,4 +1,4 @@
-package org.mokee.fileshare.airdrop;
+package org.mokee.warpshare.airdrop;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">File Share</string>
+    <string name="app_name">WarpShare</string>
 
     <string name="select_to_share">Select a device to share…</string>
 

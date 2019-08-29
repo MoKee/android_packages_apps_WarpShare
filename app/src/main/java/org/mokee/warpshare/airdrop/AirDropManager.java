@@ -1,4 +1,4 @@
-package org.mokee.fileshare.airdrop;
+package org.mokee.warpshare.airdrop;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -7,7 +7,7 @@ import android.util.Log;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 
-import org.mokee.fileshare.ResolvedUri;
+import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
 import java.util.ArrayList;

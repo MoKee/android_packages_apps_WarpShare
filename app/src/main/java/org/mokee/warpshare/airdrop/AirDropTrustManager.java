@@ -1,8 +1,8 @@
-package org.mokee.fileshare.airdrop;
+package org.mokee.warpshare.airdrop;
 
 import android.content.Context;
 
-import org.mokee.fileshare.R;
+import org.mokee.warpshare.R;
 
 import java.io.IOException;
 import java.io.InputStream;

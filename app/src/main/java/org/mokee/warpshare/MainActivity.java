@@ -1,10 +1,10 @@
-package org.mokee.fileshare;
+package org.mokee.warpshare;
 
 import android.content.Intent;
 
 import androidx.annotation.Nullable;
 
-import org.mokee.fileshare.airdrop.AirDropManager;
+import org.mokee.warpshare.airdrop.AirDropManager;
 
 public class MainActivity extends BasePeersActivity {
 
