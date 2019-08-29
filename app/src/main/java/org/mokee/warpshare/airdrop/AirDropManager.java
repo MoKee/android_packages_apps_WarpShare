@@ -1,5 +1,6 @@
 package org.mokee.warpshare.airdrop;
 
+import android.app.Service;
 import android.content.Context;
 import android.util.Log;
 
@@ -9,9 +10,14 @@ import com.dd.plist.NSObject;
 import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,20 +37,23 @@ public class AirDropManager {
     private final AirDropNsdController mNsdController;
 
     private final AirDropClient mClient;
+    private final AirDropServer mServer;
 
     private final HashMap<String, Peer> mPeers = new HashMap<>();
 
     private DiscoveryListener mDiscoveryListener;
 
+    private InetAddress mLocalAddress;
+
     public AirDropManager(Context context) {
         mBleController = new AirDropBleController(context);
-        mNsdController = new AirDropNsdController(context, this);
-
         mConfigManager = new AirDropConfigManager(context, mBleController);
+        mNsdController = new AirDropNsdController(context, mConfigManager, this);
 
         final AirDropTrustManager trustManager = new AirDropTrustManager(context);
 
         mClient = new AirDropClient(trustManager);
+        mServer = new AirDropServer(trustManager, mConfigManager);
     }
 
     public int ready() {
@@ -75,6 +84,31 @@ public class AirDropManager {
         mNsdController.stopDiscover();
     }
 
+    public void startDiscoverable() {
+        if (ready() != STATUS_OK) {
+            return;
+        }
+
+        final int port;
+        try {
+            port = mServer.start(mLocalAddress.getHostAddress());
+        } catch (IOException e) {
+            Log.e(TAG, "Failed starting server");
+            return;
+        }
+
+        mNsdController.publish(mLocalAddress, port);
+    }
+
+    public void stopDiscoverable() {
+        mNsdController.unpublish();
+        mServer.stop();
+    }
+
+    public void registerTrigger(Class<? extends Service> receiverService) {
+        mBleController.registerTrigger(receiverService);
+    }
+
     private boolean checkNetwork() {
         NetworkInterface iface = null;
         try {
@@ -87,6 +121,29 @@ public class AirDropManager {
 
         if (iface == null) {
             Log.e(TAG, "Cannot get " + INTERFACE_NAME);
+            return false;
+        }
+
+        final Enumeration<InetAddress> addresses = iface.getInetAddresses();
+        Inet6Address address6 = null;
+        Inet4Address address4 = null;
+        while (addresses.hasMoreElements()) {
+            final InetAddress address = addresses.nextElement();
+            if (address6 == null && address instanceof Inet6Address) {
+                try {
+                    // Recreate a non-scoped address since we are going to advertise it out
+                    address6 = (Inet6Address) Inet6Address.getByAddress(null, address.getAddress());
+                } catch (UnknownHostException ignored) {
+                }
+            } else if (address4 == null && address instanceof Inet4Address) {
+                address4 = (Inet4Address) address;
+            }
+        }
+
+        mLocalAddress = address4 != null ? address4 : address6;
+
+        if (mLocalAddress == null) {
+            Log.e(TAG, "No address on interface " + INTERFACE_NAME);
             return false;
         }
 
@@ -110,7 +167,13 @@ public class AirDropManager {
                     return;
                 }
 
-                final Peer peer = new Peer(id, nameNode.toJavaObject(String.class), url);
+                int mokeeVersion = 0;
+                NSObject mokeeNode = response.get("ReceiverMokeeApi");
+                if (mokeeNode != null) {
+                    mokeeVersion = mokeeNode.toJavaObject(Integer.class);
+                }
+
+                final Peer peer = new Peer(id, nameNode.toJavaObject(String.class), url, mokeeVersion);
                 mPeers.put(id, peer);
 
                 mDiscoveryListener.onAirDropPeerFound(peer);
@@ -199,13 +262,15 @@ public class AirDropManager {
 
         public final String id;
         public final String name;
+        public final int mokeeVersion;
 
         final String url;
 
-        Peer(String id, String name, String url) {
+        Peer(String id, String name, String url, int mokeeVersion) {
             this.id = id;
             this.name = name;
             this.url = url;
+            this.mokeeVersion = mokeeVersion;
         }
 
     }
