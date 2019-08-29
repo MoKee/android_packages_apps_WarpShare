@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         setContentView(R.layout.activity_main);
 
         mAirDropManager = new AirDropManager(this);
+        mAirDropManager.registerTrigger(ReceiverService.class);
 
         mAdapter = new PeersAdapter(this);
 
