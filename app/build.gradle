@@ -20,6 +20,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'com.squareup.okio:okio:2.4.0'
     implementation 'com.koushikdutta.async:androidasync:2.2.1'
+    implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'com.googlecode.plist:dd-plist:1.22'
     implementation 'org.apache.commons:commons-compress:1.19'
 }

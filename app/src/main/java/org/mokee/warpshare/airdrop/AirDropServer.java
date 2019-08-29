@@ -1,0 +1,252 @@
+package org.mokee.warpshare.airdrop;
+
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+
+import com.dd.plist.NSDictionary;
+import com.dd.plist.PropertyListParser;
+import com.koushikdutta.async.AsyncNetworkSocket;
+import com.koushikdutta.async.AsyncSSLSocketWrapper;
+import com.koushikdutta.async.ByteBufferList;
+import com.koushikdutta.async.DataEmitter;
+import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.http.server.AsyncHttpServer;
+import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
+import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
+import com.koushikdutta.async.http.server.HttpServerRequestCallback;
+import com.koushikdutta.async.http.server.UnknownRequestBody;
+
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+
+import okio.Buffer;
+
+class AirDropServer {
+
+    private static final String TAG = "AirDropServer";
+
+    private static final int PORT = 8770;
+
+    private static final String MIME_OCTET_STREAM = "application/octet-stream";
+
+    private final AirDropTrustManager mTrustManager;
+    private final AirDropManager mParent;
+
+    private AsyncHttpServer mServer;
+
+    AirDropServer(AirDropTrustManager trustManager, AirDropManager parent) {
+        mTrustManager = trustManager;
+        mParent = parent;
+    }
+
+    int start(String host) {
+        mServer = new AsyncHttpServer();
+        mServer.listenSecure(PORT, mTrustManager.getSSLContext());
+        mServer.post("/Discover", new NSDictionaryHttpServerRequestCallback() {
+            @Override
+            protected void onRequest(InetAddress remote, NSDictionary request, NSDictionaryHttpServerResponse response) {
+                handleDiscover(remote, request, response);
+            }
+        });
+        mServer.post("/Ask", new NSDictionaryHttpServerRequestCallback() {
+            @Override
+            protected void onRequest(InetAddress remote, NSDictionary request, NSDictionaryHttpServerResponse response) {
+                handleAsk(remote, request, response);
+            }
+        });
+        mServer.post("/Upload", new InputStreamHttpServerRequestCallback() {
+            @Override
+            protected NSDictionary onRequest(InetAddress remote, InputStream input) {
+                return handleUpload(remote, input);
+            }
+        });
+        Log.d(TAG, "Server running at " + host + ":" + PORT);
+        return PORT;
+    }
+
+    void stop() {
+        mServer.stop();
+    }
+
+    private void handleDiscover(InetAddress remote, NSDictionary request, final NSDictionaryHttpServerResponse response) {
+        mParent.handleDiscover(remote.getHostAddress(), request, new ResultCallback() {
+            @Override
+            public void call(NSDictionary result) {
+                if (result != null) {
+                    response.send(result);
+                } else {
+                    response.send(401);
+                }
+            }
+        });
+    }
+
+    private void handleAsk(InetAddress remote, NSDictionary request, final NSDictionaryHttpServerResponse response) {
+        mParent.handleAsk(remote.getHostAddress(), request, new ResultCallback() {
+            @Override
+            public void call(NSDictionary result) {
+                if (result != null) {
+                    response.send(result);
+                } else {
+                    response.send(401);
+                }
+            }
+        });
+    }
+
+    private NSDictionary handleUpload(final InetAddress remote, final InputStream stream) {
+        final AtomicReference<NSDictionary> ref = new AtomicReference<>();
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        mParent.handleUpload(remote.getHostAddress(), stream, new ResultCallback() {
+            @Override
+            public void call(NSDictionary result) {
+                ref.set(result);
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            return null;
+        }
+
+        return ref.get();
+    }
+
+    public interface ResultCallback {
+
+        void call(NSDictionary result);
+
+    }
+
+    private interface NSDictionaryHttpServerResponse {
+
+        void send(int code);
+
+        void send(NSDictionary response);
+
+    }
+
+    private abstract class NSDictionaryHttpServerRequestCallback implements HttpServerRequestCallback {
+
+        @Override
+        public final void onRequest(final AsyncHttpServerRequest request, final AsyncHttpServerResponse response) {
+            Log.d(TAG, "Request: " + request.getMethod() + " " + request.getPath());
+
+            final AsyncSSLSocketWrapper socketWrapper = (AsyncSSLSocketWrapper) request.getSocket();
+            final AsyncNetworkSocket socket = (AsyncNetworkSocket) socketWrapper.getSocket();
+            final InetAddress address = socket.getRemoteAddress().getAddress();
+
+            final UnknownRequestBody body = (UnknownRequestBody) request.getBody();
+            final DataEmitter emitter = body.getEmitter();
+
+            final Buffer buffer = new Buffer();
+
+            emitter.setDataCallback(new DataCallback() {
+                @Override
+                public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
+                    buffer.write(bb.getAllByteArray());
+                }
+            });
+
+            emitter.setEndCallback(new CompletedCallback() {
+                @Override
+                public void onCompleted(Exception ex) {
+                    buffer.flush();
+
+                    if (ex != null) {
+                        Log.e(TAG, "Failed receiving request", ex);
+                        buffer.close();
+                        response.code(500).end();
+                        return;
+                    }
+
+                    final NSDictionary req;
+                    try {
+                        req = (NSDictionary) PropertyListParser.parse(buffer.readByteArray());
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed deserializing request", e);
+                        response.code(500).end();
+                        return;
+                    } finally {
+                        buffer.close();
+                    }
+
+                    onRequest(address, req, new NSDictionaryHttpServerResponse() {
+                        @Override
+                        public void send(int code) {
+                            response.code(code).end();
+                        }
+
+                        @Override
+                        public void send(NSDictionary res) {
+                            try {
+                                final Buffer buffer = new Buffer();
+                                PropertyListParser.saveAsBinary(res, buffer.outputStream());
+                                response.send(MIME_OCTET_STREAM, buffer.readByteArray());
+                            } catch (Exception e) {
+                                Log.e(TAG, "Failed serializing response", e);
+                                response.code(500).end();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        protected abstract void onRequest(InetAddress remote, NSDictionary request, NSDictionaryHttpServerResponse response);
+
+    }
+
+    private abstract class InputStreamHttpServerRequestCallback implements HttpServerRequestCallback {
+
+        @Override
+        public final void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
+            Log.d(TAG, "Request: " + request.getMethod() + " " + request.getPath());
+
+            final AsyncSSLSocketWrapper socketWrapper = (AsyncSSLSocketWrapper) request.getSocket();
+            final AsyncNetworkSocket socket = (AsyncNetworkSocket) socketWrapper.getSocket();
+            final InetAddress address = socket.getRemoteAddress().getAddress();
+
+            final UnknownRequestBody body = (UnknownRequestBody) request.getBody();
+            final DataEmitter emitter = body.getEmitter();
+
+            final Buffer buffer = new Buffer();
+
+            emitter.setDataCallback(new DataCallback() {
+                @Override
+                public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
+                    buffer.write(bb.getAllByteArray());
+                }
+            });
+
+            emitter.setEndCallback(new CompletedCallback() {
+                @Override
+                public void onCompleted(Exception ex) {
+                    buffer.flush();
+                }
+            });
+
+            final NSDictionary res = onRequest(address, buffer.inputStream());
+
+            buffer.close();
+
+            if (res == null) {
+                response.code(401).end();
+                return;
+            }
+
+            response.end();
+        }
+
+        protected abstract NSDictionary onRequest(InetAddress remote, InputStream input);
+
+    }
+
+}

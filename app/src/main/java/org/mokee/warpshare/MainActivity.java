@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         setContentView(R.layout.activity_main);
 
         mAirDropManager = new AirDropManager(this);
+        mAirDropManager.registerTrigger(ReceiverService.class);
 
         mAdapter = new PeersAdapter(this);
 
@@ -226,6 +228,11 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             } else {
                 holder.itemView.setEnabled(true);
             }
+            if (peer.mokeeVersion > 0) {
+                holder.iconView.setImageResource(R.drawable.ic_phone_android_24dp);
+            } else {
+                holder.iconView.setImageResource(R.drawable.ic_mac_24dp);
+            }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -241,11 +248,13 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
         class ViewHolder extends RecyclerView.ViewHolder {
 
+            ImageView iconView;
             TextView nameView;
             TextView statusView;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
+                iconView = itemView.findViewById(R.id.icon);
                 nameView = itemView.findViewById(R.id.name);
                 statusView = itemView.findViewById(R.id.status);
             }
