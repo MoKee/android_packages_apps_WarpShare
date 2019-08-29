@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -152,6 +153,10 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     }
 
     private void handleItemClick(AirDropManager.Peer peer) {
+        if (mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
+            return;
+        }
+        mPeerStatus = 0;
         if (peer.id.equals(mPeerPicked)) {
             mPeerPicked = null;
             mSendButton.setEnabled(false);
@@ -248,10 +253,10 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             } else {
                 holder.statusView.setVisibility(View.GONE);
             }
-            if (selected && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
-                holder.itemView.setEnabled(false);
+            if (peer.mokeeVersion > 0) {
+                holder.iconView.setImageResource(R.drawable.ic_phone_android_24dp);
             } else {
-                holder.itemView.setEnabled(true);
+                holder.iconView.setImageResource(R.drawable.ic_mac_24dp);
             }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -268,11 +273,13 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
         class ViewHolder extends RecyclerView.ViewHolder {
 
+            ImageView iconView;
             TextView nameView;
             TextView statusView;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
+                iconView = itemView.findViewById(R.id.icon);
                 nameView = itemView.findViewById(R.id.name);
                 statusView = itemView.findViewById(R.id.status);
             }
