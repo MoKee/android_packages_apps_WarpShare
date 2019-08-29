@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.util.Locale;
 
 import static android.content.Context.NSD_SERVICE;
@@ -17,6 +18,9 @@ class AirDropNsdController {
     private static final String TAG = "AirDropNsdController";
 
     private static final String SERVICE_TYPE = "_airdrop._tcp";
+
+    private static final int FLAG_SUPPORTS_MIXED_TYPES = 0x08;
+    private static final int FLAG_SUPPORTS_DISCOVER_MAYBE = 0x80;
 
     private final NsdManager mNsdManager;
     private final AirDropManager mParent;
@@ -51,6 +55,24 @@ class AirDropNsdController {
         }
     };
 
+    private final NsdManager.RegistrationListener mRegistrationListener = new NsdManager.RegistrationListener() {
+        @Override
+        public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+        }
+
+        @Override
+        public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+        }
+
+        @Override
+        public void onServiceRegistered(NsdServiceInfo serviceInfo) {
+        }
+
+        @Override
+        public void onServiceUnregistered(NsdServiceInfo serviceInfo) {
+        }
+    };
+
     AirDropNsdController(Context context, AirDropManager parent) {
         mNsdManager = (NsdManager) context.getSystemService(NSD_SERVICE);
         mParent = parent;
@@ -62,6 +84,21 @@ class AirDropNsdController {
 
     void stopDiscover() {
         mNsdManager.stopServiceDiscovery(mDiscoveryListener);
+    }
+
+    void publish(String id, InetAddress address, int port) {
+        final NsdServiceInfo serviceInfo = new NsdServiceInfo();
+        serviceInfo.setServiceName(id);
+        serviceInfo.setServiceType(SERVICE_TYPE);
+        serviceInfo.setHost(address);
+        serviceInfo.setPort(port);
+        serviceInfo.setAttribute("flags", "" + (FLAG_SUPPORTS_MIXED_TYPES | FLAG_SUPPORTS_DISCOVER_MAYBE));
+        Log.d(TAG, "Publishing " + serviceInfo);
+        mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
+    }
+
+    void unpublish() {
+        mNsdManager.unregisterService(mRegistrationListener);
     }
 
     private void handleServiceFound(NsdServiceInfo serviceInfo) {

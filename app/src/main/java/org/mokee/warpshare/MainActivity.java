@@ -42,4 +42,16 @@ public class MainActivity extends BasePeersActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mAirDropManager.startDiscoverable();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mAirDropManager.stopDiscoverable();
+    }
+
 }
