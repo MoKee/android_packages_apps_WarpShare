@@ -36,6 +36,7 @@ public class AirDropManager {
     private final AirDropNsdController mNsdController;
 
     private final AirDropClient mClient;
+    private final AirDropServer mServer;
 
     private final HashMap<String, Peer> mPeers = new HashMap<>();
 
@@ -53,6 +54,7 @@ public class AirDropManager {
         final AirDropTrustManager trustManager = new AirDropTrustManager(context);
 
         mClient = new AirDropClient(trustManager);
+        mServer = new AirDropServer(trustManager, mConfigManager);
     }
 
     public int ready() {
@@ -79,6 +81,27 @@ public class AirDropManager {
     public void stopDiscover() {
         mBleController.stop();
         mNsdController.stopDiscover();
+    }
+
+    public void startDiscoverable() {
+        if (ready() != STATUS_OK) {
+            return;
+        }
+
+        final int port;
+        try {
+            port = mServer.start(mLocalAddress.getHostAddress());
+        } catch (IOException e) {
+            Log.e(TAG, "Failed starting server");
+            return;
+        }
+
+        mNsdController.publish(mConfigManager.getId(), mLocalAddress, port);
+    }
+
+    public void stopDiscoverable() {
+        mNsdController.unpublish();
+        mServer.stop();
     }
 
     private boolean checkNetwork() {

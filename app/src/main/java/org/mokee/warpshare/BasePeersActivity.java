@@ -33,7 +33,7 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
     protected String mPeerPicked = null;
     private int mPeerStatus = 0;
 
-    private AirDropManager mAirDropManager;
+    protected AirDropManager mAirDropManager;
 
     @LayoutRes
     protected abstract int provideContentViewId();
