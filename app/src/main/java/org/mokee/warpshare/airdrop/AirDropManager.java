@@ -10,7 +10,11 @@ import com.dd.plist.NSObject;
 import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,6 +26,8 @@ public class AirDropManager {
     public static final int STATUS_NO_BLUETOOTH = 1;
     public static final int STATUS_NO_WIFI = 2;
 
+    private static final String INTERFACE_NAME = "wlan0";
+
     private final Callback mCallback;
 
     private final AirDropConfigManager mConfigManager;
@@ -32,6 +38,8 @@ public class AirDropManager {
     private final AirDropClient mClient;
 
     private final HashMap<String, Peer> mPeers = new HashMap<>();
+
+    private InetAddress mLocalAddress;
 
     @SuppressLint("ApplySharedPref")
     public AirDropManager(Context context, Callback callback) {
@@ -52,6 +60,10 @@ public class AirDropManager {
             return STATUS_NO_BLUETOOTH;
         }
 
+        if (!checkNetwork()) {
+            return STATUS_NO_WIFI;
+        }
+
         return STATUS_OK;
     }
 
@@ -67,6 +79,36 @@ public class AirDropManager {
     public void stopDiscover() {
         mBleController.stop();
         mNsdController.stopDiscover();
+    }
+
+    private boolean checkNetwork() {
+        NetworkInterface iface = null;
+        try {
+            iface = NetworkInterface.getByName(INTERFACE_NAME);
+        } catch (SocketException e) {
+            Log.e(TAG, "Failed getting " + INTERFACE_NAME, e);
+        }
+
+        mClient.setNetworkInterface(iface);
+
+        if (iface == null) {
+            Log.e(TAG, "Cannot get " + INTERFACE_NAME);
+            return false;
+        }
+
+        final Enumeration<InetAddress> addresses = iface.getInetAddresses();
+        if (addresses.hasMoreElements()) {
+            mLocalAddress = addresses.nextElement();
+        } else {
+            mLocalAddress = null;
+        }
+
+        if (mLocalAddress == null) {
+            Log.e(TAG, "No address on interface " + INTERFACE_NAME);
+            return false;
+        }
+
+        return true;
     }
 
     void onServiceResolved(final String id, final String url) {
