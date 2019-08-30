@@ -52,6 +52,10 @@ class AirDropServer {
         final NSDictionary response = new NSDictionary();
         response.put("ReceiverComputerName", mConfigManager.getName());
 
+        response.put("ReceiverMediaCapabilities", "{\"Version\":1,\"Codecs\":{\"hvc1\":{\"Profiles\":{\"VTPerProfileSupport\":{\"1\":{\"VTMaxPlaybackLevel\":186,\"VTIsHardwareAccelerated\":true,\"VTMaxDecodeLevel\":186},\"2\":{\"VTMaxPlaybackLevel\":186,\"VTIsHardwareAccelerated\":true,\"VTMaxDecodeLevel\":186},\"3\":{\"VTMaxPlaybackLevel\":186,\"VTIsHardwareAccelerated\":true,\"VTMaxDecodeLevel\":186}},\"VTSupportedProfiles\":[1,2,3]}}},\"ContainerFormats\":{\"public.heif-standard\":{\"HeifSubtypes\":[\"public.avci\",\"public.heic\",\"public.heif\"]}},\"Vendor\":{\"com.apple\":{\"OSVersion\":[10,14,6],\"OSBuildVersion\":\"18G87\",\"LivePhotoFormatVersion\":\"1\"}}}".getBytes());
+
+        response.put("ReceiverModelName", "WarpShare");
+
         final Buffer buffer = new Buffer();
         PropertyListParser.saveAsBinary(response, buffer.outputStream());
 
@@ -70,7 +74,7 @@ class AirDropServer {
     private class ServerImpl extends NanoHTTPD {
 
         ServerImpl(String hostname) {
-            super(hostname, PORT_AUTO);
+            super(hostname, 8770);
             makeSecure(mTrustManager.getSslServerSocketFactory(), null);
         }
 

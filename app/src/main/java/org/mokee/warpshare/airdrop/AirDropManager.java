@@ -165,6 +165,12 @@ public class AirDropManager {
                     return;
                 }
 
+                NSObject capNode = response.get("ReceiverMediaCapabilities");
+                if (capNode != null) {
+                    byte[] cap = (byte[]) capNode.toJavaObject();
+                    Log.d(TAG, new String(cap));
+                }
+
                 final Peer peer = new Peer(id, nameNode.toJavaObject(String.class), url);
                 mPeers.put(id, peer);
 
