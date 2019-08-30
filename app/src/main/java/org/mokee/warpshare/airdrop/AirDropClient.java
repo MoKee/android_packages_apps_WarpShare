@@ -17,9 +17,16 @@ import org.mokee.warpshare.ResolvedUri;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.text.ParseException;
 import java.util.List;
 
+import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 import javax.xml.parsers.ParserConfigurationException;
@@ -52,6 +59,49 @@ class AirDropClient {
 
     AirDropClient(AirDropTrustManager trustManager) {
         mHttpClient = new OkHttpClient.Builder()
+                .socketFactory(new SocketFactory() {
+                    @Override
+                    public Socket createSocket() {
+                        Log.d(TAG, "0");
+                        return new Socket() {
+                            @Override
+                            public void connect(SocketAddress endpoint, int timeout) throws IOException {
+                                Log.d(TAG, "connect2: " + endpoint);
+                                if (endpoint instanceof InetSocketAddress) {
+                                    final InetSocketAddress socketAddress = (InetSocketAddress) endpoint;
+                                    if (socketAddress.getAddress() instanceof Inet6Address) {
+                                        final Inet6Address address = (Inet6Address) socketAddress.getAddress();
+                                        final InetAddress addressWithScope = Inet6Address.getByAddress(
+                                                null, address.getAddress(), NetworkInterface.getByName("wlan0"));
+                                        endpoint = new InetSocketAddress(addressWithScope, socketAddress.getPort());
+                                    }
+                                }
+                                Log.d(TAG, "connect/: " + endpoint);
+                                super.connect(endpoint, timeout);
+                            }
+                        };
+                    }
+
+                    @Override
+                    public Socket createSocket(String host, int port) {
+                        return null;
+                    }
+
+                    @Override
+                    public Socket createSocket(String host, int port, InetAddress localHost, int localPort) {
+                        return null;
+                    }
+
+                    @Override
+                    public Socket createSocket(InetAddress host, int port) {
+                        return null;
+                    }
+
+                    @Override
+                    public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) {
+                        return null;
+                    }
+                })
                 .sslSocketFactory(trustManager.getSslSocketFactory(), trustManager.getTrustManager())
                 .hostnameVerifier(new HostnameVerifier() {
                     @SuppressLint("BadHostnameVerifier")
