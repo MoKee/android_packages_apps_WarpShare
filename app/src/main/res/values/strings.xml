@@ -17,6 +17,7 @@
     <string name="status_sending">Sending…</string>
     <string name="status_rejected">Rejected</string>
 
+    <string name="toast_no_file">No file can be sent</string>
     <string name="toast_completed">Files sent</string>
     <string name="toast_rejected">Device rejected</string>
 

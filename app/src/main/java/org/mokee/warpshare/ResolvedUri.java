@@ -12,23 +12,25 @@ public class ResolvedUri {
 
     private final Context mContext;
 
-    public final boolean ok;
-
     public final Uri uri;
-    public final String name;
-    public final String path;
+
+    private boolean mOk = false;
+
+    private String mName;
+    private String mPath;
 
     ResolvedUri(Context context, Uri uri) {
         mContext = context;
         this.uri = uri;
 
+        if (uri == null) {
+            return;
+        }
+
         Cursor cursor = context.getContentResolver().query(
                 uri, null, null, null, null);
 
         if (cursor == null) {
-            name = null;
-            path = null;
-            ok = false;
             return;
         }
 
@@ -36,12 +38,24 @@ public class ResolvedUri {
 
         cursor.moveToFirst();
 
-        name = cursor.getString(nameIndex);
-        path = "./" + name;
+        mName = cursor.getString(nameIndex);
+        mPath = "./" + mName;
 
         cursor.close();
 
-        ok = true;
+        mOk = true;
+    }
+
+    public boolean ok() {
+        return mOk;
+    }
+
+    public String name() {
+        return mName;
+    }
+
+    public String path() {
+        return mPath;
     }
 
     public InputStream stream() throws FileNotFoundException {

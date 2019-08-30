@@ -137,9 +137,9 @@ public class AirDropManager {
         final List<NSDictionary> files = new ArrayList<>();
         for (ResolvedUri uri : uris) {
             final NSDictionary file = new NSDictionary();
-            file.put("FileName", uri.name);
+            file.put("FileName", uri.name());
             file.put("FileType", "public.content");
-            file.put("FileBomPath", uri.path);
+            file.put("FileBomPath", uri.path());
             file.put("FileIsDirectory", false);
             file.put("ConvertMediaFormats", 0);
             files.add(file);

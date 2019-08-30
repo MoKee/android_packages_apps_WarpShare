@@ -124,7 +124,7 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
 
     protected final void sendFile(AirDropManager.Peer peer, Uri rawUri) {
         final ResolvedUri uri = new ResolvedUri(this, rawUri);
-        if (!uri.ok) {
+        if (!uri.ok()) {
             Log.w(TAG, "No file was selected");
             handleSendFailed();
             return;
@@ -146,7 +146,7 @@ abstract class BasePeersActivity extends AppCompatActivity implements AirDropMan
         final List<ResolvedUri> uris = new ArrayList<>();
         for (int i = 0; i < clipData.getItemCount(); i++) {
             final ResolvedUri uri = new ResolvedUri(this, clipData.getItemAt(i).getUri());
-            if (uri.ok) {
+            if (uri.ok()) {
                 uris.add(uri);
             }
         }

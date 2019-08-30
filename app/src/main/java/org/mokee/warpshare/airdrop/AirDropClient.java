@@ -104,7 +104,7 @@ class AirDropClient {
                 final byte[] content = buffer.readByteArray();
                 buffer.close();
 
-                final CpioArchiveEntry entry = new CpioArchiveEntry(FORMAT_OLD_ASCII, uri.path, content.length);
+                final CpioArchiveEntry entry = new CpioArchiveEntry(FORMAT_OLD_ASCII, uri.path(), content.length);
                 entry.setMode(C_ISREG | C_IRUSR | C_IWUSR | C_IRGRP | C_IROTH);
 
                 cpio.putArchiveEntry(entry);
