@@ -17,9 +17,16 @@ import org.mokee.warpshare.ResolvedUri;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.text.ParseException;
 import java.util.List;
 
+import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 import javax.xml.parsers.ParserConfigurationException;
@@ -49,9 +56,11 @@ class AirDropClient {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     private OkHttpClient mHttpClient;
+    private NetworkInterface mInterface;
 
     AirDropClient(AirDropTrustManager trustManager) {
         mHttpClient = new OkHttpClient.Builder()
+                .socketFactory(new LinkLocalAddressSocketFactory())
                 .sslSocketFactory(trustManager.getSslSocketFactory(), trustManager.getTrustManager())
                 .hostnameVerifier(new HostnameVerifier() {
                     @SuppressLint("BadHostnameVerifier")
@@ -61,6 +70,10 @@ class AirDropClient {
                     }
                 })
                 .build();
+    }
+
+    void setNetworkInterface(NetworkInterface iface) {
+        mInterface = iface;
     }
 
     void post(final String url, NSDictionary body, AirDropClientCallback callback) {
@@ -182,6 +195,53 @@ class AirDropClient {
         void onFailure(IOException e);
 
         void onResponse(NSDictionary response);
+
+    }
+
+    private class LinkLocalAddressSocketFactory extends SocketFactory {
+
+        @Override
+        public Socket createSocket() {
+            return new Socket() {
+                @Override
+                public void connect(SocketAddress endpoint, int timeout) throws IOException {
+                    if (mInterface != null && endpoint instanceof InetSocketAddress) {
+                        final InetSocketAddress socketAddress = (InetSocketAddress) endpoint;
+                        if (socketAddress.getAddress() instanceof Inet6Address) {
+                            final Inet6Address address = (Inet6Address) socketAddress.getAddress();
+
+                            // OkHttp can't parse link-local IPv6 addresses properly, so we need to
+                            // set the scope of the address here
+                            final InetAddress addressWithScope = Inet6Address.getByAddress(
+                                    null, address.getAddress(), mInterface);
+
+                            endpoint = new InetSocketAddress(addressWithScope, socketAddress.getPort());
+                        }
+                    }
+                    super.connect(endpoint, timeout);
+                }
+            };
+        }
+
+        @Override
+        public Socket createSocket(String host, int port) {
+            return null;
+        }
+
+        @Override
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) {
+            return null;
+        }
+
+        @Override
+        public Socket createSocket(InetAddress host, int port) {
+            return null;
+        }
+
+        @Override
+        public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) {
+            return null;
+        }
 
     }
 
