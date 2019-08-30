@@ -29,7 +29,7 @@ public class AirDropManager {
     public static final int STATUS_NO_BLUETOOTH = 1;
     public static final int STATUS_NO_WIFI = 2;
 
-    private static final String INTERFACE_NAME = "wlan0";
+    private static final String INTERFACE_NAME = "awdl0";
 
     private final Callback mCallback;
 

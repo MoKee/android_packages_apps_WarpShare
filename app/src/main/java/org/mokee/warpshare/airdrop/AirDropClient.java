@@ -3,6 +3,8 @@ package org.mokee.warpshare.airdrop;
 import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
+import android.system.ErrnoException;
+import android.system.Os;
 import android.util.Log;
 
 import com.dd.plist.NSDictionary;
@@ -16,7 +18,10 @@ import org.jetbrains.annotations.NotNull;
 import org.mokee.warpshare.ResolvedUri;
 import org.xml.sax.SAXException;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -42,6 +47,7 @@ import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.BufferedSink;
 
+import static android.system.OsConstants.SOL_SOCKET;
 import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IRGRP;
 import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IROTH;
 import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IRUSR;
@@ -202,8 +208,8 @@ class AirDropClient {
     private class LinkLocalAddressSocketFactory extends SocketFactory {
 
         @Override
-        public Socket createSocket() {
-            return new Socket() {
+        public Socket createSocket() throws IOException {
+            final Socket socket = new Socket() {
                 @Override
                 public void connect(SocketAddress endpoint, int timeout) throws IOException {
                     if (mInterface != null && endpoint instanceof InetSocketAddress) {
@@ -222,6 +228,14 @@ class AirDropClient {
                     super.connect(endpoint, timeout);
                 }
             };
+
+            try {
+                Os.setsockoptInt(getFileDescriptor(socket), SOL_SOCKET, 0x1104, 1);
+            } catch (ErrnoException e) {
+                e.printStackTrace();
+            }
+
+            return socket;
         }
 
         @Override
@@ -242,6 +256,20 @@ class AirDropClient {
         @Override
         public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) {
             return null;
+        }
+
+        @SuppressWarnings("unchecked")
+        @SuppressLint("DiscouragedPrivateApi")
+        private FileDescriptor getFileDescriptor(Socket socket) {
+            try {
+                final Class cls = socket.getClass();
+                final Method method = cls.getDeclaredMethod("getFileDescriptor$");
+                method.setAccessible(true);
+                return (FileDescriptor) method.invoke(socket);
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+                return null;
+            }
         }
 
     }
