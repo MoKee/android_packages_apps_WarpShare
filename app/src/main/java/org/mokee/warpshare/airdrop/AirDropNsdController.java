@@ -92,7 +92,9 @@ class AirDropNsdController {
         serviceInfo.setServiceType(SERVICE_TYPE);
         serviceInfo.setHost(address);
         serviceInfo.setPort(port);
-        serviceInfo.setAttribute("flags", "" + (FLAG_SUPPORTS_MIXED_TYPES | FLAG_SUPPORTS_DISCOVER_MAYBE));
+        serviceInfo.setAttribute("flags", "483");
+        serviceInfo.setAttribute("cname", "Smartisan R1");
+        serviceInfo.setAttribute("ehash", "lcxKesOi3N08VzoTPMZXajcc8Ik=");
         Log.d(TAG, "Publishing " + serviceInfo);
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
     }
@@ -122,7 +124,7 @@ class AirDropNsdController {
     }
 
     private void handleServiceResolved(NsdServiceInfo serviceInfo) {
-        Log.d(TAG, "Resolved: " + serviceInfo.getServiceName());
+        Log.d(TAG, "Resolved: " + serviceInfo + ", " + serviceInfo.getHost().getHostName() + ", " + serviceInfo.getHost().getCanonicalHostName() + ", " + serviceInfo.getHost().getHostAddress());
 
         final String url;
         if (serviceInfo.getHost() instanceof Inet6Address) {
