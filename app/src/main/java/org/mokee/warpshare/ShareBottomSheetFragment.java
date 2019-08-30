@@ -83,15 +83,9 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
         for (int i = 0; i < clipData.getItemCount(); i++) {
             final ResolvedUri uri = new ResolvedUri(getContext(), clipData.getItemAt(i).getUri());
-            if (uri.ok) {
+            if (uri.ok()) {
                 mUris.add(uri);
             }
-        }
-
-        if (mUris.isEmpty()) {
-            Log.w(TAG, "No file was selected");
-            handleSendFailed();
-            return;
         }
 
         final int count = mUris.size();
@@ -113,6 +107,13 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
                 dismiss();
             }
         });
+
+        if (mUris.isEmpty()) {
+            Log.w(TAG, "No file was selected");
+            Toast.makeText(getContext(), R.string.toast_no_file, Toast.LENGTH_SHORT).show();
+            handleSendFailed();
+            dismiss();
+        }
     }
 
     @Override
