@@ -198,6 +198,7 @@ class AirDropClient {
 
                         try {
                             NSDictionary root = (NSDictionary) PropertyListParser.parse(responseBody.byteStream());
+                            if (root != null) Log.d(TAG, root.toASCIIPropertyList());
                             postResponse(callback, root);
                         } catch (PropertyListFormatException | ParseException | ParserConfigurationException | SAXException e) {
                             postFailure(callback, new IOException(e));
