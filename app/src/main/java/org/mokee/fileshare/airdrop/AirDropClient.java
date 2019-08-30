@@ -33,6 +33,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
+import okio.BufferedSink;
 
 import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IRGRP;
 import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IROTH;
@@ -103,8 +104,17 @@ class AirDropClient {
             return;
         }
 
-        post(url, RequestBody.create(
-                archive.readByteArray(), MediaType.get("application/x-cpio")),
+        post(url, new RequestBody() {
+                    @Override
+                    public MediaType contentType() {
+                        return MediaType.get("application/x-cpio");
+                    }
+
+                    @Override
+                    public void writeTo(@NotNull BufferedSink bufferedSink) throws IOException {
+                        bufferedSink.writeAll(archive);
+                    }
+                },
                 callback);
 
         archive.close();
