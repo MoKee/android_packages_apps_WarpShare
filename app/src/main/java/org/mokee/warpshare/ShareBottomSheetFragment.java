@@ -26,14 +26,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ShareBottomSheetFragment extends BottomSheetDialogFragment
-        implements AirDropManager.Callback {
+        implements AirDropManager.DiscoveryListener {
 
     private static final String TAG = "ShareBottomSheetFragment";
 
-    private ShareActivity mParent;
-
     private final ArrayMap<String, AirDropManager.Peer> mPeers = new ArrayMap<>();
     private final List<ResolvedUri> mUris = new ArrayList<>();
+
+    private ShareActivity mParent;
 
     private PeersAdapter mAdapter;
 
@@ -50,7 +50,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAirDropManager = new AirDropManager(getContext(), this);
+        mAirDropManager = new AirDropManager(getContext());
         mAdapter = new PeersAdapter(getContext());
     }
 
@@ -119,7 +119,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     @Override
     public void onResume() {
         super.onResume();
-        mAirDropManager.startDiscover();
+        mAirDropManager.startDiscover(this);
     }
 
     @Override
