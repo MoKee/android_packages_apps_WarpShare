@@ -50,9 +50,8 @@ public class AirDropManager {
         mCallback = callback;
 
         mBleController = new AirDropBleController(context);
-        mNsdController = new AirDropNsdController(context, this);
-
         mConfigManager = new AirDropConfigManager(context, mBleController);
+        mNsdController = new AirDropNsdController(context, mConfigManager, this);
 
         final AirDropTrustManager trustManager = new AirDropTrustManager(context);
 
@@ -99,7 +98,7 @@ public class AirDropManager {
             return;
         }
 
-        mNsdController.publish(mConfigManager.getId(), mLocalAddress, port);
+        mNsdController.publish(mLocalAddress, port);
     }
 
     public void stopDiscoverable() {
