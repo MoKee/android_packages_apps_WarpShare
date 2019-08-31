@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.ArrayMap;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,14 +55,14 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Ca
     protected void onResume() {
         super.onResume();
         mAirDropManager.startDiscover();
-        mAirDropManager.startDiscoverable();
+//        mAirDropManager.startDiscoverable();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mAirDropManager.stopDiscover();
-        mAirDropManager.stopDiscoverable();
+//        mAirDropManager.stopDiscoverable();
     }
 
     @Override
@@ -103,6 +104,37 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Ca
         requestIntent.setType("*/*");
         requestIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         startActivityForResult(Intent.createChooser(requestIntent, "File"), REQUEST_PICK);
+    }
+
+    private boolean handleItemDrag(DragEvent event, AirDropManager.Peer peer) {
+        switch (event.getAction()) {
+            case DragEvent.ACTION_DRAG_STARTED:
+                Log.d(TAG, "onDragStarted: " + peer.id + ", " + event.getClipDescription());
+                for (int i = 0; i < event.getClipDescription().getMimeTypeCount(); i++) {
+                    Log.d(TAG, "mime: " + event.getClipDescription().getMimeType(i));
+                }
+                return true;
+//                return event.getClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_URILIST);
+            case DragEvent.ACTION_DRAG_ENDED:
+                Log.d(TAG, "onDragEnded: " + peer.id + ", " + event);
+                return true;
+            case DragEvent.ACTION_DROP:
+                Log.d(TAG, "onDrop: " + peer.id + ", " + event);
+                sendFile(peer, event.getClipData());
+                return true;
+            case DragEvent.ACTION_DRAG_ENTERED:
+                Log.d(TAG, "onDragEntered: " + peer.id + ", " + event);
+                mPeerPicked = peer.id;
+                mAdapter.notifyDataSetChanged();
+                return true;
+            case DragEvent.ACTION_DRAG_EXITED:
+                Log.d(TAG, "onDragExited: " + peer.id + ", " + event);
+                mPeerPicked = null;
+                mAdapter.notifyDataSetChanged();
+                return true;
+            default:
+                return false;
+        }
     }
 
     private void handleSendConfirming() {
@@ -216,14 +248,16 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Ca
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             final String id = mPeers.keyAt(position);
             final AirDropManager.Peer peer = mPeers.valueAt(position);
+            final boolean selected = id.equals(mPeerPicked);
             holder.nameView.setText(peer.name);
-            if (id.equals(mPeerPicked) && mPeerStatus != 0) {
+            holder.itemView.setSelected(selected);
+            if (selected && mPeerStatus != 0) {
                 holder.statusView.setVisibility(View.VISIBLE);
                 holder.statusView.setText(mPeerStatus);
             } else {
                 holder.statusView.setVisibility(View.GONE);
             }
-            if (id.equals(mPeerPicked) && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
+            if (selected && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
                 holder.itemView.setEnabled(false);
             } else {
                 holder.itemView.setEnabled(true);
@@ -232,6 +266,12 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Ca
                 @Override
                 public void onClick(View v) {
                     handleItemClick(peer);
+                }
+            });
+            holder.itemView.setOnDragListener(new View.OnDragListener() {
+                @Override
+                public boolean onDrag(View v, DragEvent event) {
+                    return handleItemDrag(event, peer);
                 }
             });
         }
