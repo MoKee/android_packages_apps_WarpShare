@@ -22,7 +22,7 @@ import org.mokee.warpshare.airdrop.AirDropManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements AirDropManager.Callback {
+public class MainActivity extends AppCompatActivity implements AirDropManager.DiscoveryListener {
 
     private static final String TAG = "MainActivity";
 
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Ca
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mAirDropManager = new AirDropManager(this, this);
+        mAirDropManager = new AirDropManager(this);
 
         mAdapter = new PeersAdapter(this);
 
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Ca
     @Override
     protected void onResume() {
         super.onResume();
-        mAirDropManager.startDiscover();
+        mAirDropManager.startDiscover(this);
     }
 
     @Override

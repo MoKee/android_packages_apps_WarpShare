@@ -1,6 +1,5 @@
 package org.mokee.warpshare.airdrop;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 
@@ -18,15 +17,13 @@ import java.util.List;
 
 public class AirDropManager {
 
-    private static final String TAG = "AirDropManager";
-
     public static final int STATUS_OK = 0;
     public static final int STATUS_NO_BLUETOOTH = 1;
     public static final int STATUS_NO_WIFI = 2;
 
-    private static final String INTERFACE_NAME = "wlan0";
+    private static final String TAG = "AirDropManager";
 
-    private final Callback mCallback;
+    private static final String INTERFACE_NAME = "wlan0";
 
     private final AirDropConfigManager mConfigManager;
 
@@ -37,10 +34,9 @@ public class AirDropManager {
 
     private final HashMap<String, Peer> mPeers = new HashMap<>();
 
-    @SuppressLint("ApplySharedPref")
-    public AirDropManager(Context context, Callback callback) {
-        mCallback = callback;
+    private DiscoveryListener mDiscoveryListener;
 
+    public AirDropManager(Context context) {
         mBleController = new AirDropBleController(context);
         mNsdController = new AirDropNsdController(context, this);
 
@@ -63,10 +59,12 @@ public class AirDropManager {
         return STATUS_OK;
     }
 
-    public void startDiscover() {
+    public void startDiscover(DiscoveryListener discoveryListener) {
         if (ready() != STATUS_OK) {
             return;
         }
+
+        mDiscoveryListener = discoveryListener;
 
         mBleController.triggerDiscoverable();
         mNsdController.startDiscover();
@@ -115,7 +113,7 @@ public class AirDropManager {
                 final Peer peer = new Peer(id, nameNode.toJavaObject(String.class), url);
                 mPeers.put(id, peer);
 
-                mCallback.onAirDropPeerFound(peer);
+                mDiscoveryListener.onAirDropPeerFound(peer);
             }
         });
     }
@@ -123,7 +121,7 @@ public class AirDropManager {
     void onServiceLost(String id) {
         final Peer peer = mPeers.remove(id);
         if (peer != null) {
-            mCallback.onAirDropPeerDisappeared(peer);
+            mDiscoveryListener.onAirDropPeerDisappeared(peer);
         }
     }
 
@@ -177,22 +175,7 @@ public class AirDropManager {
         });
     }
 
-    public class Peer {
-
-        public final String id;
-        public final String name;
-
-        final String url;
-
-        Peer(String id, String name, String url) {
-            this.id = id;
-            this.name = name;
-            this.url = url;
-        }
-
-    }
-
-    public interface Callback {
+    public interface DiscoveryListener {
 
         void onAirDropPeerFound(Peer peer);
 
@@ -209,6 +192,21 @@ public class AirDropManager {
     public interface UploadCallback {
 
         void onUploadResult(boolean done);
+
+    }
+
+    public class Peer {
+
+        public final String id;
+        public final String name;
+
+        final String url;
+
+        Peer(String id, String name, String url) {
+            this.id = id;
+            this.name = name;
+            this.url = url;
+        }
 
     }
 
