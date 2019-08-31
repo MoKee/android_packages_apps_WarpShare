@@ -4,11 +4,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
+import android.util.Log;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 public class ResolvedUri {
+
+    private static final String TAG = "ResolvedUri";
 
     private final Context mContext;
 
@@ -27,8 +30,15 @@ public class ResolvedUri {
             return;
         }
 
-        Cursor cursor = context.getContentResolver().query(
-                uri, null, null, null, null);
+        Cursor cursor;
+
+        try {
+            cursor = context.getContentResolver().query(
+                    uri, null, null, null, null);
+        } catch (SecurityException e) {
+            Log.e(TAG, "Failed resolving uri: " + uri, e);
+            return;
+        }
 
         if (cursor == null) {
             return;
