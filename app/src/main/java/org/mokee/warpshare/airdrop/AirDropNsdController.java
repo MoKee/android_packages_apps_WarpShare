@@ -23,6 +23,7 @@ class AirDropNsdController {
     private static final int FLAG_SUPPORTS_DISCOVER_MAYBE = 0x80;
 
     private final NsdManager mNsdManager;
+    private final AirDropConfigManager mConfigManager;
     private final AirDropManager mParent;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
@@ -73,8 +74,9 @@ class AirDropNsdController {
         }
     };
 
-    AirDropNsdController(Context context, AirDropManager parent) {
+    AirDropNsdController(Context context, AirDropConfigManager configManager, AirDropManager parent) {
         mNsdManager = (NsdManager) context.getSystemService(NSD_SERVICE);
+        mConfigManager = configManager;
         mParent = parent;
     }
 
@@ -86,9 +88,9 @@ class AirDropNsdController {
         mNsdManager.stopServiceDiscovery(mDiscoveryListener);
     }
 
-    void publish(String id, InetAddress address, int port) {
+    void publish(InetAddress address, int port) {
         final NsdServiceInfo serviceInfo = new NsdServiceInfo();
-        serviceInfo.setServiceName(id);
+        serviceInfo.setServiceName(mConfigManager.getId());
         serviceInfo.setServiceType(SERVICE_TYPE);
         serviceInfo.setHost(address);
         serviceInfo.setPort(port);
@@ -102,6 +104,10 @@ class AirDropNsdController {
     }
 
     private void handleServiceFound(NsdServiceInfo serviceInfo) {
+        if (mConfigManager.getId().equals(serviceInfo.getServiceName())) {
+            return;
+        }
+
         mNsdManager.resolveService(serviceInfo, new NsdManager.ResolveListener() {
             @Override
             public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
