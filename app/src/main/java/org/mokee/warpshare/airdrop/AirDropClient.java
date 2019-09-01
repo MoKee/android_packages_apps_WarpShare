@@ -9,14 +9,11 @@ import com.dd.plist.NSDictionary;
 import com.dd.plist.PropertyListFormatException;
 import com.dd.plist.PropertyListParser;
 
-import org.apache.commons.compress.archivers.cpio.CpioArchiveEntry;
-import org.apache.commons.compress.archivers.cpio.CpioArchiveOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.jetbrains.annotations.NotNull;
-import org.mokee.warpshare.ResolvedUri;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -24,7 +21,6 @@ import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.text.ParseException;
-import java.util.List;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
@@ -41,13 +37,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.BufferedSink;
-
-import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IRGRP;
-import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IROTH;
-import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IRUSR;
-import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_ISREG;
-import static org.apache.commons.compress.archivers.cpio.CpioConstants.C_IWUSR;
-import static org.apache.commons.compress.archivers.cpio.CpioConstants.FORMAT_OLD_ASCII;
+import okio.Okio;
 
 class AirDropClient {
 
@@ -93,30 +83,7 @@ class AirDropClient {
         buffer.close();
     }
 
-    void post(final String url, List<ResolvedUri> uris, AirDropClientCallback callback) {
-        final Buffer archive = new Buffer();
-
-        try (final GzipCompressorOutputStream gzip = new GzipCompressorOutputStream(archive.outputStream());
-             final CpioArchiveOutputStream cpio = new CpioArchiveOutputStream(gzip, FORMAT_OLD_ASCII)) {
-            for (ResolvedUri uri : uris) {
-                final Buffer buffer = new Buffer();
-                buffer.readFrom(uri.stream());
-                final byte[] content = buffer.readByteArray();
-                buffer.close();
-
-                final CpioArchiveEntry entry = new CpioArchiveEntry(FORMAT_OLD_ASCII, uri.path(), content.length);
-                entry.setMode(C_ISREG | C_IRUSR | C_IWUSR | C_IRGRP | C_IROTH);
-
-                cpio.putArchiveEntry(entry);
-                cpio.write(content);
-                cpio.closeArchiveEntry();
-            }
-        } catch (IOException e) {
-            archive.close();
-            callback.onFailure(e);
-            return;
-        }
-
+    void post(final String url, final InputStream input, AirDropClientCallback callback) {
         post(url, new RequestBody() {
                     @Override
                     public MediaType contentType() {
@@ -125,12 +92,11 @@ class AirDropClient {
 
                     @Override
                     public void writeTo(@NotNull BufferedSink bufferedSink) throws IOException {
-                        bufferedSink.writeAll(archive);
+                        bufferedSink.writeAll(Okio.source(input));
+                        input.close();
                     }
                 },
                 callback);
-
-        archive.close();
     }
 
     private void post(final String url, RequestBody body, final AirDropClientCallback callback) {

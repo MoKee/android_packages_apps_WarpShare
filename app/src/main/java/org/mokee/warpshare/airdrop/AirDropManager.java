@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import okio.Buffer;
+
 public class AirDropManager {
 
     public static final int STATUS_OK = 0;
@@ -161,10 +163,20 @@ public class AirDropManager {
     }
 
     public void upload(final Peer peer, List<ResolvedUri> uris, final UploadCallback callback) {
-        mClient.post(peer.url + "/Upload", uris, new AirDropClient.AirDropClientCallback() {
+        final Buffer archive = new Buffer();
+
+        try {
+            AirDropArchiveUtil.pack(uris, archive.outputStream());
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to pack upload payload: " + peer.id, e);
+            callback.onUploadResult(false);
+            return;
+        }
+
+        mClient.post(peer.url + "/Upload", archive.inputStream(), new AirDropClient.AirDropClientCallback() {
             @Override
             public void onFailure(IOException e) {
-                Log.w(TAG, "Failed to upload: " + peer.id, e);
+                Log.e(TAG, "Failed to upload: " + peer.id, e);
                 callback.onUploadResult(false);
             }
 
