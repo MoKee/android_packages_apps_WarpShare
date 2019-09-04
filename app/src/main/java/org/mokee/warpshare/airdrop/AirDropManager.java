@@ -118,7 +118,7 @@ public class AirDropManager {
 
         mClient.post(url + "/Discover", req, new AirDropClient.AirDropClientCallback() {
             @Override
-            public void onFailure(IOException e) {
+            public void onFailure(Exception e) {
                 Log.w(TAG, "Failed to discover: " + id, e);
             }
 
@@ -167,7 +167,7 @@ public class AirDropManager {
 
         mClient.post(peer.url + "/Ask", req, new AirDropClient.AirDropClientCallback() {
             @Override
-            public void onFailure(IOException e) {
+            public void onFailure(Exception e) {
                 Log.w(TAG, "Failed to ask: " + peer.id, e);
                 callback.onAskResult(false);
             }
@@ -195,7 +195,7 @@ public class AirDropManager {
             public void run() {
                 mClient.post(peer.url + "/Upload", archive.inputStream(), new AirDropClient.AirDropClientCallback() {
                     @Override
-                    public void onFailure(IOException e) {
+                    public void onFailure(Exception e) {
                         Log.e(TAG, "Failed to upload: " + peer.id, e);
                         callback.onUploadResult(false);
                     }

@@ -2,8 +2,6 @@ package org.mokee.warpshare.airdrop;
 
 import android.content.Context;
 
-import androidx.annotation.RawRes;
-
 import org.mokee.warpshare.R;
 
 import java.io.IOException;
@@ -17,19 +15,17 @@ import java.util.Locale;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
+
+import androidx.annotation.RawRes;
 
 class AirDropTrustManager {
 
     private static final char[] PASSWORD = "password".toCharArray();
 
-    private X509TrustManager mTrustManager;
-    private SSLSocketFactory mSslSocketFactory;
-    private SSLServerSocketFactory mSslServerSocketFactory;
+    private TrustManager[] mTrustManagers;
+    private SSLContext mSSLContext;
 
     AirDropTrustManager(Context context) {
         try {
@@ -43,29 +39,21 @@ class AirDropTrustManager {
             final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init(keyStore);
 
-            final TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
-            mTrustManager = (X509TrustManager) trustManagers[0];
+            mTrustManagers = trustManagerFactory.getTrustManagers();
 
-            final SSLContext ctx = SSLContext.getInstance("TLS");
-            ctx.init(keyManagerFactory.getKeyManagers(), trustManagers, null);
-
-            mSslSocketFactory = ctx.getSocketFactory();
-            mSslServerSocketFactory = ctx.getServerSocketFactory();
+            mSSLContext = SSLContext.getInstance("TLS");
+            mSSLContext.init(keyManagerFactory.getKeyManagers(), mTrustManagers, null);
         } catch (GeneralSecurityException | IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    X509TrustManager getTrustManager() {
-        return mTrustManager;
+    TrustManager[] getTrustManagers() {
+        return mTrustManagers;
     }
 
-    SSLSocketFactory getSslSocketFactory() {
-        return mSslSocketFactory;
-    }
-
-    SSLServerSocketFactory getSslServerSocketFactory() {
-        return mSslServerSocketFactory;
+    SSLContext getSSLContext() {
+        return mSSLContext;
     }
 
     private KeyStore loadKeyStore(Context context, @RawRes int id) throws GeneralSecurityException, IOException {
