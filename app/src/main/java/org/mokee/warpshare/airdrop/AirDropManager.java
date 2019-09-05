@@ -103,8 +103,6 @@ public class AirDropManager {
             Log.e(TAG, "Failed getting " + INTERFACE_NAME, e);
         }
 
-        mClient.setNetworkInterface(iface);
-
         if (iface == null) {
             Log.e(TAG, "Cannot get " + INTERFACE_NAME);
             return false;

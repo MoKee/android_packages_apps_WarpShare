@@ -18,7 +18,6 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.NetworkInterface;
 import java.text.ParseException;
 
 import javax.net.ssl.HostnameVerifier;
@@ -34,7 +33,6 @@ class AirDropClient {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     private AsyncHttpClient mHttpClient;
-    private NetworkInterface mInterface;
 
     AirDropClient(AirDropTrustManager trustManager) {
         mHttpClient = AsyncHttpClient.getDefaultInstance();
@@ -47,10 +45,6 @@ class AirDropClient {
                 return true;
             }
         });
-    }
-
-    void setNetworkInterface(NetworkInterface iface) {
-        mInterface = iface;
     }
 
     void post(final String url, NSDictionary body, AirDropClientCallback callback) {
