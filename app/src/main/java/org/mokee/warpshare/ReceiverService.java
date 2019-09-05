@@ -71,6 +71,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+        mAirDropManager.destroy();
     }
 
     @Override

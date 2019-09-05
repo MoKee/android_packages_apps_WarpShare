@@ -53,6 +53,12 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mAirDropManager.destroy();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         mAirDropManager.startDiscover(this);
