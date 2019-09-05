@@ -1,6 +1,9 @@
 package org.mokee.warpshare.airdrop;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.util.Log;
 
 import com.dd.plist.NSDictionary;
@@ -38,6 +41,11 @@ public class AirDropManager {
 
     private DiscoveryListener mDiscoveryListener;
 
+    private HandlerThread mArchiveThread;
+    private Handler mArchiveHandler;
+
+    private Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
+
     public AirDropManager(Context context) {
         mBleController = new AirDropBleController(context);
         mNsdController = new AirDropNsdController(context, this);
@@ -47,6 +55,11 @@ public class AirDropManager {
         final AirDropTrustManager trustManager = new AirDropTrustManager(context);
 
         mClient = new AirDropClient(trustManager);
+
+        mArchiveThread = new HandlerThread("archive");
+        mArchiveThread.start();
+
+        mArchiveHandler = new Handler(mArchiveThread.getLooper());
     }
 
     public int ready() {
@@ -75,6 +88,11 @@ public class AirDropManager {
     public void stopDiscover() {
         mBleController.stop();
         mNsdController.stopDiscover();
+    }
+
+    public void destroy() {
+        mArchiveHandler.removeCallbacksAndMessages(null);
+        mArchiveThread.quit();
     }
 
     private boolean checkNetwork() {
@@ -162,27 +180,46 @@ public class AirDropManager {
         });
     }
 
-    public void upload(final Peer peer, List<ResolvedUri> uris, final UploadCallback callback) {
+    public void upload(final Peer peer, final List<ResolvedUri> uris, final UploadCallback callback) {
         final Buffer archive = new Buffer();
 
-        try {
-            AirDropArchiveUtil.pack(uris, archive.outputStream());
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to pack upload payload: " + peer.id, e);
-            callback.onUploadResult(false);
-            return;
-        }
-
-        mClient.post(peer.url + "/Upload", archive.inputStream(), new AirDropClient.AirDropClientCallback() {
+        final Runnable onCompressFailed = new Runnable() {
             @Override
-            public void onFailure(IOException e) {
-                Log.e(TAG, "Failed to upload: " + peer.id, e);
+            public void run() {
                 callback.onUploadResult(false);
             }
+        };
 
+        final Runnable onCompressDone = new Runnable() {
             @Override
-            public void onResponse(NSDictionary response) {
-                callback.onUploadResult(true);
+            public void run() {
+                mClient.post(peer.url + "/Upload", archive.inputStream(), new AirDropClient.AirDropClientCallback() {
+                    @Override
+                    public void onFailure(IOException e) {
+                        Log.e(TAG, "Failed to upload: " + peer.id, e);
+                        callback.onUploadResult(false);
+                    }
+
+                    @Override
+                    public void onResponse(NSDictionary response) {
+                        callback.onUploadResult(true);
+                    }
+                });
+            }
+        };
+
+        mArchiveHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    AirDropArchiveUtil.pack(uris, archive.outputStream());
+                } catch (IOException e) {
+                    Log.e(TAG, "Failed to pack upload payload: " + peer.id, e);
+                    mMainThreadHandler.post(onCompressFailed);
+                    return;
+                }
+
+                mMainThreadHandler.post(onCompressDone);
             }
         });
     }
