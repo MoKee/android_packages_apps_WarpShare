@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.util.Locale;
 
 import static android.content.Context.NSD_SERVICE;
@@ -18,7 +19,11 @@ class AirDropNsdController {
 
     private static final String SERVICE_TYPE = "_airdrop._tcp";
 
+    private static final int FLAG_SUPPORTS_MIXED_TYPES = 0x08;
+    private static final int FLAG_SUPPORTS_DISCOVER_MAYBE = 0x80;
+
     private final NsdManager mNsdManager;
+    private final AirDropConfigManager mConfigManager;
     private final AirDropManager mParent;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
@@ -51,8 +56,27 @@ class AirDropNsdController {
         }
     };
 
-    AirDropNsdController(Context context, AirDropManager parent) {
+    private final NsdManager.RegistrationListener mRegistrationListener = new NsdManager.RegistrationListener() {
+        @Override
+        public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+        }
+
+        @Override
+        public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+        }
+
+        @Override
+        public void onServiceRegistered(NsdServiceInfo serviceInfo) {
+        }
+
+        @Override
+        public void onServiceUnregistered(NsdServiceInfo serviceInfo) {
+        }
+    };
+
+    AirDropNsdController(Context context, AirDropConfigManager configManager, AirDropManager parent) {
         mNsdManager = (NsdManager) context.getSystemService(NSD_SERVICE);
+        mConfigManager = configManager;
         mParent = parent;
     }
 
@@ -61,10 +85,32 @@ class AirDropNsdController {
     }
 
     void stopDiscover() {
-        mNsdManager.stopServiceDiscovery(mDiscoveryListener);
+        try {
+            mNsdManager.stopServiceDiscovery(mDiscoveryListener);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    void publish(InetAddress address, int port) {
+        final NsdServiceInfo serviceInfo = new NsdServiceInfo();
+        serviceInfo.setServiceName(mConfigManager.getId());
+        serviceInfo.setServiceType(SERVICE_TYPE);
+        serviceInfo.setHost(address);
+        serviceInfo.setPort(port);
+        serviceInfo.setAttribute("flags", Integer.toString(FLAG_SUPPORTS_MIXED_TYPES | FLAG_SUPPORTS_DISCOVER_MAYBE));
+        Log.d(TAG, "Publishing " + serviceInfo);
+        mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
+    }
+
+    void unpublish() {
+        mNsdManager.unregisterService(mRegistrationListener);
     }
 
     private void handleServiceFound(NsdServiceInfo serviceInfo) {
+        if (mConfigManager.getId().equals(serviceInfo.getServiceName())) {
+            return;
+        }
+
         mNsdManager.resolveService(serviceInfo, new NsdManager.ResolveListener() {
             @Override
             public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
