@@ -13,14 +13,15 @@ public class ResolvedUri {
 
     private static final String TAG = "ResolvedUri";
 
-    private final Context mContext;
-
     public final Uri uri;
+
+    private final Context mContext;
 
     private boolean mOk = false;
 
     private String mName;
     private String mPath;
+    private long mSize;
 
     ResolvedUri(Context context, Uri uri) {
         mContext = context;
@@ -45,11 +46,13 @@ public class ResolvedUri {
         }
 
         final int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+        final int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
 
         cursor.moveToFirst();
 
         mName = cursor.getString(nameIndex);
         mPath = "./" + mName;
+        mSize = cursor.isNull(sizeIndex) ? -1 : cursor.getLong(sizeIndex);
 
         cursor.close();
 
@@ -66,6 +69,10 @@ public class ResolvedUri {
 
     public String path() {
         return mPath;
+    }
+
+    public long size() {
+        return mSize;
     }
 
     public InputStream stream() throws FileNotFoundException {
