@@ -37,6 +37,8 @@ public class AirDropManager {
 
     private static final String TAG = "AirDropManager";
 
+    private static final int MOKEE_API_VERSION = 1;
+
     private static final String INTERFACE_NAME = "wlan0";
 
     private final AirDropConfigManager mConfigManager;
@@ -188,7 +190,13 @@ public class AirDropManager {
                     return;
                 }
 
-                final Peer peer = new Peer(id, nameNode.toJavaObject(String.class), url);
+                int mokeeVersion = 0;
+                NSObject mokeeNode = response.get("ReceiverMokeeApi");
+                if (mokeeNode != null) {
+                    mokeeVersion = mokeeNode.toJavaObject(Integer.class);
+                }
+
+                final Peer peer = new Peer(id, nameNode.toJavaObject(String.class), url, mokeeVersion);
                 mPeers.put(id, peer);
 
                 mDiscoveryListener.onAirDropPeerFound(peer);
@@ -285,6 +293,7 @@ public class AirDropManager {
     void handleDiscover(String ip, NSDictionary request, AirDropServer.ResultCallback callback) {
         final NSDictionary response = new NSDictionary();
         response.put("ReceiverComputerName", mConfigManager.getName());
+        response.put("ReceiverMokeeApi", MOKEE_API_VERSION);
         callback.call(response);
     }
 
@@ -434,13 +443,15 @@ public class AirDropManager {
 
         public final String id;
         public final String name;
+        public final int mokeeVersion;
 
         final String url;
 
-        Peer(String id, String name, String url) {
+        Peer(String id, String name, String url, int mokeeVersion) {
             this.id = id;
             this.name = name;
             this.url = url;
+            this.mokeeVersion = mokeeVersion;
         }
 
     }
