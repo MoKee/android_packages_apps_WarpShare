@@ -152,6 +152,10 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     }
 
     private void handleItemClick(AirDropManager.Peer peer) {
+        if (mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
+            return;
+        }
+        mPeerStatus = 0;
         if (peer.id.equals(mPeerPicked)) {
             mPeerPicked = null;
             mSendButton.setEnabled(false);
@@ -247,11 +251,6 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
                 holder.statusView.setText(mPeerStatus);
             } else {
                 holder.statusView.setVisibility(View.GONE);
-            }
-            if (selected && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
-                holder.itemView.setEnabled(false);
-            } else {
-                holder.itemView.setEnabled(true);
             }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
