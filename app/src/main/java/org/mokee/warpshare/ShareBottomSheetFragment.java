@@ -30,6 +30,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -389,6 +390,11 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             } else {
                 holder.progressBar.setVisibility(View.GONE);
             }
+            if (peer.getMokeeApiVersion() > 0) {
+                holder.iconView.setImageResource(R.drawable.ic_phone_android_24dp);
+            } else {
+                holder.iconView.setImageResource(R.drawable.ic_mac_24dp);
+            }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -409,12 +415,14 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
         class ViewHolder extends RecyclerView.ViewHolder {
 
+            ImageView iconView;
             TextView nameView;
             TextView statusView;
             ProgressBar progressBar;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
+                iconView = itemView.findViewById(R.id.icon);
                 nameView = itemView.findViewById(R.id.name);
                 statusView = itemView.findViewById(R.id.status);
                 progressBar = itemView.findViewById(R.id.progress);

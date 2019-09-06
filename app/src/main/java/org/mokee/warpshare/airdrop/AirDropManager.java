@@ -26,6 +26,10 @@ import android.util.Log;
 import com.dd.plist.NSArray;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mokee.warpshare.CertificateManager;
 
 import org.mokee.warpshare.GossipyInputStream;
@@ -173,15 +177,12 @@ public class AirDropManager {
 
             @Override
             public void onResponse(NSDictionary response) {
-                NSObject nameNode = response.get("ReceiverComputerName");
-                if (nameNode == null) {
-                    Log.w(TAG, "Name is null: " + id);
+                final Peer peer = Peer.from(response, id, url);
+                if (peer == null) {
                     return;
                 }
 
-                final Peer peer = new Peer(id, nameNode.toJavaObject(String.class), url);
                 mPeers.put(id, peer);
-
                 mDiscoveryListener.onAirDropPeerFound(peer);
             }
         });
@@ -385,8 +386,20 @@ public class AirDropManager {
     }
 
     void handleDiscover(String ip, NSDictionary request, AirDropServer.ResultCallback callback) {
+        final JsonObject mokee = new JsonObject();
+        mokee.addProperty("APIVersion", 1);
+
+        final JsonObject vendor = new JsonObject();
+        vendor.add("org.mokee", mokee);
+
+        final JsonObject capabilities = new JsonObject();
+        capabilities.addProperty("Version", 1);
+        capabilities.add("Vendor", vendor);
+
         final NSDictionary response = new NSDictionary();
         response.put("ReceiverComputerName", mConfigManager.getName());
+        response.put("ReceiverMediaCapabilities", new Gson().toJson(capabilities).getBytes());
+
         callback.call(response);
     }
 
@@ -594,21 +607,73 @@ public class AirDropManager {
 
     }
 
-    public class Peer {
+    @SuppressWarnings("WeakerAccess")
+    public static class Peer {
 
         public final String id;
         public final String name;
 
+        public final JsonObject capabilities;
+
         final String url;
 
-        Peer(String id, String name, String url) {
+        private Peer(String id, String name, String url, JsonObject capabilities) {
             this.id = id;
             this.name = name;
             this.url = url;
+            this.capabilities = capabilities;
+        }
+
+        static Peer from(NSDictionary dict, String id, String url) {
+            final NSObject nameNode = dict.get("ReceiverComputerName");
+            if (nameNode == null) {
+                Log.w(TAG, "Name is null: " + id);
+                return null;
+            }
+
+            final String name = nameNode.toJavaObject(String.class);
+
+            JsonObject capabilities = null;
+
+            final NSObject capabilitiesNode = dict.get("ReceiverMediaCapabilities");
+            if (capabilitiesNode != null) {
+                final byte[] caps = capabilitiesNode.toJavaObject(byte[].class);
+                try {
+                    capabilities = (JsonObject) new JsonParser().parse(new String(caps));
+                } catch (Exception e) {
+                    Log.e(TAG, "Error parsing ReceiverMediaCapabilities", e);
+                }
+            }
+
+            return new Peer(id, name, url, capabilities);
+        }
+
+        public int getMokeeApiVersion() {
+            if (capabilities == null) {
+                return 0;
+            }
+
+            final JsonObject vendor = capabilities.getAsJsonObject("Vendor");
+            if (vendor == null) {
+                return 0;
+            }
+
+            final JsonObject mokee = vendor.getAsJsonObject("org.mokee");
+            if (mokee == null) {
+                return 0;
+            }
+
+            final JsonElement api = mokee.get("APIVersion");
+            if (api == null) {
+                return 0;
+            }
+
+            return api.getAsInt();
         }
 
     }
 
+    @SuppressWarnings("WeakerAccess")
     public abstract class ReceivingSession {
 
         public final String ip;

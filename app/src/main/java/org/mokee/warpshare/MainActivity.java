@@ -30,6 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -400,6 +401,11 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
                 holder.progressBar.setVisibility(View.GONE);
                 holder.cancelButton.setVisibility(View.GONE);
             }
+            if (peer.getMokeeApiVersion() > 0) {
+                holder.iconView.setImageResource(R.drawable.ic_phone_android_24dp);
+            } else {
+                holder.iconView.setImageResource(R.drawable.ic_mac_24dp);
+            }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -426,6 +432,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
         class ViewHolder extends RecyclerView.ViewHolder {
 
+            ImageView iconView;
             TextView nameView;
             TextView statusView;
             ProgressBar progressBar;
@@ -433,6 +440,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
+                iconView = itemView.findViewById(R.id.icon);
                 nameView = itemView.findViewById(R.id.name);
                 statusView = itemView.findViewById(R.id.status);
                 progressBar = itemView.findViewById(R.id.progress);
