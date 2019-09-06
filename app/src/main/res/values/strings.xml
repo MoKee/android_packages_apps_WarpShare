@@ -21,4 +21,10 @@
     <string name="toast_completed">Files sent</string>
     <string name="toast_rejected">Device rejected</string>
 
+    <string name="notif_recv_service_channel">Receiver activity</string>
+    <string name="notif_recv_transfer_channel">File transfer</string>
+
+    <string name="notif_recv_active_title">WarpShare is active</string>
+    <string name="notif_recv_active_description">Your device is now discoverable by people nearby</string>
+
 </resources>
