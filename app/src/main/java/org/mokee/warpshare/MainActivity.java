@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         mAirDropManager = new AirDropManager(this);
         mAirDropManager.startDiscover(this);
 
+        mAirDropManager.registerTrigger(ReceiverService.class);
+
         mAdapter = new PeersAdapter(this);
 
         final RecyclerView peersView = findViewById(R.id.peers);
