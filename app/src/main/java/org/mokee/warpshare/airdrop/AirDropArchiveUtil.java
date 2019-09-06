@@ -1,13 +1,17 @@
 package org.mokee.warpshare.airdrop;
 
 import org.apache.commons.compress.archivers.cpio.CpioArchiveEntry;
+import org.apache.commons.compress.archivers.cpio.CpioArchiveInputStream;
 import org.apache.commons.compress.archivers.cpio.CpioArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Set;
 
 import okio.BufferedSource;
 import okio.ByteString;
@@ -45,6 +49,24 @@ class AirDropArchiveUtil {
                 cpio.closeArchiveEntry();
             }
         }
+    }
+
+    static void unpack(InputStream input, Set<String> paths, FileFactory factory) throws IOException {
+        try (final GzipCompressorInputStream gzip = new GzipCompressorInputStream(input);
+             final CpioArchiveInputStream cpio = new CpioArchiveInputStream(gzip)) {
+            CpioArchiveEntry entry;
+            while ((entry = cpio.getNextCPIOEntry()) != null) {
+                if (entry.isRegularFile() && paths.contains(entry.getName())) {
+                    factory.onFile(entry.getName(), cpio);
+                }
+            }
+        }
+    }
+
+    public interface FileFactory {
+
+        void onFile(String name, InputStream input);
+
     }
 
 }
