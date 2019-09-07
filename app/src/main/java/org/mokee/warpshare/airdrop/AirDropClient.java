@@ -25,6 +25,7 @@ import java.text.ParseException;
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.X509TrustManager;
 import javax.xml.parsers.ParserConfigurationException;
 
 import okhttp3.Call;
@@ -51,7 +52,9 @@ class AirDropClient {
     AirDropClient(AirDropTrustManager trustManager) {
         mHttpClient = new OkHttpClient.Builder()
                 .socketFactory(new LinkLocalAddressSocketFactory())
-                .sslSocketFactory(trustManager.getSslSocketFactory(), trustManager.getTrustManager())
+                .sslSocketFactory(
+                        trustManager.getSSLContext().getSocketFactory(),
+                        (X509TrustManager) trustManager.getTrustManagers()[0])
                 .hostnameVerifier(new HostnameVerifier() {
                     @SuppressLint("BadHostnameVerifier")
                     @Override
