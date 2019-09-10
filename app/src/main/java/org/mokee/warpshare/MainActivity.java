@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         setContentView(R.layout.activity_main);
 
         mAirDropManager = new AirDropManager(this);
+        mAirDropManager.startDiscover(this);
 
         mAdapter = new PeersAdapter(this);
 
@@ -53,19 +54,8 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mAirDropManager.destroy();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mAirDropManager.startDiscover(this);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
         mAirDropManager.stopDiscover();
+        mAirDropManager.destroy();
     }
 
     @Override
