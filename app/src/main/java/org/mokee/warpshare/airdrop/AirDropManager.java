@@ -11,6 +11,7 @@ import com.dd.plist.NSArray;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 
+import org.mokee.warpshare.GossipyInputStream;
 import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
@@ -78,6 +79,23 @@ public class AirDropManager {
         mArchiveThread.start();
 
         mArchiveHandler = new Handler(mArchiveThread.getLooper());
+    }
+
+    private long totalLength(List<ResolvedUri> uris) {
+        long total = -1;
+
+        for (ResolvedUri uri : uris) {
+            final long size = uri.size();
+            if (size >= 0) {
+                if (total == -1) {
+                    total = size;
+                } else {
+                    total += size;
+                }
+            }
+        }
+
+        return total;
     }
 
     public int ready() {
@@ -255,7 +273,26 @@ public class AirDropManager {
             }
         };
 
-        mClient.post(peer.url + "/Upload", Okio.buffer(archive.source()).inputStream(), new AirDropClient.AirDropClientCallback() {
+        final long bytesTotal = totalLength(uris);
+        InputStream source = Okio.buffer(archive.source()).inputStream();
+        if (bytesTotal != -1) {
+            source = new GossipyInputStream(source, new GossipyInputStream.Listener() {
+                private long bytesSent = 0;
+
+                @Override
+                public void onRead(int length) {
+                    bytesSent += length;
+                    mMainThreadHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onAirDropProgress(bytesTotal, bytesSent);
+                        }
+                    });
+                }
+            });
+        }
+
+        mClient.post(peer.url + "/Upload", source, new AirDropClient.AirDropClientCallback() {
             @Override
             public void onFailure(IOException e) {
                 Log.e(TAG, "Failed to upload: " + peer.id, e);
@@ -407,6 +444,8 @@ public class AirDropManager {
         void onAirDropAccepted();
 
         void onAirDropRejected();
+
+        void onAirDropProgress(long bytesSent, long bytesTotal);
 
         void onAirDropSent();
 
