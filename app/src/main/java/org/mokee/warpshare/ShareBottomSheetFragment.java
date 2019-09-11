@@ -81,8 +81,9 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             return;
         }
 
+        final String type = mParent.getIntent().getType();
         for (int i = 0; i < clipData.getItemCount(); i++) {
-            final ResolvedUri uri = new ResolvedUri(getContext(), clipData.getItemAt(i).getUri());
+            final ResolvedUri uri = new ResolvedUri(getContext(), clipData.getItemAt(i).getUri(), type);
             if (uri.ok()) {
                 mUris.add(uri);
             }

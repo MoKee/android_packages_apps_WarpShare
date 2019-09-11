@@ -23,7 +23,7 @@ public class ResolvedUri {
     private String mPath;
     private long mSize;
 
-    ResolvedUri(Context context, Uri uri) {
+    ResolvedUri(Context context, Uri uri, String type) {
         mContext = context;
         this.uri = uri;
 
@@ -51,12 +51,16 @@ public class ResolvedUri {
         cursor.moveToFirst();
 
         mName = cursor.getString(nameIndex);
-        mPath = "./" + mName;
         mSize = cursor.isNull(sizeIndex) ? -1 : cursor.getLong(sizeIndex);
+
+        mPath = "./" + mName;
 
         cursor.close();
 
         mOk = true;
+
+        Log.d(TAG, "type: " + type);
+        Log.d(TAG, "content type: " + context.getContentResolver().getType(uri));
     }
 
     public boolean ok() {
