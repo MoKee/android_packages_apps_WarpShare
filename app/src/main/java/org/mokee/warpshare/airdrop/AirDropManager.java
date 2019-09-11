@@ -80,6 +80,23 @@ public class AirDropManager {
         mArchiveHandler = new Handler(mArchiveThread.getLooper());
     }
 
+    private long totalLength(List<ResolvedUri> uris) {
+        long total = -1;
+
+        for (ResolvedUri uri : uris) {
+            final long size = uri.size();
+            if (size >= 0) {
+                if (total == -1) {
+                    total = size;
+                } else {
+                    total += size;
+                }
+            }
+        }
+
+        return total;
+    }
+
     public int ready() {
         if (!mBleController.ready()) {
             return STATUS_NO_BLUETOOTH;
@@ -255,6 +272,25 @@ public class AirDropManager {
             }
         };
 
+        final long bytesTotal = totalLength(uris);
+        final AirDropArchiveUtil.ProgressListener progressListener = new AirDropArchiveUtil.ProgressListener() {
+            private long bytesSent = 0;
+
+            @Override
+            public void onProcessed(long bytes) {
+                if (bytesTotal == -1) {
+                    return;
+                }
+                bytesSent += bytes;
+                mMainThreadHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onAirDropProgress(bytesSent, bytesTotal);
+                    }
+                });
+            }
+        };
+
         mClient.post(peer.url + "/Upload", Okio.buffer(archive.source()).inputStream(), new AirDropClient.AirDropClientCallback() {
             @Override
             public void onFailure(IOException e) {
@@ -273,7 +309,7 @@ public class AirDropManager {
             @Override
             public void run() {
                 try (final BufferedSink sink = Okio.buffer(archive.sink())) {
-                    AirDropArchiveUtil.pack(uris, sink.outputStream());
+                    AirDropArchiveUtil.pack(uris, sink.outputStream(), progressListener);
                 } catch (IOException e) {
                     Log.e(TAG, "Failed to pack upload payload: " + peer.id, e);
                     mMainThreadHandler.post(onCompressFailed);
@@ -375,16 +411,18 @@ public class AirDropManager {
             }
         };
 
+        final AirDropArchiveUtil.FileFactory fileFactory = new AirDropArchiveUtil.FileFactory() {
+            @Override
+            public void onFile(String name, InputStream input) {
+                mReceiverListener.onAirDropTransfer(name, input);
+            }
+        };
+
         mArchiveHandler.post(new Runnable() {
             @Override
             public void run() {
                 try {
-                    AirDropArchiveUtil.unpack(stream, new HashSet<>(mReceivingFiles), new AirDropArchiveUtil.FileFactory() {
-                        @Override
-                        public void onFile(String name, InputStream input) {
-                            mReceiverListener.onAirDropTransfer(name, input);
-                        }
-                    });
+                    AirDropArchiveUtil.unpack(stream, new HashSet<>(mReceivingFiles), fileFactory);
                     mMainThreadHandler.post(onDecompressDone);
                 } catch (IOException e) {
                     Log.e(TAG, "Failed receiving files", e);
@@ -407,6 +445,8 @@ public class AirDropManager {
         void onAirDropAccepted();
 
         void onAirDropRejected();
+
+        void onAirDropProgress(long bytesSent, long bytesTotal);
 
         void onAirDropSent();
 
