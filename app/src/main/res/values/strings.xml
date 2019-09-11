@@ -15,6 +15,7 @@
 
     <string name="status_waiting_for_confirm">Waiting for confirmation…</string>
     <string name="status_sending">Sending…</string>
+    <string name="status_sending_progress">Sending… %s / %s</string>
     <string name="status_rejected">Rejected</string>
 
     <string name="toast_no_file">No file can be sent</string>

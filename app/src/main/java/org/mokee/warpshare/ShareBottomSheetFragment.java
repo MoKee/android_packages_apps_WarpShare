@@ -5,12 +5,14 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,9 +40,13 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     private PeersAdapter mAdapter;
 
     private Button mSendButton;
+    private View mDiscoveringView;
 
     private String mPeerPicked = null;
     private int mPeerStatus = 0;
+
+    private long mBytesTotal = -1;
+    private long mBytesSent = 0;
 
     private AirDropManager mAirDropManager;
 
@@ -100,6 +106,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
                 sendFile(mPeers.get(mPeerPicked), mUris);
             }
         });
+
+        mDiscoveringView = view.findViewById(R.id.discovering);
 
         view.findViewById(R.id.cancel).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,14 +176,18 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
     private void handleSendConfirming() {
         mPeerStatus = R.string.status_waiting_for_confirm;
+        mBytesTotal = -1;
+        mBytesSent = 0;
         mAdapter.notifyDataSetChanged();
         mSendButton.setEnabled(false);
+        mDiscoveringView.setVisibility(View.GONE);
     }
 
     private void handleSendRejected() {
         mPeerStatus = R.string.status_rejected;
         mAdapter.notifyDataSetChanged();
         mSendButton.setEnabled(true);
+        mDiscoveringView.setVisibility(View.VISIBLE);
         Toast.makeText(getContext(), R.string.toast_rejected, Toast.LENGTH_SHORT).show();
     }
 
@@ -195,6 +207,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         mPeerStatus = 0;
         mAdapter.notifyDataSetChanged();
         mSendButton.setEnabled(true);
+        mDiscoveringView.setVisibility(View.VISIBLE);
     }
 
     private void sendFile(final AirDropManager.Peer peer, final List<ResolvedUri> uris) {
@@ -208,6 +221,13 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             @Override
             public void onAirDropRejected() {
                 handleSendRejected();
+            }
+
+            @Override
+            public void onAirDropProgress(long bytesSent, long bytesTotal) {
+                mBytesSent = bytesSent;
+                mBytesTotal = bytesTotal;
+                mAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -245,9 +265,27 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             holder.itemView.setSelected(selected);
             if (selected && mPeerStatus != 0) {
                 holder.statusView.setVisibility(View.VISIBLE);
-                holder.statusView.setText(mPeerStatus);
+                if (mPeerStatus == R.string.status_sending && mBytesTotal != -1) {
+                    holder.statusView.setText(getString(R.string.status_sending_progress,
+                            Formatter.formatFileSize(mParent, mBytesSent),
+                            Formatter.formatFileSize(mParent, mBytesTotal)));
+                } else {
+                    holder.statusView.setText(mPeerStatus);
+                }
             } else {
                 holder.statusView.setVisibility(View.GONE);
+            }
+            if (selected && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
+                holder.progressBar.setVisibility(View.VISIBLE);
+                if (mBytesTotal == -1 || mPeerStatus != R.string.status_sending) {
+                    holder.progressBar.setIndeterminate(true);
+                } else {
+                    holder.progressBar.setIndeterminate(false);
+                    holder.progressBar.setMax((int) mBytesTotal);
+                    holder.progressBar.setProgress((int) mBytesSent, true);
+                }
+            } else {
+                holder.progressBar.setVisibility(View.GONE);
             }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -266,11 +304,13 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
             TextView nameView;
             TextView statusView;
+            ProgressBar progressBar;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 nameView = itemView.findViewById(R.id.name);
                 statusView = itemView.findViewById(R.id.status);
+                progressBar = itemView.findViewById(R.id.progress);
             }
 
         }

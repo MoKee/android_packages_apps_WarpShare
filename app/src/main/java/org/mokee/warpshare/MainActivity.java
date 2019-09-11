@@ -5,11 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -34,6 +36,9 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     private String mPeerPicked = null;
     private int mPeerStatus = 0;
+
+    private long mBytesTotal = -1;
+    private long mBytesSent = 0;
 
     private AirDropManager mAirDropManager;
 
@@ -103,6 +108,8 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     private void handleSendConfirming() {
         mPeerStatus = R.string.status_waiting_for_confirm;
+        mBytesTotal = -1;
+        mBytesSent = 0;
         mAdapter.notifyDataSetChanged();
     }
 
@@ -180,6 +187,13 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             }
 
             @Override
+            public void onAirDropProgress(long bytesSent, long bytesTotal) {
+                mBytesSent = bytesSent;
+                mBytesTotal = bytesTotal;
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
             public void onAirDropSent() {
                 handleSendSucceed();
             }
@@ -209,17 +223,33 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             final String id = mPeers.keyAt(position);
             final AirDropManager.Peer peer = mPeers.valueAt(position);
+            final boolean selected = id.equals(mPeerPicked);
             holder.nameView.setText(peer.name);
-            if (id.equals(mPeerPicked) && mPeerStatus != 0) {
+            if (selected && mPeerStatus != 0) {
                 holder.statusView.setVisibility(View.VISIBLE);
-                holder.statusView.setText(mPeerStatus);
+                if (mPeerStatus == R.string.status_sending && mBytesTotal != -1) {
+                    holder.statusView.setText(getString(R.string.status_sending_progress,
+                            Formatter.formatFileSize(MainActivity.this, mBytesSent),
+                            Formatter.formatFileSize(MainActivity.this, mBytesTotal)));
+                } else {
+                    holder.statusView.setText(mPeerStatus);
+                }
             } else {
                 holder.statusView.setVisibility(View.GONE);
             }
-            if (id.equals(mPeerPicked) && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
+            if (selected && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
                 holder.itemView.setEnabled(false);
+                holder.progressBar.setVisibility(View.VISIBLE);
+                if (mBytesTotal == -1 || mPeerStatus != R.string.status_sending) {
+                    holder.progressBar.setIndeterminate(true);
+                } else {
+                    holder.progressBar.setIndeterminate(false);
+                    holder.progressBar.setMax((int) mBytesTotal);
+                    holder.progressBar.setProgress((int) mBytesSent, true);
+                }
             } else {
                 holder.itemView.setEnabled(true);
+                holder.progressBar.setVisibility(View.GONE);
             }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -238,11 +268,13 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
             TextView nameView;
             TextView statusView;
+            ProgressBar progressBar;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 nameView = itemView.findViewById(R.id.name);
                 statusView = itemView.findViewById(R.id.status);
+                progressBar = itemView.findViewById(R.id.progress);
             }
 
         }
