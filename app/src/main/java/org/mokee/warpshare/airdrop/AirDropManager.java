@@ -27,7 +27,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import okio.Buffer;
+import okio.BufferedSink;
+import okio.Okio;
+import okio.Pipe;
 
 public class AirDropManager {
 
@@ -244,7 +246,7 @@ public class AirDropManager {
     }
 
     private void upload(final Peer peer, final List<ResolvedUri> uris, final SenderListener listener) {
-        final Buffer archive = new Buffer();
+        final Pipe archive = new Pipe(1024);
 
         final Runnable onCompressFailed = new Runnable() {
             @Override
@@ -253,37 +255,29 @@ public class AirDropManager {
             }
         };
 
-        final Runnable onCompressDone = new Runnable() {
+        mClient.post(peer.url + "/Upload", Okio.buffer(archive.source()).inputStream(), new AirDropClient.AirDropClientCallback() {
             @Override
-            public void run() {
-                mClient.post(peer.url + "/Upload", archive.inputStream(), new AirDropClient.AirDropClientCallback() {
-                    @Override
-                    public void onFailure(IOException e) {
-                        Log.e(TAG, "Failed to upload: " + peer.id, e);
-                        listener.onAirDropSendFailed();
-                    }
-
-                    @Override
-                    public void onResponse(NSDictionary response) {
-                        Log.d(TAG, "Uploaded");
-                        listener.onAirDropSent();
-                    }
-                });
+            public void onFailure(IOException e) {
+                Log.e(TAG, "Failed to upload: " + peer.id, e);
+                listener.onAirDropSendFailed();
             }
-        };
+
+            @Override
+            public void onResponse(NSDictionary response) {
+                Log.d(TAG, "Uploaded");
+                listener.onAirDropSent();
+            }
+        });
 
         mArchiveHandler.post(new Runnable() {
             @Override
             public void run() {
-                try {
-                    AirDropArchiveUtil.pack(uris, archive.outputStream());
+                try (final BufferedSink sink = Okio.buffer(archive.sink())) {
+                    AirDropArchiveUtil.pack(uris, sink.outputStream());
                 } catch (IOException e) {
                     Log.e(TAG, "Failed to pack upload payload: " + peer.id, e);
                     mMainThreadHandler.post(onCompressFailed);
-                    return;
                 }
-
-                mMainThreadHandler.post(onCompressDone);
             }
         });
     }
