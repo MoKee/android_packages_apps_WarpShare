@@ -3,6 +3,7 @@
 
     <style name="AppTheme" parent="Theme.MaterialComponents.Light">
         <item name="colorPrimary">@android:color/white</item>
+        <item name="colorControlActivated">#4CAF50</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>
@@ -17,6 +18,7 @@
 
     <style name="ShareTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">#4CAF50</item>
+        <item name="colorControlActivated">#4CAF50</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowAnimationStyle">@null</item>
