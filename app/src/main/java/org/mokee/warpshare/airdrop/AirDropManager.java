@@ -205,7 +205,7 @@ public class AirDropManager {
         }
     }
 
-    public void ask(final Peer peer, List<ResolvedUri> uris, final AskCallback callback) {
+    public void send(final Peer peer, final List<ResolvedUri> uris, final SenderListener listener) {
         final NSDictionary req = new NSDictionary();
         req.put("SenderID", mConfigManager.getId());
         req.put("SenderComputerName", mConfigManager.getName());
@@ -225,28 +225,31 @@ public class AirDropManager {
 
         req.put("Files", files);
 
+        Log.d(TAG, "Asking " + peer.id + " to receive " + uris.size() + " files");
+
         mClient.post(peer.url + "/Ask", req, new AirDropClient.AirDropClientCallback() {
             @Override
             public void onFailure(IOException e) {
                 Log.w(TAG, "Failed to ask: " + peer.id, e);
-                callback.onAskResult(false);
+                listener.onAirDropRejected();
             }
 
             @Override
             public void onResponse(NSDictionary response) {
-                Log.d(TAG, "Ask accepted");
-                callback.onAskResult(true);
+                Log.d(TAG, "Accepted");
+                listener.onAirDropAccepted();
+                upload(peer, uris, listener);
             }
         });
     }
 
-    public void upload(final Peer peer, final List<ResolvedUri> uris, final UploadCallback callback) {
+    private void upload(final Peer peer, final List<ResolvedUri> uris, final SenderListener listener) {
         final Buffer archive = new Buffer();
 
         final Runnable onCompressFailed = new Runnable() {
             @Override
             public void run() {
-                callback.onUploadResult(false);
+                listener.onAirDropSendFailed();
             }
         };
 
@@ -257,12 +260,13 @@ public class AirDropManager {
                     @Override
                     public void onFailure(IOException e) {
                         Log.e(TAG, "Failed to upload: " + peer.id, e);
-                        callback.onUploadResult(false);
+                        listener.onAirDropSendFailed();
                     }
 
                     @Override
                     public void onResponse(NSDictionary response) {
-                        callback.onUploadResult(true);
+                        Log.d(TAG, "Uploaded");
+                        listener.onAirDropSent();
                     }
                 });
             }
@@ -404,15 +408,15 @@ public class AirDropManager {
 
     }
 
-    public interface AskCallback {
+    public interface SenderListener {
 
-        void onAskResult(boolean accepted);
+        void onAirDropAccepted();
 
-    }
+        void onAirDropRejected();
 
-    public interface UploadCallback {
+        void onAirDropSent();
 
-        void onUploadResult(boolean done);
+        void onAirDropSendFailed();
 
     }
 
