@@ -42,6 +42,9 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     private String mPeerPicked = null;
     private int mPeerStatus = 0;
 
+    private long mBytesTotal = -1;
+    private long mBytesSent = 0;
+
     private AirDropManager mAirDropManager;
 
     public ShareBottomSheetFragment() {
@@ -168,6 +171,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
     private void handleSendConfirming() {
         mPeerStatus = R.string.status_waiting_for_confirm;
+        mBytesTotal = -1;
+        mBytesSent = 0;
         mAdapter.notifyDataSetChanged();
         mSendButton.setEnabled(false);
     }
@@ -211,6 +216,13 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             }
 
             @Override
+            public void onAirDropProgress(long bytesSent, long bytesTotal) {
+                mBytesSent = bytesSent;
+                mBytesTotal = bytesTotal;
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
             public void onAirDropSent() {
                 handleSendSucceed();
             }
@@ -245,7 +257,12 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             holder.itemView.setSelected(selected);
             if (selected && mPeerStatus != 0) {
                 holder.statusView.setVisibility(View.VISIBLE);
-                holder.statusView.setText(mPeerStatus);
+                if (mPeerStatus == R.string.status_sending && mBytesTotal != -1) {
+                    final float progress = (float) mBytesSent / (float) mBytesTotal * 100f;
+                    holder.statusView.setText(getString(R.string.status_sending_progress, progress));
+                } else {
+                    holder.statusView.setText(mPeerStatus);
+                }
             } else {
                 holder.statusView.setVisibility(View.GONE);
             }

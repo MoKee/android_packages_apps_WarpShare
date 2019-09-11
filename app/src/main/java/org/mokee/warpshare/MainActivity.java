@@ -35,6 +35,9 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     private String mPeerPicked = null;
     private int mPeerStatus = 0;
 
+    private long mBytesTotal = -1;
+    private long mBytesSent = 0;
+
     private AirDropManager mAirDropManager;
 
     @Override
@@ -103,6 +106,8 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     private void handleSendConfirming() {
         mPeerStatus = R.string.status_waiting_for_confirm;
+        mBytesTotal = -1;
+        mBytesSent = 0;
         mAdapter.notifyDataSetChanged();
     }
 
@@ -180,6 +185,13 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             }
 
             @Override
+            public void onAirDropProgress(long bytesSent, long bytesTotal) {
+                mBytesSent = bytesSent;
+                mBytesTotal = bytesTotal;
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
             public void onAirDropSent() {
                 handleSendSucceed();
             }
@@ -212,7 +224,12 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             holder.nameView.setText(peer.name);
             if (id.equals(mPeerPicked) && mPeerStatus != 0) {
                 holder.statusView.setVisibility(View.VISIBLE);
-                holder.statusView.setText(mPeerStatus);
+                if (mPeerStatus == R.string.status_sending && mBytesTotal != -1) {
+                    final float progress = (float) mBytesSent / (float) mBytesTotal * 100f;
+                    holder.statusView.setText(getString(R.string.status_sending_progress, progress));
+                } else {
+                    holder.statusView.setText(mPeerStatus);
+                }
             } else {
                 holder.statusView.setVisibility(View.GONE);
             }
