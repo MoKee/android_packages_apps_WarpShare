@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.FileNotFoundException;
@@ -21,9 +22,10 @@ public class ResolvedUri {
 
     private String mName;
     private String mPath;
+    private String mType;
     private long mSize;
 
-    ResolvedUri(Context context, Uri uri) {
+    ResolvedUri(Context context, Uri uri, String type) {
         mContext = context;
         this.uri = uri;
 
@@ -52,9 +54,14 @@ public class ResolvedUri {
 
         mName = cursor.getString(nameIndex);
         mPath = "./" + mName;
+        mType = type;
         mSize = cursor.isNull(sizeIndex) ? -1 : cursor.getLong(sizeIndex);
 
         cursor.close();
+
+        if (TextUtils.isEmpty(mType)) {
+            mType = context.getContentResolver().getType(uri);
+        }
 
         mOk = true;
     }
@@ -69,6 +76,10 @@ public class ResolvedUri {
 
     public String path() {
         return mPath;
+    }
+
+    public String type() {
+        return mType;
     }
 
     public long size() {

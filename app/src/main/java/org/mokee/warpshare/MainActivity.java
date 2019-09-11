@@ -152,9 +152,9 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
                     final AirDropManager.Peer peer = mPeers.get(mPeerPicked);
                     if (peer != null) {
                         if (data.getClipData() == null) {
-                            sendFile(peer, data.getData());
+                            sendFile(peer, data.getData(), data.getType());
                         } else {
-                            sendFile(peer, data.getClipData());
+                            sendFile(peer, data.getClipData(), data.getType());
                         }
                     }
                 }
@@ -252,8 +252,8 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         mAdapter.notifyDataSetChanged();
     }
 
-    private void sendFile(AirDropManager.Peer peer, Uri rawUri) {
-        final ResolvedUri uri = new ResolvedUri(this, rawUri);
+    private void sendFile(AirDropManager.Peer peer, Uri rawUri, String type) {
+        final ResolvedUri uri = new ResolvedUri(this, rawUri, type);
         if (!uri.ok()) {
             Log.w(TAG, "No file was selected");
             handleSendFailed(peer);
@@ -266,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         sendFile(peer, uris);
     }
 
-    private void sendFile(AirDropManager.Peer peer, ClipData clipData) {
+    private void sendFile(AirDropManager.Peer peer, ClipData clipData, String type) {
         if (clipData == null) {
             Log.w(TAG, "ClipData should not be null");
             handleSendFailed(peer);
@@ -275,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
         final List<ResolvedUri> uris = new ArrayList<>();
         for (int i = 0; i < clipData.getItemCount(); i++) {
-            final ResolvedUri uri = new ResolvedUri(this, clipData.getItemAt(i).getUri());
+            final ResolvedUri uri = new ResolvedUri(this, clipData.getItemAt(i).getUri(), type);
             if (uri.ok()) {
                 uris.add(uri);
             }

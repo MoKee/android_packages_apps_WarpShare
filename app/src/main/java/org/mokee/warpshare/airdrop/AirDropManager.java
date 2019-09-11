@@ -4,6 +4,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.dd.plist.NSArray;
@@ -177,6 +178,33 @@ public class AirDropManager {
         }
     }
 
+    private String getEntryType(ResolvedUri uri) {
+        final String mime = uri.type();
+
+        if (!TextUtils.isEmpty(mime)) {
+            if (mime.startsWith("image/")) {
+                final String name = uri.name().toLowerCase();
+                if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
+                    return "public.jpeg";
+                } else if (name.endsWith(".jp2")) {
+                    return "public.jpeg-2000";
+                } else if (name.endsWith(".gif")) {
+                    return "com.compuserve.gif";
+                } else if (name.endsWith(".png")) {
+                    return "public.png";
+                } else {
+                    return "public.image";
+                }
+            } else if (mime.startsWith("audio/")) {
+                return "public.audio";
+            } else if (mime.startsWith("video/")) {
+                return "public.video";
+            }
+        }
+
+        return "public.content";
+    }
+
     public Cancelable send(final Peer peer, final List<ResolvedUri> uris, final SenderListener listener) {
         final NSDictionary req = new NSDictionary();
         req.put("SenderID", mConfigManager.getId());
@@ -188,7 +216,7 @@ public class AirDropManager {
         for (ResolvedUri uri : uris) {
             final NSDictionary file = new NSDictionary();
             file.put("FileName", uri.name());
-            file.put("FileType", "public.content");
+            file.put("FileType", getEntryType(uri));
             file.put("FileBomPath", uri.path());
             file.put("FileIsDirectory", false);
             file.put("ConvertMediaFormats", 0);
