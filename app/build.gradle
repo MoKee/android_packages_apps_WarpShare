@@ -22,4 +22,5 @@ dependencies {
     implementation 'com.koushikdutta.async:androidasync:2.2.1'
     implementation 'com.googlecode.plist:dd-plist:1.22'
     implementation 'org.apache.commons:commons-compress:1.19'
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
 }
