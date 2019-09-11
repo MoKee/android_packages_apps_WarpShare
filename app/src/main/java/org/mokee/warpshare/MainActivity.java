@@ -168,28 +168,25 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     private void sendFile(final AirDropManager.Peer peer, final List<ResolvedUri> uris) {
         handleSendConfirming();
-        mAirDropManager.ask(peer, uris, new AirDropManager.AskCallback() {
+        mAirDropManager.send(peer, uris, new AirDropManager.SenderListener() {
             @Override
-            public void onAskResult(boolean accepted) {
-                if (accepted) {
-                    upload(peer, uris);
-                } else {
-                    handleSendRejected();
-                }
+            public void onAirDropAccepted() {
+                handleSending();
             }
-        });
-    }
 
-    private void upload(AirDropManager.Peer peer, List<ResolvedUri> uris) {
-        handleSending();
-        mAirDropManager.upload(peer, uris, new AirDropManager.UploadCallback() {
             @Override
-            public void onUploadResult(boolean done) {
-                if (done) {
-                    handleSendSucceed();
-                } else {
-                    handleSendFailed();
-                }
+            public void onAirDropRejected() {
+                handleSendRejected();
+            }
+
+            @Override
+            public void onAirDropSent() {
+                handleSendSucceed();
+            }
+
+            @Override
+            public void onAirDropSendFailed() {
+                handleSendFailed();
             }
         });
     }
