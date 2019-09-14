@@ -147,8 +147,8 @@ public class AirDropManager {
         mArchiveThread.quit();
     }
 
-    public void registerTrigger(Class<? extends Service> receiverService) {
-        mBleController.registerTrigger(receiverService);
+    public void registerTrigger(Class<? extends Service> receiverService, String action) {
+        mBleController.registerTrigger(receiverService, action);
     }
 
     private boolean checkNetwork() {

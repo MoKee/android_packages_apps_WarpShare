@@ -151,13 +151,13 @@ class AirDropBleController {
         mAdvertiser.stopAdvertising(mAdvertiseCallback);
     }
 
-    private PendingIntent getTriggerIntent(Class<? extends Service> receiverService) {
+    private PendingIntent getTriggerIntent(Class<? extends Service> receiverService, String action) {
         return PendingIntent.getForegroundService(mContext, 0,
-                new Intent(mContext, receiverService),
+                new Intent(action, null, mContext, receiverService),
                 PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    void registerTrigger(Class<? extends Service> receiverService) {
+    void registerTrigger(Class<? extends Service> receiverService, String action) {
         synchronized (mLock) {
             getScanner();
             if (mScanner == null) {
@@ -177,11 +177,11 @@ class AirDropBleController {
                         .setNumOfMatches(MATCH_NUM_MAX_ADVERTISEMENT)
                         .setScanMode(SCAN_MODE_LOW_LATENCY)
                         .build(),
-                getTriggerIntent(receiverService));
+                getTriggerIntent(receiverService, action));
     }
 
-    void unregisterTrigger(Class<? extends Service> receiverService) {
-        mScanner.stopScan(getTriggerIntent(receiverService));
+    void unregisterTrigger(Class<? extends Service> receiverService, String action) {
+        mScanner.stopScan(getTriggerIntent(receiverService, action));
     }
 
     private void handleAdvertiseStartSuccess() {

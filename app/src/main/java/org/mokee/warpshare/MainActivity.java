@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         mAirDropManager = new AirDropManager(this);
         mAirDropManager.startDiscover(this);
 
-        mAirDropManager.registerTrigger(ReceiverService.class);
+        mAirDropManager.registerTrigger(ReceiverService.class, ReceiverService.ACTION_SCAN_RESULT);
 
         mAdapter = new PeersAdapter(this);
 
