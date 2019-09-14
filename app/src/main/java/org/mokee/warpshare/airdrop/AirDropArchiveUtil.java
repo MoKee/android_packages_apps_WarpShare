@@ -27,15 +27,8 @@ import static org.apache.commons.compress.archivers.cpio.CpioConstants.FORMAT_OL
 
 class AirDropArchiveUtil {
 
-    static void pack(List<ResolvedUri> uris, OutputStream output, final ProgressListener progressListener)
+    static void pack(List<ResolvedUri> uris, OutputStream output, GossipyInputStream.Listener streamReadListener)
             throws IOException {
-        final GossipyInputStream.Listener streamReadListener = new GossipyInputStream.Listener() {
-            @Override
-            public void onRead(int length) {
-                progressListener.onProcessed(length);
-            }
-        };
-
         try (final GzipCompressorOutputStream gzip = new GzipCompressorOutputStream(output);
              final CpioArchiveOutputStream cpio = new CpioArchiveOutputStream(gzip, FORMAT_OLD_ASCII)) {
             for (ResolvedUri uri : uris) {
@@ -67,7 +60,7 @@ class AirDropArchiveUtil {
             CpioArchiveEntry entry;
             while ((entry = cpio.getNextCPIOEntry()) != null) {
                 if (entry.isRegularFile() && paths.contains(entry.getName())) {
-                    factory.onFile(entry.getName(), cpio);
+                    factory.onFile(entry.getName(), entry.getSize(), cpio);
                 }
             }
         }
@@ -75,13 +68,7 @@ class AirDropArchiveUtil {
 
     public interface FileFactory {
 
-        void onFile(String name, InputStream input);
-
-    }
-
-    public interface ProgressListener {
-
-        void onProcessed(long bytes);
+        void onFile(String name, long size, InputStream input);
 
     }
 
