@@ -211,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
         PeersAdapter(Context context) {
             mInflater = LayoutInflater.from(context);
+            setHasStableIds(true);
         }
 
         @NonNull
@@ -257,6 +258,11 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
                     handleItemClick(peer);
                 }
             });
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return mPeers.keyAt(position).hashCode();
         }
 
         @Override

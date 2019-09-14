@@ -248,6 +248,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
         PeersAdapter(Context context) {
             mInflater = LayoutInflater.from(context);
+            setHasStableIds(true);
         }
 
         @NonNull
@@ -293,6 +294,11 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
                     handleItemClick(peer);
                 }
             });
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return mPeers.keyAt(position).hashCode();
         }
 
         @Override
