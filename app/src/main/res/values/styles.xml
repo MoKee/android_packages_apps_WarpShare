@@ -3,7 +3,7 @@
 
     <style name="AppThemeBase" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">?colorControlHighlight</item>
-        <item name="colorControlActivated">#00897B</item>
+        <item name="colorControlActivated">@color/primary</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>
     </style>
