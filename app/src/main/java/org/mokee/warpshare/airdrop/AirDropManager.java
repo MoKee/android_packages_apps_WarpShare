@@ -11,6 +11,7 @@ import com.dd.plist.NSArray;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 
+import org.mokee.warpshare.GossipyInputStream;
 import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
@@ -57,6 +58,7 @@ public class AirDropManager {
     private InetAddress mLocalAddress;
 
     private String mReceivingIp = null;
+    private String mReceivingName = null;
     private List<String> mReceivingFiles = null;
 
     private HandlerThread mArchiveThread;
@@ -273,15 +275,15 @@ public class AirDropManager {
         };
 
         final long bytesTotal = totalLength(uris);
-        final AirDropArchiveUtil.ProgressListener progressListener = new AirDropArchiveUtil.ProgressListener() {
+        final GossipyInputStream.Listener streamReadListener = new GossipyInputStream.Listener() {
             private long bytesSent = 0;
 
             @Override
-            public void onProcessed(long bytes) {
+            public void onRead(int length) {
                 if (bytesTotal == -1) {
                     return;
                 }
-                bytesSent += bytes;
+                bytesSent += length;
                 mMainThreadHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -309,7 +311,7 @@ public class AirDropManager {
             @Override
             public void run() {
                 try (final BufferedSink sink = Okio.buffer(archive.sink())) {
-                    AirDropArchiveUtil.pack(uris, sink.outputStream(), progressListener);
+                    AirDropArchiveUtil.pack(uris, sink.outputStream(), streamReadListener);
                 } catch (IOException e) {
                     Log.e(TAG, "Failed to pack upload payload: " + peer.id, e);
                     mMainThreadHandler.post(onCompressFailed);
@@ -372,6 +374,7 @@ public class AirDropManager {
                 response.put("ReceiverComputerName", mConfigManager.getName());
 
                 mReceivingIp = ip;
+                mReceivingName = name;
                 mReceivingFiles = filePaths;
 
                 callback.call(response);
@@ -385,7 +388,7 @@ public class AirDropManager {
     }
 
     void handleUpload(String ip, final InputStream stream, final AirDropServer.ResultCallback callback) {
-        if (mReceivingIp == null || mReceivingFiles == null) {
+        if (mReceivingIp == null || mReceivingName == null || mReceivingFiles == null) {
             Log.w(TAG, "Not in transferring state");
             callback.call(null);
             return;
@@ -400,6 +403,10 @@ public class AirDropManager {
         final Runnable onDecompressFailed = new Runnable() {
             @Override
             public void run() {
+                mReceiverListener.onAirDropTransferFailed(mReceivingName);
+                mReceivingIp = null;
+                mReceivingName = null;
+                mReceivingFiles = null;
                 callback.call(null);
             }
         };
@@ -407,7 +414,40 @@ public class AirDropManager {
         final Runnable onDecompressDone = new Runnable() {
             @Override
             public void run() {
+                mReceiverListener.onAirDropTransferDone(mReceivingName);
+                mReceivingIp = null;
+                mReceivingName = null;
+                mReceivingFiles = null;
                 callback.call(new NSDictionary());
+            }
+        };
+
+        final AirDropArchiveUtil.FileFactory fileFactory = new AirDropArchiveUtil.FileFactory() {
+            private final int fileCount = mReceivingFiles.size();
+            private int fileIndex = 0;
+
+            @Override
+            public void onFile(final String name, final long size, InputStream input) {
+                final GossipyInputStream.Listener streamReadListener = new GossipyInputStream.Listener() {
+                    private long bytesReceived = 0;
+
+                    @Override
+                    public void onRead(int length) {
+                        bytesReceived += length;
+                        mMainThreadHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (fileIndex < fileCount) {
+                                    mReceiverListener.onAirDropTransferProgress(mReceivingName, name,
+                                            bytesReceived, size, fileIndex, fileCount);
+                                }
+                            }
+                        });
+                    }
+                };
+
+                mReceiverListener.onAirDropTransfer(name, new GossipyInputStream(input, streamReadListener));
+                fileIndex++;
             }
         };
 
@@ -415,12 +455,7 @@ public class AirDropManager {
             @Override
             public void run() {
                 try {
-                    AirDropArchiveUtil.unpack(stream, new HashSet<>(mReceivingFiles), new AirDropArchiveUtil.FileFactory() {
-                        @Override
-                        public void onFile(String name, InputStream input) {
-                            mReceiverListener.onAirDropTransfer(name, input);
-                        }
-                    });
+                    AirDropArchiveUtil.unpack(stream, new HashSet<>(mReceivingFiles), fileFactory);
                     mMainThreadHandler.post(onDecompressDone);
                 } catch (IOException e) {
                     Log.e(TAG, "Failed receiving files", e);
@@ -457,6 +492,14 @@ public class AirDropManager {
         void onAirDropRequest(String name, List<String> fileNames, ReceiverCallback callback);
 
         void onAirDropTransfer(String fileName, InputStream input);
+
+        void onAirDropTransferProgress(String name, String fileName,
+                                       long bytesReceived, long bytesTotal,
+                                       int index, int count);
+
+        void onAirDropTransferDone(String name);
+
+        void onAirDropTransferFailed(String name);
 
     }
 
