@@ -17,6 +17,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.mokee.warpshare.airdrop.AirDropManager;
@@ -56,6 +57,9 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
         final RecyclerView peersView = findViewById(R.id.peers);
         peersView.setAdapter(mAdapter);
+
+        final Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
     }
 
     @Override
@@ -217,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ViewHolder(mInflater.inflate(R.layout.item_peer, parent, false));
+            return new ViewHolder(mInflater.inflate(R.layout.item_peer_main, parent, false));
         }
 
         @Override
@@ -226,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             final AirDropManager.Peer peer = mPeers.valueAt(position);
             final boolean selected = id.equals(mPeerPicked);
             holder.nameView.setText(peer.name);
+            holder.itemView.setSelected(selected);
             if (selected && mPeerStatus != 0) {
                 holder.statusView.setVisibility(View.VISIBLE);
                 if (mPeerStatus == R.string.status_sending && mBytesTotal != -1) {
