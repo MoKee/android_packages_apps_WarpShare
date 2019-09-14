@@ -35,6 +35,8 @@ import static org.mokee.warpshare.airdrop.AirDropManager.STATUS_OK;
 
 public class ReceiverService extends Service implements AirDropManager.ReceiverListener {
 
+    static final String ACTION_SCAN_RESULT = "org.mokee.warpshare.SCAN_RESULT";
+
     private static final String TAG = "ReceiverService";
 
     private static final String NOTIFICATION_CHANNEL_SERVICE = "receiver";
@@ -93,7 +95,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
+        final String action = intent == null ? null : intent.getAction();
+        if (ACTION_SCAN_RESULT.equals(action)) {
             final int callbackType = intent.getIntExtra(EXTRA_CALLBACK_TYPE, 0);
             final List<ScanResult> results = intent.getParcelableArrayListExtra(EXTRA_LIST_SCAN_RESULT);
             handleScanResult(callbackType, results);
