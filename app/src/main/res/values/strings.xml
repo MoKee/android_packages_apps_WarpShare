@@ -28,4 +28,13 @@
     <string name="notif_recv_active_title">WarpShare is active</string>
     <string name="notif_recv_active_description">Your device is now discoverable by people nearby</string>
 
+    <string name="notif_recv_transfer_title">%s wants to send you %d files</string>
+    <string name="notif_recv_transfer_description">Do you want to accept or reject it?</string>
+    <string name="notif_recv_transfer_accept">Accept</string>
+    <string name="notif_recv_transfer_reject">Reject</string>
+    <string name="notif_recv_transfer_progress_title">Receiving files from %s…</string>
+    <string name="notif_recv_transfer_progress_description">%d / %d</string>
+    <string name="notif_recv_transfer_done_title">Files received</string>
+    <string name="notif_recv_transfer_failed_title">Failed to receive files</string>
+
 </resources>
