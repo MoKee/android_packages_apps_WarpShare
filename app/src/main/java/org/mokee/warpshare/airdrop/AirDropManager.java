@@ -60,6 +60,7 @@ public class AirDropManager {
 
     private String mReceivingIp = null;
     private List<String> mReceivingFiles = null;
+    private InputStream mReceivingStream = null;
 
     private HashMap<String, Call> mOngoingUploads = new HashMap<>();
 
@@ -339,6 +340,16 @@ public class AirDropManager {
         });
     }
 
+    public void cancel() {
+        if (mReceivingStream != null) {
+            try {
+                mReceivingStream.close();
+            } catch (IOException ignored) {
+            }
+            mReceivingStream = null;
+        }
+    }
+
     void handleDiscover(String ip, NSDictionary request, AirDropServer.ResultCallback callback) {
         final NSDictionary response = new NSDictionary();
         response.put("ReceiverComputerName", mConfigManager.getName());
@@ -422,12 +433,15 @@ public class AirDropManager {
             return;
         }
 
+        mReceivingStream = stream;
+
         final Runnable onDecompressFailed = new Runnable() {
             @Override
             public void run() {
                 mReceiverListener.onAirDropTransferFailed();
                 mReceivingIp = null;
                 mReceivingFiles = null;
+                mReceivingStream = null;
                 callback.call(null);
             }
         };
@@ -438,6 +452,7 @@ public class AirDropManager {
                 mReceiverListener.onAirDropTransferDone();
                 mReceivingIp = null;
                 mReceivingFiles = null;
+                mReceivingStream = null;
                 callback.call(new NSDictionary());
             }
         };
@@ -457,7 +472,7 @@ public class AirDropManager {
                         mMainThreadHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                if (fileIndex < fileCount) {
+                                if (fileIndex < fileCount && mReceivingStream != null) {
                                     mReceiverListener.onAirDropTransferProgress(name,
                                             bytesReceived, size, fileIndex, fileCount);
                                 }

@@ -33,6 +33,7 @@
 
     <string name="notif_recv_transfer_progress_title">Receiving %d files from %s…</string>
     <string name="notif_recv_transfer_progress_desc">%d / %d</string>
+    <string name="notif_recv_transfer_progress_cancel">Cancel</string>
 
     <string name="notif_recv_transfer_done_title">%d files received from %s</string>
     <string name="notif_recv_transfer_done_desc">Tap to browse received files</string>

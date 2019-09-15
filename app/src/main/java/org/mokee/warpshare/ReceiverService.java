@@ -45,6 +45,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
     private static final String ACTION_TRANSFER_ACCEPT = "org.mokee.warpshare.TRANSFER_ACCEPT";
     private static final String ACTION_TRANSFER_REJECT = "org.mokee.warpshare.TRANSFER_REJECT";
+    private static final String ACTION_TRANSFER_CANCEL = "org.mokee.warpshare.TRANSFER_CANCEL";
 
     private static final String NOTIFICATION_CHANNEL_SERVICE = "receiver";
     private static final String NOTIFICATION_CHANNEL_TRANSFER = "transfer";
@@ -122,6 +123,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             handleTransferAccept();
         } else if (ACTION_TRANSFER_REJECT.equals(action)) {
             handleTransferReject();
+        } else if (ACTION_TRANSFER_CANCEL.equals(action)) {
+            handleTransferCancel();
         }
         return START_STICKY;
     }
@@ -238,6 +241,11 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         }
     }
 
+    private void handleTransferCancel() {
+        mAirDropManager.cancel();
+        mNotificationManager.cancel(NOTIFICATION_TRANSFER);
+    }
+
     @Override
     public void onAirDropTransferProgress(String fileName,
                                           long bytesReceived, long bytesTotal,
@@ -253,6 +261,10 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
                         .setContentText(getString(R.string.notif_recv_transfer_progress_desc,
                                 index + 1, count))
                         .setProgress((int) bytesTotal, (int) bytesReceived, false)
+                        .addAction(new Notification.Action.Builder(null,
+                                getString(R.string.notif_recv_transfer_progress_cancel),
+                                getTransferIntent(ACTION_TRANSFER_CANCEL))
+                                .build())
                         .setOngoing(true)
                         .setOnlyAlertOnce(true)
                         .build());
