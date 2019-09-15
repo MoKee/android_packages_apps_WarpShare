@@ -3,6 +3,8 @@
 
     <string name="app_name">WarpShare</string>
 
+    <string name="menu_settings">Settings…</string>
+
     <plurals name="send_files_to">
         <item quantity="one">Send %d file to…</item>
         <item quantity="other">Send %d files to…</item>
@@ -40,5 +42,9 @@
 
     <string name="notif_recv_transfer_failed_title">Receiving aborted</string>
     <string name="notif_recv_transfer_failed_desc">Failed receiving files from %s</string>
+
+    <string name="settings">Settings</string>
+
+    <string name="settings_name">Display name</string>
 
 </resources>

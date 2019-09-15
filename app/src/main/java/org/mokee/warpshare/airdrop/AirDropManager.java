@@ -114,6 +114,10 @@ public class AirDropManager {
         return STATUS_OK;
     }
 
+    public AirDropConfigManager getConfig() {
+        return mConfigManager;
+    }
+
     public void startDiscover(DiscoveryListener discoveryListener) {
         if (ready() != STATUS_OK) {
             return;
