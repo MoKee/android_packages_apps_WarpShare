@@ -90,12 +90,9 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
         mNotificationManager.createNotificationChannel(transferChannel);
 
-        startForeground(NOTIFICATION_ACTIVE, new Notification.Builder(this, NOTIFICATION_CHANNEL_SERVICE)
-                .setCategory(CATEGORY_SERVICE)
+        startForeground(NOTIFICATION_ACTIVE, getNotificationBuilder(NOTIFICATION_CHANNEL_SERVICE, CATEGORY_SERVICE)
                 .setContentTitle(getString(R.string.notif_recv_active_title))
                 .setContentText(getString(R.string.notif_recv_active_description))
-                .setSmallIcon(R.drawable.ic_notification_white_24dp)
-                .setColor(getColor(R.color.primary))
                 .setOngoing(true)
                 .build());
 
@@ -173,12 +170,9 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         mPendingTransferCallback = callback;
 
         mNotificationManager.notify(NOTIFICATION_TRANSFER,
-                new Notification.Builder(this, NOTIFICATION_CHANNEL_TRANSFER)
-                        .setCategory(CATEGORY_STATUS)
+                getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_title, name, fileNames.size()))
                         .setContentText(getString(R.string.notif_recv_transfer_description))
-                        .setSmallIcon(R.drawable.ic_notification_white_24dp)
-                        .setColor(getColor(R.color.primary))
                         .addAction(new Notification.Action.Builder(null,
                                 getString(R.string.notif_recv_transfer_accept),
                                 getTransferIntent(ACTION_TRANSFER_ACCEPT))
@@ -198,15 +192,12 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             mPendingTransferCallback = null;
 
             mNotificationManager.notify(NOTIFICATION_TRANSFER,
-                    new Notification.Builder(this, NOTIFICATION_CHANNEL_TRANSFER)
-                            .setCategory(CATEGORY_STATUS)
+                    getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                             .setContentTitle(getString(R.string.notif_recv_transfer_progress_title,
                                     mPendingTransferName))
                             .setContentText(getString(R.string.notif_recv_transfer_progress_description,
                                     0, mPendingTransferCount))
                             .setProgress(0, 0, true)
-                            .setSmallIcon(R.drawable.ic_notification_white_24dp)
-                            .setColor(getColor(R.color.primary))
                             .setOngoing(true)
                             .setOnlyAlertOnce(true)
                             .build());
@@ -249,15 +240,12 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         }
 
         mNotificationManager.notify(NOTIFICATION_TRANSFER,
-                new Notification.Builder(this, NOTIFICATION_CHANNEL_TRANSFER)
-                        .setCategory(CATEGORY_STATUS)
+                getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_progress_title,
                                 mPendingTransferName))
                         .setContentText(getString(R.string.notif_recv_transfer_progress_description,
                                 index + 1, count))
                         .setProgress((int) bytesTotal, (int) bytesReceived, false)
-                        .setSmallIcon(R.drawable.ic_notification_white_24dp)
-                        .setColor(getColor(R.color.primary))
                         .setOngoing(true)
                         .setOnlyAlertOnce(true)
                         .build());
@@ -273,11 +261,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         mNotificationManager.cancel(NOTIFICATION_TRANSFER);
 
         mNotificationManager.notify(NOTIFICATION_TRANSFER,
-                new Notification.Builder(this, NOTIFICATION_CHANNEL_TRANSFER)
-                        .setCategory(CATEGORY_STATUS)
+                getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_done_title))
-                        .setSmallIcon(R.drawable.ic_notification_white_24dp)
-                        .setColor(getColor(R.color.primary))
                         .build());
     }
 
@@ -291,11 +276,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         mNotificationManager.cancel(NOTIFICATION_TRANSFER);
 
         mNotificationManager.notify(NOTIFICATION_TRANSFER,
-                new Notification.Builder(this, NOTIFICATION_CHANNEL_TRANSFER)
-                        .setCategory(CATEGORY_STATUS)
+                getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_failed_title))
-                        .setSmallIcon(R.drawable.ic_notification_white_24dp)
-                        .setColor(getColor(R.color.primary))
                         .build());
     }
 
@@ -303,6 +285,13 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         return PendingIntent.getForegroundService(this, 0,
                 new Intent(action, null, this, getClass()),
                 PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private Notification.Builder getNotificationBuilder(String channelId, String category) {
+        return new Notification.Builder(this, channelId)
+                .setCategory(category)
+                .setSmallIcon(R.drawable.ic_notification_white_24dp)
+                .setColor(getColor(R.color.primary));
     }
 
 }
