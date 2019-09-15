@@ -50,6 +50,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
     private AirDropManager mAirDropManager;
 
+    private AirDropManager.Cancelable mSending;
+
     public ShareBottomSheetFragment() {
     }
 
@@ -139,6 +141,10 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
+        if (mSending != null) {
+            mSending.cancel();
+            mSending = null;
+        }
         mParent.finish();
     }
 
@@ -184,6 +190,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     }
 
     private void handleSendRejected() {
+        mSending = null;
         mPeerStatus = R.string.status_rejected;
         mAdapter.notifyDataSetChanged();
         mSendButton.setEnabled(true);
@@ -197,12 +204,14 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     }
 
     private void handleSendSucceed() {
+        mSending = null;
         Toast.makeText(getContext(), R.string.toast_completed, Toast.LENGTH_SHORT).show();
         mParent.setResult(Activity.RESULT_OK);
         dismiss();
     }
 
     private void handleSendFailed() {
+        mSending = null;
         mPeerPicked = null;
         mPeerStatus = 0;
         mAdapter.notifyDataSetChanged();
@@ -212,7 +221,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
     private void sendFile(final AirDropManager.Peer peer, final List<ResolvedUri> uris) {
         handleSendConfirming();
-        mAirDropManager.send(peer, uris, new AirDropManager.SenderListener() {
+        mSending = mAirDropManager.send(peer, uris, new AirDropManager.SenderListener() {
             @Override
             public void onAirDropAccepted() {
                 handleSending();

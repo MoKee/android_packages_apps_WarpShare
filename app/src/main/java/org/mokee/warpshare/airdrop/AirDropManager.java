@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import okhttp3.Call;
 import okio.BufferedSink;
 import okio.Okio;
 import okio.Pipe;
@@ -59,6 +60,8 @@ public class AirDropManager {
 
     private String mReceivingIp = null;
     private List<String> mReceivingFiles = null;
+
+    private HashMap<String, Call> mOngoingUploads = new HashMap<>();
 
     private HandlerThread mArchiveThread;
     private Handler mArchiveHandler;
@@ -225,7 +228,7 @@ public class AirDropManager {
         }
     }
 
-    public void send(final Peer peer, final List<ResolvedUri> uris, final SenderListener listener) {
+    public Cancelable send(final Peer peer, final List<ResolvedUri> uris, final SenderListener listener) {
         final NSDictionary req = new NSDictionary();
         req.put("SenderID", mConfigManager.getId());
         req.put("SenderComputerName", mConfigManager.getName());
@@ -247,20 +250,33 @@ public class AirDropManager {
 
         Log.d(TAG, "Asking " + peer.id + " to receive " + uris.size() + " files");
 
-        mClient.post(peer.url + "/Ask", req, new AirDropClient.AirDropClientCallback() {
-            @Override
-            public void onFailure(IOException e) {
-                Log.w(TAG, "Failed to ask: " + peer.id, e);
-                listener.onAirDropRejected();
-            }
+        mOngoingUploads.put(peer.id, mClient.post(peer.url + "/Ask", req,
+                new AirDropClient.AirDropClientCallback() {
+                    @Override
+                    public void onFailure(IOException e) {
+                        Log.w(TAG, "Failed to ask: " + peer.id, e);
+                        mOngoingUploads.remove(peer.id);
+                        listener.onAirDropRejected();
+                    }
 
+                    @Override
+                    public void onResponse(NSDictionary response) {
+                        Log.d(TAG, "Accepted");
+                        listener.onAirDropAccepted();
+                        upload(peer, uris, listener);
+                    }
+                }));
+
+        return new Cancelable() {
             @Override
-            public void onResponse(NSDictionary response) {
-                Log.d(TAG, "Accepted");
-                listener.onAirDropAccepted();
-                upload(peer, uris, listener);
+            public void cancel() {
+                final Call call = mOngoingUploads.remove(peer.id);
+                if (call != null) {
+                    call.cancel();
+                    Log.d(TAG, "Canceled");
+                }
             }
-        });
+        };
     }
 
     private void upload(final Peer peer, final List<ResolvedUri> uris, final SenderListener listener) {
@@ -292,19 +308,23 @@ public class AirDropManager {
             }
         };
 
-        mClient.post(peer.url + "/Upload", Okio.buffer(archive.source()).inputStream(), new AirDropClient.AirDropClientCallback() {
-            @Override
-            public void onFailure(IOException e) {
-                Log.e(TAG, "Failed to upload: " + peer.id, e);
-                listener.onAirDropSendFailed();
-            }
+        mOngoingUploads.put(peer.id, mClient.post(peer.url + "/Upload",
+                Okio.buffer(archive.source()).inputStream(),
+                new AirDropClient.AirDropClientCallback() {
+                    @Override
+                    public void onFailure(IOException e) {
+                        Log.e(TAG, "Failed to upload: " + peer.id, e);
+                        mOngoingUploads.remove(peer.id);
+                        listener.onAirDropSendFailed();
+                    }
 
-            @Override
-            public void onResponse(NSDictionary response) {
-                Log.d(TAG, "Uploaded");
-                listener.onAirDropSent();
-            }
-        });
+                    @Override
+                    public void onResponse(NSDictionary response) {
+                        Log.d(TAG, "Uploaded");
+                        mOngoingUploads.remove(peer.id);
+                        listener.onAirDropSent();
+                    }
+                }));
 
         mArchiveHandler.post(new Runnable() {
             @Override
@@ -504,6 +524,12 @@ public class AirDropManager {
         void accept();
 
         void reject();
+
+    }
+
+    public interface Cancelable {
+
+        void cancel();
 
     }
 

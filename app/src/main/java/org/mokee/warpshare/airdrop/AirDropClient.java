@@ -69,25 +69,27 @@ class AirDropClient {
         mInterface = iface;
     }
 
-    void post(final String url, NSDictionary body, AirDropClientCallback callback) {
+    Call post(final String url, NSDictionary body, AirDropClientCallback callback) {
         final Buffer buffer = new Buffer();
 
         try {
             PropertyListParser.saveAsBinary(body, buffer.outputStream());
         } catch (IOException e) {
             callback.onFailure(e);
-            return;
+            return null;
         }
 
-        post(url, RequestBody.create(
+        final Call call = post(url, RequestBody.create(
                 buffer.readByteString(), MediaType.get("application/octet-stream")),
                 callback);
 
         buffer.close();
+
+        return call;
     }
 
-    void post(final String url, final InputStream input, AirDropClientCallback callback) {
-        post(url, new RequestBody() {
+    Call post(final String url, final InputStream input, AirDropClientCallback callback) {
+        return post(url, new RequestBody() {
                     @Override
                     public MediaType contentType() {
                         return MediaType.get("application/x-cpio");
@@ -102,42 +104,49 @@ class AirDropClient {
                 callback);
     }
 
-    private void post(final String url, RequestBody body, final AirDropClientCallback callback) {
-        mHttpClient.newCall(new Request.Builder()
+    private Call post(final String url, RequestBody body, final AirDropClientCallback callback) {
+        final Call call = mHttpClient.newCall(new Request.Builder()
                 .url(url)
                 .post(body)
-                .build())
-                .enqueue(new Callback() {
-                    @Override
-                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        Log.e(TAG, "Request failed: " + url, e);
-                        postFailure(callback, e);
-                    }
+                .build());
 
-                    @Override
-                    public void onResponse(@NotNull Call call, @NotNull Response response) {
-                        final int statusCode = response.code();
-                        if (statusCode != 200) {
-                            postFailure(callback, new IOException("Request failed: " + statusCode));
-                            return;
-                        }
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                if (call.isCanceled()) {
+                    Log.w(TAG, "Request canceled", e);
+                } else {
+                    Log.e(TAG, "Request failed: " + url, e);
+                    postFailure(callback, e);
+                }
+            }
 
-                        final ResponseBody responseBody = response.body();
-                        if (responseBody == null) {
-                            postFailure(callback, new IOException("Response body null"));
-                            return;
-                        }
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
+                final int statusCode = response.code();
+                if (statusCode != 200) {
+                    postFailure(callback, new IOException("Request failed: " + statusCode));
+                    return;
+                }
 
-                        try {
-                            NSDictionary root = (NSDictionary) PropertyListParser.parse(responseBody.byteStream());
-                            postResponse(callback, root);
-                        } catch (PropertyListFormatException | ParseException | ParserConfigurationException | SAXException e) {
-                            postFailure(callback, new IOException(e));
-                        } catch (IOException e) {
-                            postFailure(callback, e);
-                        }
-                    }
-                });
+                final ResponseBody responseBody = response.body();
+                if (responseBody == null) {
+                    postFailure(callback, new IOException("Response body null"));
+                    return;
+                }
+
+                try {
+                    NSDictionary root = (NSDictionary) PropertyListParser.parse(responseBody.byteStream());
+                    postResponse(callback, root);
+                } catch (PropertyListFormatException | ParseException | ParserConfigurationException | SAXException e) {
+                    postFailure(callback, new IOException(e));
+                } catch (IOException e) {
+                    postFailure(callback, e);
+                }
+            }
+        });
+
+        return call;
     }
 
     private void postResponse(final AirDropClientCallback callback,
