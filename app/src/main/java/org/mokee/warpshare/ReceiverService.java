@@ -1,5 +1,6 @@
 package org.mokee.warpshare;
 
+import android.app.DownloadManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -92,7 +93,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
         startForeground(NOTIFICATION_ACTIVE, getNotificationBuilder(NOTIFICATION_CHANNEL_SERVICE, CATEGORY_SERVICE)
                 .setContentTitle(getString(R.string.notif_recv_active_title))
-                .setContentText(getString(R.string.notif_recv_active_description))
+                .setContentText(getString(R.string.notif_recv_active_desc))
                 .setOngoing(true)
                 .build());
 
@@ -171,14 +172,14 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
         mNotificationManager.notify(NOTIFICATION_TRANSFER,
                 getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
-                        .setContentTitle(getString(R.string.notif_recv_transfer_title, name, fileNames.size()))
-                        .setContentText(getString(R.string.notif_recv_transfer_description))
+                        .setContentTitle(getString(R.string.notif_recv_transfer_request_title))
+                        .setContentText(getString(R.string.notif_recv_transfer_request_desc, name, fileNames.size()))
                         .addAction(new Notification.Action.Builder(null,
-                                getString(R.string.notif_recv_transfer_accept),
+                                getString(R.string.notif_recv_transfer_request_accept),
                                 getTransferIntent(ACTION_TRANSFER_ACCEPT))
                                 .build())
                         .addAction(new Notification.Action.Builder(null,
-                                getString(R.string.notif_recv_transfer_reject),
+                                getString(R.string.notif_recv_transfer_request_reject),
                                 getTransferIntent(ACTION_TRANSFER_REJECT))
                                 .build())
                         .setDeleteIntent(getTransferIntent(ACTION_TRANSFER_REJECT))
@@ -200,8 +201,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             mNotificationManager.notify(NOTIFICATION_TRANSFER,
                     getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                             .setContentTitle(getString(R.string.notif_recv_transfer_progress_title,
-                                    mPendingTransferName))
-                            .setContentText(getString(R.string.notif_recv_transfer_progress_description,
+                                    mPendingTransferCount, mPendingTransferName))
+                            .setContentText(getString(R.string.notif_recv_transfer_progress_desc,
                                     0, mPendingTransferCount))
                             .setProgress(0, 0, true)
                             .setOngoing(true)
@@ -248,8 +249,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         mNotificationManager.notify(NOTIFICATION_TRANSFER,
                 getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_progress_title,
-                                mPendingTransferName))
-                        .setContentText(getString(R.string.notif_recv_transfer_progress_description,
+                                mPendingTransferCount, mPendingTransferName))
+                        .setContentText(getString(R.string.notif_recv_transfer_progress_desc,
                                 index + 1, count))
                         .setProgress((int) bytesTotal, (int) bytesReceived, false)
                         .setOngoing(true)
@@ -261,30 +262,38 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
     public void onAirDropTransferDone() {
         Log.d(TAG, "All files received");
 
-        mPendingTransferName = null;
-        mPendingTransferCount = 0;
-
         mNotificationManager.cancel(NOTIFICATION_TRANSFER);
 
         mNotificationManager.notify(NOTIFICATION_TRANSFER,
                 getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
-                        .setContentTitle(getString(R.string.notif_recv_transfer_done_title))
+                        .setContentTitle(getString(R.string.notif_recv_transfer_done_title,
+                                mPendingTransferCount, mPendingTransferName))
+                        .setContentText(getString(R.string.notif_recv_transfer_done_desc))
+                        .setContentIntent(PendingIntent.getActivity(this, 0,
+                                new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                                PendingIntent.FLAG_UPDATE_CURRENT))
                         .build());
+
+        mPendingTransferName = null;
+        mPendingTransferCount = 0;
     }
 
     @Override
     public void onAirDropTransferFailed() {
         Log.d(TAG, "Receiving aborted");
 
-        mPendingTransferName = null;
-        mPendingTransferCount = 0;
-
         mNotificationManager.cancel(NOTIFICATION_TRANSFER);
 
         mNotificationManager.notify(NOTIFICATION_TRANSFER,
                 getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_failed_title))
+                        .setContentText(getString(R.string.notif_recv_transfer_failed_desc,
+                                mPendingTransferName))
                         .build());
+
+        mPendingTransferName = null;
+        mPendingTransferCount = 0;
     }
 
     private PendingIntent getTransferIntent(String action) {
