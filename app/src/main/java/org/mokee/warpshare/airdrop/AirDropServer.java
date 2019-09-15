@@ -56,6 +56,11 @@ class AirDropServer {
             protected void onRequest(InetAddress remote, NSDictionary request, NSDictionaryHttpServerResponse response) {
                 handleAsk(remote, request, response);
             }
+
+            @Override
+            protected void onCanceled() {
+                handleAskCanceled();
+            }
         });
         mServer.post("/Upload", new InputStreamHttpServerRequestCallback() {
             @Override
@@ -97,6 +102,10 @@ class AirDropServer {
         });
     }
 
+    private void handleAskCanceled() {
+        mParent.handleAskCanceled();
+    }
+
     private void handleUpload(InetAddress remote, InputStream request, final NSDictionaryHttpServerResponse response) {
         mParent.handleUpload(remote.getHostAddress(), request, new ResultCallback() {
             @Override
@@ -133,6 +142,13 @@ class AirDropServer {
             final AsyncSSLSocketWrapper socketWrapper = (AsyncSSLSocketWrapper) request.getSocket();
             final AsyncNetworkSocket socket = (AsyncNetworkSocket) socketWrapper.getSocket();
             final InetAddress address = socket.getRemoteAddress().getAddress();
+
+            socket.setClosedCallback(new CompletedCallback() {
+                @Override
+                public void onCompleted(Exception ex) {
+                    onCanceled();
+                }
+            });
 
             final UnknownRequestBody body = (UnknownRequestBody) request.getBody();
             final DataEmitter emitter = body.getEmitter();
@@ -192,6 +208,9 @@ class AirDropServer {
         }
 
         protected abstract void onRequest(InetAddress remote, NSDictionary request, NSDictionaryHttpServerResponse response);
+
+        protected void onCanceled() {
+        }
 
     }
 
