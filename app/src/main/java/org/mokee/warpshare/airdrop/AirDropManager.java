@@ -405,6 +405,10 @@ public class AirDropManager {
         });
     }
 
+    void handleAskCanceled() {
+        mReceiverListener.onAirDropRequestCanceled();
+    }
+
     void handleUpload(String ip, final InputStream stream, final AirDropServer.ResultCallback callback) {
         if (mReceivingIp == null || mReceivingFiles == null) {
             Log.w(TAG, "Not in transferring state");
@@ -506,6 +510,8 @@ public class AirDropManager {
     public interface ReceiverListener {
 
         void onAirDropRequest(String name, List<String> fileNames, ReceiverCallback callback);
+
+        void onAirDropRequestCanceled();
 
         void onAirDropTransfer(String fileName, InputStream input);
 

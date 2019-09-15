@@ -185,6 +185,12 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
                         .build());
     }
 
+    @Override
+    public void onAirDropRequestCanceled() {
+        Log.d(TAG, "Transfer ask canceled");
+        mNotificationManager.cancel(NOTIFICATION_TRANSFER);
+    }
+
     private void handleTransferAccept() {
         if (mPendingTransferCallback != null) {
             Log.d(TAG, "Transfer accepted");
