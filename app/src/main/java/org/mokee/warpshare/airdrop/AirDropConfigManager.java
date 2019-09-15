@@ -10,7 +10,8 @@ import java.util.Random;
 
 import okio.ByteString;
 
-class AirDropConfigManager {
+@SuppressLint("ApplySharedPref")
+public class AirDropConfigManager {
 
     private static final String TAG = "AirDropConfigManager";
 
@@ -38,9 +39,22 @@ class AirDropConfigManager {
         return mPref.getString("id", null);
     }
 
-    String getName() {
-        final String name = mPref.getString("name", mBleController.getName());
+    public String getDefaultName() {
+        final String name = mBleController.getName();
         return TextUtils.isEmpty(name) ? "Android" : name;
+    }
+
+    public String getNameWithoutDefault() {
+        return mPref.getString("name", "");
+    }
+
+    public String getName() {
+        final String name = getNameWithoutDefault();
+        return TextUtils.isEmpty(name) ? getDefaultName() : name;
+    }
+
+    public void setName(String name) {
+        mPref.edit().putString("name", name).commit();
     }
 
 }

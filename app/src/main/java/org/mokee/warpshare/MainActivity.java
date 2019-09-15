@@ -9,6 +9,8 @@ import android.text.format.Formatter;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
@@ -25,6 +27,7 @@ import org.mokee.warpshare.airdrop.AirDropManager;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("SwitchStatementWithTooFewBranches")
 public class MainActivity extends AppCompatActivity implements AirDropManager.DiscoveryListener {
 
     private static final String TAG = "MainActivity";
@@ -72,17 +75,37 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_PICK) {
-            if (resultCode == RESULT_OK && mPeerPicked != null && data != null) {
-                if (data.getClipData() == null) {
-                    sendFile(mPeers.get(mPeerPicked), data.getData());
-                } else {
-                    sendFile(mPeers.get(mPeerPicked), data.getClipData());
+        switch (requestCode) {
+            case REQUEST_PICK:
+                if (resultCode == RESULT_OK && mPeerPicked != null && data != null) {
+                    if (data.getClipData() == null) {
+                        sendFile(mPeers.get(mPeerPicked), data.getData());
+                    } else {
+                        sendFile(mPeers.get(mPeerPicked), data.getClipData());
+                    }
                 }
-            }
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
+                break;
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
+                break;
         }
     }
 
