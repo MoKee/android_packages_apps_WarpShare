@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     private AirDropManager mAirDropManager;
 
+    private AirDropManager.Cancelable mSending;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,6 +112,14 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         startActivityForResult(Intent.createChooser(requestIntent, "File"), REQUEST_PICK);
     }
 
+    private void handleItemCancelClick(AirDropManager.Peer peer) {
+        if (mSending != null) {
+            mSending.cancel();
+            mSending = null;
+        }
+        handleSendFailed();
+    }
+
     private void handleSendConfirming() {
         mPeerStatus = R.string.status_waiting_for_confirm;
         mBytesTotal = -1;
@@ -118,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     }
 
     private void handleSendRejected() {
+        mSending = null;
         mPeerStatus = R.string.status_rejected;
         mAdapter.notifyDataSetChanged();
     }
@@ -128,12 +139,14 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     }
 
     private void handleSendSucceed() {
+        mSending = null;
         mPeerPicked = null;
         mPeerStatus = 0;
         mAdapter.notifyDataSetChanged();
     }
 
     private void handleSendFailed() {
+        mSending = null;
         mPeerPicked = null;
         mPeerStatus = 0;
         mAdapter.notifyDataSetChanged();
@@ -179,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     private void sendFile(final AirDropManager.Peer peer, final List<ResolvedUri> uris) {
         handleSendConfirming();
-        mAirDropManager.send(peer, uris, new AirDropManager.SenderListener() {
+        mSending = mAirDropManager.send(peer, uris, new AirDropManager.SenderListener() {
             @Override
             public void onAirDropAccepted() {
                 handleSending();
@@ -246,6 +259,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             if (selected && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
                 holder.itemView.setEnabled(false);
                 holder.progressBar.setVisibility(View.VISIBLE);
+                holder.cancelButton.setVisibility(View.VISIBLE);
                 if (mBytesTotal == -1 || mPeerStatus != R.string.status_sending) {
                     holder.progressBar.setIndeterminate(true);
                 } else {
@@ -256,11 +270,18 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             } else {
                 holder.itemView.setEnabled(true);
                 holder.progressBar.setVisibility(View.GONE);
+                holder.cancelButton.setVisibility(View.GONE);
             }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     handleItemClick(peer);
+                }
+            });
+            holder.cancelButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    handleItemCancelClick(peer);
                 }
             });
         }
@@ -280,12 +301,14 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             TextView nameView;
             TextView statusView;
             ProgressBar progressBar;
+            View cancelButton;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 nameView = itemView.findViewById(R.id.name);
                 statusView = itemView.findViewById(R.id.status);
                 progressBar = itemView.findViewById(R.id.progress);
+                cancelButton = itemView.findViewById(R.id.cancel);
             }
 
         }
