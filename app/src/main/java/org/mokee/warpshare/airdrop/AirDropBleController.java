@@ -15,6 +15,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import org.mokee.warpshare.ConfigManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -177,6 +179,11 @@ class AirDropBleController {
 
     void unregisterTrigger(Class<? extends Service> receiverService, String action) {
         mScanner.stopScan(getTriggerIntent(receiverService, action));
+    }
+
+    void updateDiscoverability(@ConfigManager.Discoverability String discoverability,
+                               Class<? extends Service> receiverService, String action) {
+
     }
 
     private void handleAdvertiseStartSuccess() {

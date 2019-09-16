@@ -47,4 +47,9 @@ class AirDropConfigManager {
         return mParent.getName();
     }
 
+    @ConfigManager.Discoverability
+    String getDiscoverability() {
+        return mParent.getDiscoverability();
+    }
+
 }

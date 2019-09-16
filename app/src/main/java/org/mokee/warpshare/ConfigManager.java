@@ -6,11 +6,20 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
+import androidx.annotation.StringDef;
 import androidx.preference.PreferenceManager;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 public class ConfigManager {
 
     public static final String KEY_NAME = "name";
+
+    public static final String KEY_DISCOVERABILITY = "discoverability";
+    public static final String DISCOVERABILITY_OFF = "off";
+    public static final String DISCOVERABILITY_FOREGROUND = "foreground";
+    public static final String DISCOVERABILITY_ALWAYS = "always";
 
     private static final String TAG = "ConfigManager";
 
@@ -48,6 +57,20 @@ public class ConfigManager {
     public String getName() {
         final String name = getNameWithoutDefault();
         return TextUtils.isEmpty(name) ? getDefaultName() : name;
+    }
+
+    @Discoverability
+    public String getDiscoverability() {
+        return mPref.getString(KEY_DISCOVERABILITY, DISCOVERABILITY_FOREGROUND);
+    }
+
+    @Retention(RetentionPolicy.SOURCE)
+    @StringDef({
+            DISCOVERABILITY_OFF,
+            DISCOVERABILITY_FOREGROUND,
+            DISCOVERABILITY_ALWAYS,
+    })
+    public @interface Discoverability {
     }
 
 }
