@@ -173,10 +173,21 @@ class AirDropBleController {
                         .setScanMode(SCAN_MODE_LOW_LATENCY)
                         .build(),
                 getTriggerIntent(receiverService, action));
+
+        Log.d(TAG, "startScan");
     }
 
     void unregisterTrigger(Class<? extends Service> receiverService, String action) {
+        synchronized (mLock) {
+            getScanner();
+            if (mScanner == null) {
+                return;
+            }
+        }
+
         mScanner.stopScan(getTriggerIntent(receiverService, action));
+
+        Log.d(TAG, "stopScan");
     }
 
     private void handleAdvertiseStartSuccess() {
