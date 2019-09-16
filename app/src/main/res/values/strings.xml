@@ -47,4 +47,22 @@
 
     <string name="settings_name">Display name</string>
 
+    <string name="settings_discoverability">Discoverability</string>
+    <string name="settings_discoverability_summary" translatable="false">%s</string>
+    <string name="settings_discoverability_off">Off</string>
+    <string name="settings_discoverability_foreground">Only when WarpShare is opened</string>
+    <string name="settings_discoverability_always">Always</string>
+
+    <string-array name="settings_discoverability_entries" translatable="false">
+        <item>@string/settings_discoverability_off</item>
+        <item>@string/settings_discoverability_foreground</item>
+        <item>@string/settings_discoverability_always</item>
+    </string-array>
+
+    <string-array name="settings_discoverability_values" translatable="false">
+        <item>off</item>
+        <item>foreground</item>
+        <item>always</item>
+    </string-array>
+
 </resources>
