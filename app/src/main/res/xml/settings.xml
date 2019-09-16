@@ -4,4 +4,11 @@
         app:key="name"
         app:title="@string/settings_name" />
 
+    <DropDownPreference
+        app:entries="@array/settings_discoverability_entries"
+        app:entryValues="@array/settings_discoverability_values"
+        app:key="discoverability"
+        app:summary="@string/settings_discoverability_summary"
+        app:title="@string/settings_discoverability" />
+
 </PreferenceScreen>
