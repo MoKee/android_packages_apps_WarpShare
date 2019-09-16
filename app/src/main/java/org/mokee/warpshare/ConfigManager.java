@@ -12,6 +12,8 @@ public class ConfigManager {
 
     public static final String KEY_NAME = "name";
 
+    public static final String KEY_DISCOVERABLE = "discoverable";
+
     private static final String TAG = "ConfigManager";
 
     private final Context mContext;
@@ -48,6 +50,10 @@ public class ConfigManager {
     public String getName() {
         final String name = getNameWithoutDefault();
         return TextUtils.isEmpty(name) ? getDefaultName() : name;
+    }
+
+    public boolean isDiscoverable() {
+        return mPref.getBoolean(KEY_DISCOVERABLE, false);
     }
 
 }

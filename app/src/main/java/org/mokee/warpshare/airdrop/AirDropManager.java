@@ -142,8 +142,11 @@ public class AirDropManager {
         mArchiveExecutor.shutdownNow();
     }
 
-    public void registerTrigger(Class<? extends Service> receiverService, String action) {
-        mBleController.registerTrigger(receiverService, action);
+    public void updateDiscoverability(Class<? extends Service> receiverService, String action) {
+        mBleController.unregisterTrigger(receiverService, action);
+        if (mConfigManager.isDiscoverable()) {
+            mBleController.registerTrigger(receiverService, action);
+        }
     }
 
     void onServiceResolved(final String id, final String url) {
