@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,7 +26,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.mokee.warpshare.airdrop.AirDropManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
 public class MainActivity extends AppCompatActivity implements AirDropManager.DiscoveryListener {
@@ -34,19 +37,15 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     private static final int REQUEST_PICK = 1;
 
-    private ArrayMap<String, AirDropManager.Peer> mPeers = new ArrayMap<>();
+    private final ArrayMap<String, AirDropManager.Peer> mPeers = new ArrayMap<>();
+
+    private final Map<String, PeerState> mPeerStates = new HashMap<>();
 
     private PeersAdapter mAdapter;
 
     private String mPeerPicked = null;
-    private int mPeerStatus = 0;
-
-    private long mBytesTotal = -1;
-    private long mBytesSent = 0;
 
     private AirDropManager mAirDropManager;
-
-    private AirDropManager.Cancelable mSending;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,10 +95,13 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         switch (requestCode) {
             case REQUEST_PICK:
                 if (resultCode == RESULT_OK && mPeerPicked != null && data != null) {
-                    if (data.getClipData() == null) {
-                        sendFile(mPeers.get(mPeerPicked), data.getData());
-                    } else {
-                        sendFile(mPeers.get(mPeerPicked), data.getClipData());
+                    final AirDropManager.Peer peer = mPeers.get(mPeerPicked);
+                    if (peer != null) {
+                        if (data.getClipData() == null) {
+                            sendFile(peer, data.getData());
+                        } else {
+                            sendFile(peer, data.getClipData());
+                        }
                     }
                 }
                 break;
@@ -113,16 +115,15 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     public void onAirDropPeerFound(AirDropManager.Peer peer) {
         Log.d(TAG, "Found: " + peer.id + " (" + peer.name + ")");
         mPeers.put(peer.id, peer);
+        mPeerStates.put(peer.id, new PeerState());
         mAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onAirDropPeerDisappeared(AirDropManager.Peer peer) {
         Log.d(TAG, "Disappeared: " + peer.id + " (" + peer.name + ")");
-        if (peer.id.equals(mPeerPicked)) {
-            mPeerPicked = null;
-        }
         mPeers.remove(peer.id);
+        mPeerStates.remove(peer.id);
         mAdapter.notifyDataSetChanged();
     }
 
@@ -135,43 +136,40 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         startActivityForResult(Intent.createChooser(requestIntent, "File"), REQUEST_PICK);
     }
 
-    private void handleItemCancelClick(AirDropManager.Peer peer) {
-        if (mSending != null) {
-            mSending.cancel();
-            mSending = null;
+    private void handleItemCancelClick(AirDropManager.Peer peer, PeerState state) {
+        if (state.sending != null) {
+            state.sending.cancel();
         }
-        handleSendFailed();
+        handleSendFailed(peer);
     }
 
-    private void handleSendConfirming() {
-        mPeerStatus = R.string.status_waiting_for_confirm;
-        mBytesTotal = -1;
-        mBytesSent = 0;
+    private void handleSendConfirming(AirDropManager.Peer peer, PeerState state) {
+        state.status = R.string.status_waiting_for_confirm;
+        state.bytesTotal = -1;
+        state.bytesSent = 0;
         mAdapter.notifyDataSetChanged();
     }
 
-    private void handleSendRejected() {
-        mSending = null;
-        mPeerStatus = R.string.status_rejected;
+    private void handleSendRejected(AirDropManager.Peer peer, PeerState state) {
+        state.status = R.string.status_rejected;
         mAdapter.notifyDataSetChanged();
     }
 
-    private void handleSending() {
-        mPeerStatus = R.string.status_sending;
+    private void handleSending(AirDropManager.Peer peer, PeerState state) {
+        state.status = R.string.status_sending;
         mAdapter.notifyDataSetChanged();
     }
 
-    private void handleSendSucceed() {
-        mSending = null;
-        mPeerPicked = null;
-        mPeerStatus = 0;
+    private void handleSendSucceed(AirDropManager.Peer peer, PeerState state) {
+        state.status = 0;
         mAdapter.notifyDataSetChanged();
     }
 
-    private void handleSendFailed() {
-        mSending = null;
-        mPeerPicked = null;
-        mPeerStatus = 0;
+    private void handleSendFailed(AirDropManager.Peer peer) {
+        final PeerState state = mPeerStates.get(peer.id);
+        if (state != null) {
+            state.status = 0;
+        }
         mAdapter.notifyDataSetChanged();
     }
 
@@ -179,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         final ResolvedUri uri = new ResolvedUri(this, rawUri);
         if (!uri.ok()) {
             Log.w(TAG, "No file was selected");
-            handleSendFailed();
+            handleSendFailed(peer);
             return;
         }
 
@@ -192,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     private void sendFile(AirDropManager.Peer peer, ClipData clipData) {
         if (clipData == null) {
             Log.w(TAG, "ClipData should not be null");
-            handleSendFailed();
+            handleSendFailed(peer);
             return;
         }
 
@@ -206,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
         if (uris.isEmpty()) {
             Log.w(TAG, "No file was selected");
-            handleSendFailed();
+            handleSendFailed(peer);
             return;
         }
 
@@ -214,33 +212,41 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     }
 
     private void sendFile(final AirDropManager.Peer peer, final List<ResolvedUri> uris) {
-        handleSendConfirming();
-        mSending = mAirDropManager.send(peer, uris, new AirDropManager.SenderListener() {
+        final PeerState state = mPeerStates.get(peer.id);
+        if (state == null) {
+            Log.w(TAG, "state should not be null");
+            handleSendFailed(peer);
+            return;
+        }
+
+        handleSendConfirming(peer, state);
+
+        state.sending = mAirDropManager.send(peer, uris, new AirDropManager.SenderListener() {
             @Override
             public void onAirDropAccepted() {
-                handleSending();
+                handleSending(peer, state);
             }
 
             @Override
             public void onAirDropRejected() {
-                handleSendRejected();
+                handleSendRejected(peer, state);
             }
 
             @Override
             public void onAirDropProgress(long bytesSent, long bytesTotal) {
-                mBytesSent = bytesSent;
-                mBytesTotal = bytesTotal;
+                state.bytesSent = bytesSent;
+                state.bytesTotal = bytesTotal;
                 mAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onAirDropSent() {
-                handleSendSucceed();
+                handleSendSucceed(peer, state);
             }
 
             @Override
             public void onAirDropSendFailed() {
-                handleSendFailed();
+                handleSendFailed(peer);
             }
         });
     }
@@ -264,31 +270,35 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             final String id = mPeers.keyAt(position);
             final AirDropManager.Peer peer = mPeers.valueAt(position);
-            final boolean selected = id.equals(mPeerPicked);
+            final PeerState state = mPeerStates.get(id);
+
+            assert state != null;
+
             holder.nameView.setText(peer.name);
-            holder.itemView.setSelected(selected);
-            if (selected && mPeerStatus != 0) {
+            if (state.status != 0) {
+                holder.itemView.setSelected(true);
                 holder.statusView.setVisibility(View.VISIBLE);
-                if (mPeerStatus == R.string.status_sending && mBytesTotal != -1) {
+                if (state.status == R.string.status_sending && state.bytesTotal != -1) {
                     holder.statusView.setText(getString(R.string.status_sending_progress,
-                            Formatter.formatFileSize(MainActivity.this, mBytesSent),
-                            Formatter.formatFileSize(MainActivity.this, mBytesTotal)));
+                            Formatter.formatFileSize(MainActivity.this, state.bytesSent),
+                            Formatter.formatFileSize(MainActivity.this, state.bytesTotal)));
                 } else {
-                    holder.statusView.setText(mPeerStatus);
+                    holder.statusView.setText(state.status);
                 }
             } else {
+                holder.itemView.setSelected(false);
                 holder.statusView.setVisibility(View.GONE);
             }
-            if (selected && mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
+            if (state.status != 0 && state.status != R.string.status_rejected) {
                 holder.itemView.setEnabled(false);
                 holder.progressBar.setVisibility(View.VISIBLE);
                 holder.cancelButton.setVisibility(View.VISIBLE);
-                if (mBytesTotal == -1 || mPeerStatus != R.string.status_sending) {
+                if (state.bytesTotal == -1 || state.status != R.string.status_sending) {
                     holder.progressBar.setIndeterminate(true);
                 } else {
                     holder.progressBar.setIndeterminate(false);
-                    holder.progressBar.setMax((int) mBytesTotal);
-                    holder.progressBar.setProgress((int) mBytesSent, true);
+                    holder.progressBar.setMax((int) state.bytesTotal);
+                    holder.progressBar.setProgress((int) state.bytesSent, true);
                 }
             } else {
                 holder.itemView.setEnabled(true);
@@ -304,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             holder.cancelButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    handleItemCancelClick(peer);
+                    handleItemCancelClick(peer, state);
                 }
             });
         }
@@ -335,6 +345,18 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             }
 
         }
+
+    }
+
+    private class PeerState {
+
+        @StringRes
+        int status = 0;
+
+        long bytesTotal = -1;
+        long bytesSent = 0;
+
+        AirDropManager.Cancelable sending = null;
 
     }
 
