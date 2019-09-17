@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.Call;
 import okio.BufferedSink;
@@ -51,18 +52,16 @@ public class AirDropManager {
     private final AirDropClient mClient;
     private final AirDropServer mServer;
 
-    private final HashMap<String, Peer> mPeers = new HashMap<>();
+    private final Map<String, Peer> mPeers = new HashMap<>();
+
+    private final Map<String, ReceivingSession> mReceivingSessions = new HashMap<>();
+
+    private final Map<String, Call> mOngoingUploads = new HashMap<>();
 
     private DiscoveryListener mDiscoveryListener;
     private ReceiverListener mReceiverListener;
 
     private InetAddress mLocalAddress;
-
-    private String mReceivingIp = null;
-    private List<String> mReceivingFiles = null;
-    private InputStream mReceivingStream = null;
-
-    private HashMap<String, Call> mOngoingUploads = new HashMap<>();
 
     private HandlerThread mArchiveThread;
     private Handler mArchiveHandler;
@@ -344,16 +343,6 @@ public class AirDropManager {
         });
     }
 
-    public void cancel() {
-        if (mReceivingStream != null) {
-            try {
-                mReceivingStream.close();
-            } catch (IOException ignored) {
-            }
-            mReceivingStream = null;
-        }
-    }
-
     void handleDiscover(String ip, NSDictionary request, AirDropServer.ResultCallback callback) {
         final NSDictionary response = new NSDictionary();
         response.put("ReceiverComputerName", mConfigManager.getName());
@@ -400,15 +389,12 @@ public class AirDropManager {
 
         final String name = nameNode.toJavaObject(String.class);
 
-        mReceiverListener.onAirDropRequest(name, fileNames, new ReceiverCallback() {
+        final ReceivingSession session = new ReceivingSession(ip, name, fileNames, filePaths) {
             @Override
             public void accept() {
                 final NSDictionary response = new NSDictionary();
                 response.put("ReceiverModelName", "Android");
                 response.put("ReceiverComputerName", mConfigManager.getName());
-
-                mReceivingIp = ip;
-                mReceivingFiles = filePaths;
 
                 callback.call(response);
             }
@@ -416,36 +402,47 @@ public class AirDropManager {
             @Override
             public void reject() {
                 callback.call(null);
+                mReceivingSessions.remove(ip);
             }
-        });
+
+            @Override
+            public void cancel() {
+                if (stream != null) {
+                    try {
+                        stream.close();
+                    } catch (IOException ignored) {
+                    }
+                    stream = null;
+                }
+                mReceivingSessions.remove(ip);
+            }
+        };
+
+        mReceivingSessions.put(ip, session);
+
+        mReceiverListener.onAirDropRequest(session);
     }
 
-    void handleAskCanceled() {
-        mReceiverListener.onAirDropRequestCanceled();
+    void handleAskCanceled(String ip) {
+        final ReceivingSession session = mReceivingSessions.remove(ip);
+        mReceiverListener.onAirDropRequestCanceled(session);
     }
 
-    void handleUpload(String ip, final InputStream stream, final AirDropServer.ResultCallback callback) {
-        if (mReceivingIp == null || mReceivingFiles == null) {
-            Log.w(TAG, "Not in transferring state");
+    void handleUpload(final String ip, final InputStream stream, final AirDropServer.ResultCallback callback) {
+        final ReceivingSession session = mReceivingSessions.get(ip);
+        if (session == null) {
+            Log.w(TAG, "Upload from " + ip + " not accepted");
             callback.call(null);
             return;
         }
 
-        if (!mReceivingIp.equals(ip)) {
-            Log.w(TAG, "Not the accepted IP");
-            callback.call(null);
-            return;
-        }
-
-        mReceivingStream = stream;
+        session.stream = stream;
 
         final Runnable onDecompressFailed = new Runnable() {
             @Override
             public void run() {
-                mReceiverListener.onAirDropTransferFailed();
-                mReceivingIp = null;
-                mReceivingFiles = null;
-                mReceivingStream = null;
+                mReceiverListener.onAirDropTransferFailed(session);
+                mReceivingSessions.remove(ip);
                 callback.call(null);
             }
         };
@@ -453,16 +450,14 @@ public class AirDropManager {
         final Runnable onDecompressDone = new Runnable() {
             @Override
             public void run() {
-                mReceiverListener.onAirDropTransferDone();
-                mReceivingIp = null;
-                mReceivingFiles = null;
-                mReceivingStream = null;
+                mReceiverListener.onAirDropTransferDone(session);
+                mReceivingSessions.remove(ip);
                 callback.call(new NSDictionary());
             }
         };
 
         final AirDropArchiveUtil.FileFactory fileFactory = new AirDropArchiveUtil.FileFactory() {
-            private final int fileCount = mReceivingFiles.size();
+            private final int fileCount = session.files.size();
             private int fileIndex = 0;
 
             @Override
@@ -476,8 +471,8 @@ public class AirDropManager {
                         mMainThreadHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                if (fileIndex < fileCount && mReceivingStream != null) {
-                                    mReceiverListener.onAirDropTransferProgress(name,
+                                if (fileIndex < fileCount && mReceivingSessions.containsKey(ip)) {
+                                    mReceiverListener.onAirDropTransferProgress(session, name,
                                             bytesReceived, size, fileIndex, fileCount);
                                 }
                             }
@@ -494,7 +489,7 @@ public class AirDropManager {
             @Override
             public void run() {
                 try {
-                    AirDropArchiveUtil.unpack(stream, new HashSet<>(mReceivingFiles), fileFactory);
+                    AirDropArchiveUtil.unpack(stream, new HashSet<>(session.paths), fileFactory);
                     mMainThreadHandler.post(onDecompressDone);
                 } catch (IOException e) {
                     Log.e(TAG, "Failed receiving files", e);
@@ -528,27 +523,19 @@ public class AirDropManager {
 
     public interface ReceiverListener {
 
-        void onAirDropRequest(String name, List<String> fileNames, ReceiverCallback callback);
+        void onAirDropRequest(ReceivingSession session);
 
-        void onAirDropRequestCanceled();
+        void onAirDropRequestCanceled(ReceivingSession session);
 
         void onAirDropTransfer(String fileName, InputStream input);
 
-        void onAirDropTransferProgress(String fileName,
+        void onAirDropTransferProgress(ReceivingSession session, String fileName,
                                        long bytesReceived, long bytesTotal,
                                        int index, int count);
 
-        void onAirDropTransferDone();
+        void onAirDropTransferDone(ReceivingSession session);
 
-        void onAirDropTransferFailed();
-
-    }
-
-    public interface ReceiverCallback {
-
-        void accept();
-
-        void reject();
+        void onAirDropTransferFailed(ReceivingSession session);
 
     }
 
@@ -570,6 +557,30 @@ public class AirDropManager {
             this.name = name;
             this.url = url;
         }
+
+    }
+
+    public abstract class ReceivingSession {
+
+        public final String ip;
+        public final String name;
+        public final List<String> files;
+        public final List<String> paths;
+
+        InputStream stream;
+
+        ReceivingSession(String ip, String name, List<String> files, List<String> paths) {
+            this.ip = ip;
+            this.name = name;
+            this.files = files;
+            this.paths = paths;
+        }
+
+        public abstract void accept();
+
+        public abstract void reject();
+
+        public abstract void cancel();
 
     }
 

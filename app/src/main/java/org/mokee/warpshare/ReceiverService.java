@@ -10,17 +10,21 @@ import android.bluetooth.le.ScanResult;
 import android.content.Intent;
 import android.os.Environment;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 
 import org.mokee.warpshare.airdrop.AirDropManager;
+import org.mokee.warpshare.airdrop.AirDropManager.ReceivingSession;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import okio.BufferedSink;
@@ -53,16 +57,14 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
     private static final int NOTIFICATION_ACTIVE = 1;
     private static final int NOTIFICATION_TRANSFER = 2;
 
-    private final Set<String> devices = new HashSet<>();
+    private final Set<String> mDevices = new HashSet<>();
+
+    private final Map<String, ReceivingSession> mSessions = new HashMap<>();
 
     private boolean mRunning = false;
 
     private NotificationManager mNotificationManager;
     private AirDropManager mAirDropManager;
-
-    private String mPendingTransferName = null;
-    private int mPendingTransferCount = 0;
-    private AirDropManager.ReceiverCallback mPendingTransferCallback = null;
 
     @Nullable
     @Override
@@ -120,11 +122,20 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             final List<ScanResult> results = intent.getParcelableArrayListExtra(EXTRA_LIST_SCAN_RESULT);
             handleScanResult(callbackType, results);
         } else if (ACTION_TRANSFER_ACCEPT.equals(action)) {
-            handleTransferAccept();
+            final String ip = intent.getStringExtra("ip");
+            if (!TextUtils.isEmpty(ip)) {
+                handleTransferAccept(ip);
+            }
         } else if (ACTION_TRANSFER_REJECT.equals(action)) {
-            handleTransferReject();
+            final String ip = intent.getStringExtra("ip");
+            if (!TextUtils.isEmpty(ip)) {
+                handleTransferReject(ip);
+            }
         } else if (ACTION_TRANSFER_CANCEL.equals(action)) {
-            handleTransferCancel();
+            final String ip = intent.getStringExtra("ip");
+            if (!TextUtils.isEmpty(ip)) {
+                handleTransferCancel(ip);
+            }
         }
         return START_STICKY;
     }
@@ -133,16 +144,16 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         if (results != null) {
             if (callbackType == CALLBACK_TYPE_FIRST_MATCH) {
                 for (ScanResult result : results) {
-                    devices.add(result.getDevice().getAddress());
+                    mDevices.add(result.getDevice().getAddress());
                 }
             } else if (callbackType == CALLBACK_TYPE_MATCH_LOST) {
                 for (ScanResult result : results) {
-                    devices.remove(result.getDevice().getAddress());
+                    mDevices.remove(result.getDevice().getAddress());
                 }
             }
         }
 
-        if (mRunning && devices.isEmpty()) {
+        if (mRunning && mDevices.isEmpty()) {
             Log.d(TAG, "Peers lost, sleep");
 
             mAirDropManager.stopDiscoverable();
@@ -150,7 +161,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             stopSelf();
 
             mRunning = false;
-        } else if (!mRunning && !devices.isEmpty()) {
+        } else if (!mRunning && !mDevices.isEmpty()) {
             Log.d(TAG, "Peers discovering");
 
             if (mAirDropManager.ready() != STATUS_OK) {
@@ -166,47 +177,46 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
     }
 
     @Override
-    public void onAirDropRequest(String name, List<String> fileNames, AirDropManager.ReceiverCallback callback) {
-        Log.d(TAG, "Asking from " + name);
+    public void onAirDropRequest(ReceivingSession session) {
+        Log.d(TAG, "Asking from " + session.name + " (" + session.ip + ")");
 
-        mPendingTransferName = name;
-        mPendingTransferCount = fileNames.size();
-        mPendingTransferCallback = callback;
+        mSessions.put(session.ip, session);
 
-        mNotificationManager.notify(NOTIFICATION_TRANSFER,
+        mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER,
                 getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_request_title))
-                        .setContentText(getString(R.string.notif_recv_transfer_request_desc, name, fileNames.size()))
+                        .setContentText(getString(R.string.notif_recv_transfer_request_desc,
+                                session.name, session.files.size()))
                         .addAction(new Notification.Action.Builder(null,
                                 getString(R.string.notif_recv_transfer_request_accept),
-                                getTransferIntent(ACTION_TRANSFER_ACCEPT))
+                                getTransferIntent(ACTION_TRANSFER_ACCEPT, session.ip))
                                 .build())
                         .addAction(new Notification.Action.Builder(null,
                                 getString(R.string.notif_recv_transfer_request_reject),
-                                getTransferIntent(ACTION_TRANSFER_REJECT))
+                                getTransferIntent(ACTION_TRANSFER_REJECT, session.ip))
                                 .build())
-                        .setDeleteIntent(getTransferIntent(ACTION_TRANSFER_REJECT))
+                        .setDeleteIntent(getTransferIntent(ACTION_TRANSFER_REJECT, session.ip))
                         .build());
     }
 
     @Override
-    public void onAirDropRequestCanceled() {
+    public void onAirDropRequestCanceled(ReceivingSession session) {
         Log.d(TAG, "Transfer ask canceled");
-        mNotificationManager.cancel(NOTIFICATION_TRANSFER);
+        mNotificationManager.cancel(session.ip, NOTIFICATION_TRANSFER);
     }
 
-    private void handleTransferAccept() {
-        if (mPendingTransferCallback != null) {
+    private void handleTransferAccept(String ip) {
+        final ReceivingSession session = mSessions.get(ip);
+        if (session != null) {
             Log.d(TAG, "Transfer accepted");
-            mPendingTransferCallback.accept();
-            mPendingTransferCallback = null;
+            session.accept();
 
-            mNotificationManager.notify(NOTIFICATION_TRANSFER,
+            mNotificationManager.notify(ip, NOTIFICATION_TRANSFER,
                     getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                             .setContentTitle(getString(R.string.notif_recv_transfer_progress_title,
-                                    mPendingTransferCount, mPendingTransferName))
+                                    session.files.size(), session.name))
                             .setContentText(getString(R.string.notif_recv_transfer_progress_desc,
-                                    0, mPendingTransferCount))
+                                    0, session.files.size()))
                             .setProgress(0, 0, true)
                             .setOngoing(true)
                             .setOnlyAlertOnce(true)
@@ -214,14 +224,13 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         }
     }
 
-    private void handleTransferReject() {
-        if (mPendingTransferCallback != null) {
+    private void handleTransferReject(String ip) {
+        final ReceivingSession session = mSessions.remove(ip);
+        if (session != null) {
             Log.d(TAG, "Transfer rejected");
-            mPendingTransferCallback.reject();
-            mPendingTransferCallback = null;
+            session.reject();
         }
-
-        mNotificationManager.cancel(NOTIFICATION_TRANSFER);
+        mNotificationManager.cancel(ip, NOTIFICATION_TRANSFER);
     }
 
     @Override
@@ -241,29 +250,28 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         }
     }
 
-    private void handleTransferCancel() {
-        mAirDropManager.cancel();
-        mNotificationManager.cancel(NOTIFICATION_TRANSFER);
+    private void handleTransferCancel(String ip) {
+        final ReceivingSession session = mSessions.remove(ip);
+        if (session != null) {
+            session.cancel();
+        }
+        mNotificationManager.cancel(ip, NOTIFICATION_TRANSFER);
     }
 
     @Override
-    public void onAirDropTransferProgress(String fileName,
+    public void onAirDropTransferProgress(ReceivingSession session, String fileName,
                                           long bytesReceived, long bytesTotal,
                                           int index, int count) {
-        if (mPendingTransferName == null || mPendingTransferCount == 0) {
-            return;
-        }
-
-        mNotificationManager.notify(NOTIFICATION_TRANSFER,
+        mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER,
                 getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_progress_title,
-                                mPendingTransferCount, mPendingTransferName))
+                                session.files.size(), session.name))
                         .setContentText(getString(R.string.notif_recv_transfer_progress_desc,
                                 index + 1, count))
                         .setProgress((int) bytesTotal, (int) bytesReceived, false)
                         .addAction(new Notification.Action.Builder(null,
                                 getString(R.string.notif_recv_transfer_progress_cancel),
-                                getTransferIntent(ACTION_TRANSFER_CANCEL))
+                                getTransferIntent(ACTION_TRANSFER_CANCEL, session.ip))
                                 .build())
                         .setOngoing(true)
                         .setOnlyAlertOnce(true)
@@ -271,15 +279,15 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
     }
 
     @Override
-    public void onAirDropTransferDone() {
+    public void onAirDropTransferDone(ReceivingSession session) {
         Log.d(TAG, "All files received");
 
-        mNotificationManager.cancel(NOTIFICATION_TRANSFER);
+        mNotificationManager.cancel(session.ip, NOTIFICATION_TRANSFER);
 
-        mNotificationManager.notify(NOTIFICATION_TRANSFER,
+        mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER,
                 getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_done_title,
-                                mPendingTransferCount, mPendingTransferName))
+                                session.files.size(), session.name))
                         .setContentText(getString(R.string.notif_recv_transfer_done_desc))
                         .setContentIntent(PendingIntent.getActivity(this, 0,
                                 new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
@@ -287,30 +295,29 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
                                 PendingIntent.FLAG_UPDATE_CURRENT))
                         .build());
 
-        mPendingTransferName = null;
-        mPendingTransferCount = 0;
+        mSessions.remove(session.ip);
     }
 
     @Override
-    public void onAirDropTransferFailed() {
+    public void onAirDropTransferFailed(ReceivingSession session) {
         Log.d(TAG, "Receiving aborted");
 
-        mNotificationManager.cancel(NOTIFICATION_TRANSFER);
+        mNotificationManager.cancel(session.ip, NOTIFICATION_TRANSFER);
 
-        mNotificationManager.notify(NOTIFICATION_TRANSFER,
+        mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER,
                 getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_failed_title))
                         .setContentText(getString(R.string.notif_recv_transfer_failed_desc,
-                                mPendingTransferName))
+                                session.name))
                         .build());
 
-        mPendingTransferName = null;
-        mPendingTransferCount = 0;
+        mSessions.remove(session.ip);
     }
 
-    private PendingIntent getTransferIntent(String action) {
+    private PendingIntent getTransferIntent(String action, String ip) {
         return PendingIntent.getForegroundService(this, 0,
-                new Intent(action, null, this, getClass()),
+                new Intent(action, null, this, getClass())
+                        .putExtra("ip", ip),
                 PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
