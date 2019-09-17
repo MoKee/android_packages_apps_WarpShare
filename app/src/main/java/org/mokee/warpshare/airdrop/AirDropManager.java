@@ -26,7 +26,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.Call;
 import okio.BufferedSink;
@@ -51,18 +53,17 @@ public class AirDropManager {
     private final AirDropClient mClient;
     private final AirDropServer mServer;
 
-    private final HashMap<String, Peer> mPeers = new HashMap<>();
+    private final Map<String, Peer> mPeers = new HashMap<>();
+
+    private final Map<String, List<String>> mReceivingFiles = new HashMap<>();
+    private final Map<String, InputStream> mReceivingStreams = new HashMap<>();
+
+    private final Map<String, Call> mOngoingUploads = new HashMap<>();
 
     private DiscoveryListener mDiscoveryListener;
     private ReceiverListener mReceiverListener;
 
     private InetAddress mLocalAddress;
-
-    private String mReceivingIp = null;
-    private List<String> mReceivingFiles = null;
-    private InputStream mReceivingStream = null;
-
-    private HashMap<String, Call> mOngoingUploads = new HashMap<>();
 
     private HandlerThread mArchiveThread;
     private Handler mArchiveHandler;
@@ -345,12 +346,14 @@ public class AirDropManager {
     }
 
     public void cancel() {
-        if (mReceivingStream != null) {
+        final Iterator<InputStream> iterator = mReceivingStreams.values().iterator();
+        while (iterator.hasNext()) {
+            final InputStream stream = iterator.next();
             try {
-                mReceivingStream.close();
+                stream.close();
             } catch (IOException ignored) {
             }
-            mReceivingStream = null;
+            iterator.remove();
         }
     }
 
@@ -407,8 +410,7 @@ public class AirDropManager {
                 response.put("ReceiverModelName", "Android");
                 response.put("ReceiverComputerName", mConfigManager.getName());
 
-                mReceivingIp = ip;
-                mReceivingFiles = filePaths;
+                mReceivingFiles.put(ip, filePaths);
 
                 callback.call(response);
             }
@@ -424,28 +426,22 @@ public class AirDropManager {
         mReceiverListener.onAirDropRequestCanceled();
     }
 
-    void handleUpload(String ip, final InputStream stream, final AirDropServer.ResultCallback callback) {
-        if (mReceivingIp == null || mReceivingFiles == null) {
-            Log.w(TAG, "Not in transferring state");
+    void handleUpload(final String ip, final InputStream stream, final AirDropServer.ResultCallback callback) {
+        final List<String> files = mReceivingFiles.get(ip);
+        if (files == null) {
+            Log.w(TAG, "Upload from " + ip + " not accepted");
             callback.call(null);
             return;
         }
 
-        if (!mReceivingIp.equals(ip)) {
-            Log.w(TAG, "Not the accepted IP");
-            callback.call(null);
-            return;
-        }
-
-        mReceivingStream = stream;
+        mReceivingStreams.put(ip, stream);
 
         final Runnable onDecompressFailed = new Runnable() {
             @Override
             public void run() {
                 mReceiverListener.onAirDropTransferFailed();
-                mReceivingIp = null;
-                mReceivingFiles = null;
-                mReceivingStream = null;
+                mReceivingFiles.remove(ip);
+                mReceivingStreams.remove(ip);
                 callback.call(null);
             }
         };
@@ -454,9 +450,8 @@ public class AirDropManager {
             @Override
             public void run() {
                 mReceiverListener.onAirDropTransferDone();
-                mReceivingIp = null;
-                mReceivingFiles = null;
-                mReceivingStream = null;
+                mReceivingFiles.remove(ip);
+                mReceivingStreams.remove(ip);
                 callback.call(new NSDictionary());
             }
         };
@@ -476,7 +471,7 @@ public class AirDropManager {
                         mMainThreadHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                if (fileIndex < fileCount && mReceivingStream != null) {
+                                if (fileIndex < fileCount && mReceivingStreams.containsKey(ip)) {
                                     mReceiverListener.onAirDropTransferProgress(name,
                                             bytesReceived, size, fileIndex, fileCount);
                                 }
@@ -494,7 +489,7 @@ public class AirDropManager {
             @Override
             public void run() {
                 try {
-                    AirDropArchiveUtil.unpack(stream, new HashSet<>(mReceivingFiles), fileFactory);
+                    AirDropArchiveUtil.unpack(stream, new HashSet<>(files), fileFactory);
                     mMainThreadHandler.post(onDecompressDone);
                 } catch (IOException e) {
                     Log.e(TAG, "Failed receiving files", e);
