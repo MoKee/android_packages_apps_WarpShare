@@ -1,148 +1,173 @@
 package org.mokee.warpshare.airdrop;
 
 import android.content.Context;
-import android.net.nsd.NsdManager;
-import android.net.nsd.NsdServiceInfo;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
 
-import java.net.Inet6Address;
+import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
-import static android.content.Context.NSD_SERVICE;
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceInfo;
+import javax.jmdns.ServiceListener;
 
 class AirDropNsdController {
 
     private static final String TAG = "AirDropNsdController";
 
-    private static final String SERVICE_TYPE = "_airdrop._tcp";
+    private static final String SERVICE_TYPE = "_airdrop._tcp.local.";
 
     private static final int FLAG_SUPPORTS_MIXED_TYPES = 0x08;
     private static final int FLAG_SUPPORTS_DISCOVER_MAYBE = 0x80;
 
-    private final NsdManager mNsdManager;
+    private final WifiManager.MulticastLock mMulticastLock;
     private final AirDropConfigManager mConfigManager;
     private final AirDropManager mParent;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
-    private final NsdManager.DiscoveryListener mDiscoveryListener = new NsdManager.DiscoveryListener() {
+    private final ServiceListener mDiscoveryListener = new ServiceListener() {
         @Override
-        public void onStartDiscoveryFailed(String serviceType, int errorCode) {
+        public void serviceAdded(ServiceEvent event) {
         }
 
         @Override
-        public void onStopDiscoveryFailed(String serviceType, int errorCode) {
+        public void serviceRemoved(ServiceEvent event) {
+            handleServiceLost(event.getInfo());
         }
 
         @Override
-        public void onDiscoveryStarted(String serviceType) {
-        }
-
-        @Override
-        public void onDiscoveryStopped(String serviceType) {
-        }
-
-        @Override
-        public void onServiceFound(NsdServiceInfo serviceInfo) {
-            handleServiceFound(serviceInfo);
-        }
-
-        @Override
-        public void onServiceLost(NsdServiceInfo serviceInfo) {
-            handleServiceLost(serviceInfo);
+        public void serviceResolved(ServiceEvent event) {
+            handleServiceResolved(event.getInfo());
         }
     };
 
-    private final NsdManager.RegistrationListener mRegistrationListener = new NsdManager.RegistrationListener() {
-        @Override
-        public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
-        }
+    private JmDNS mJmdns;
 
-        @Override
-        public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
-        }
+    private HandlerThread mNetworkingThread;
+    private Handler mNetworkingHandler;
 
-        @Override
-        public void onServiceRegistered(NsdServiceInfo serviceInfo) {
-        }
-
-        @Override
-        public void onServiceUnregistered(NsdServiceInfo serviceInfo) {
-        }
-    };
-
+    @SuppressWarnings("ConstantConditions")
     AirDropNsdController(Context context, AirDropConfigManager configManager, AirDropManager parent) {
-        mNsdManager = (NsdManager) context.getSystemService(NSD_SERVICE);
+        final WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        mMulticastLock = wifiManager.createMulticastLock(TAG);
+        mMulticastLock.setReferenceCounted(false);
+
+        mNetworkingThread = new HandlerThread("networking");
+        mNetworkingThread.start();
+
+        mNetworkingHandler = new Handler(mNetworkingThread.getLooper());
+
         mConfigManager = configManager;
         mParent = parent;
     }
 
-    void startDiscover() {
-        mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
-    }
-
-    void stopDiscover() {
-        try {
-            mNsdManager.stopServiceDiscovery(mDiscoveryListener);
-        } catch (IllegalArgumentException ignored) {
-        }
-    }
-
-    void publish(InetAddress address, int port) {
-        final NsdServiceInfo serviceInfo = new NsdServiceInfo();
-        serviceInfo.setServiceName(mConfigManager.getId());
-        serviceInfo.setServiceType(SERVICE_TYPE);
-        serviceInfo.setHost(address);
-        serviceInfo.setPort(port);
-        serviceInfo.setAttribute("flags", Integer.toString(FLAG_SUPPORTS_MIXED_TYPES | FLAG_SUPPORTS_DISCOVER_MAYBE));
-        Log.d(TAG, "Publishing " + serviceInfo);
-        mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
-    }
-
-    void unpublish() {
-        mNsdManager.unregisterService(mRegistrationListener);
-    }
-
-    private void handleServiceFound(NsdServiceInfo serviceInfo) {
-        if (mConfigManager.getId().equals(serviceInfo.getServiceName())) {
-            return;
-        }
-
-        mNsdManager.resolveService(serviceInfo, new NsdManager.ResolveListener() {
+    void destroy() {
+        mNetworkingHandler.post(new Runnable() {
             @Override
-            public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
-                Log.w(TAG, String.format(Locale.US, "Resolve failed, ignored. name=%s, err=%d",
-                        serviceInfo.getServiceName(), errorCode));
-            }
-
-            @Override
-            public void onServiceResolved(NsdServiceInfo serviceInfo) {
-                handleServiceResolved(serviceInfo);
+            public void run() {
+                if (mJmdns != null) {
+                    try {
+                        mJmdns.close();
+                    } catch (IOException ignored) {
+                    }
+                    mJmdns = null;
+                }
+                mNetworkingHandler.removeCallbacksAndMessages(null);
+                mNetworkingThread.quit();
             }
         });
     }
 
-    private void handleServiceLost(NsdServiceInfo serviceInfo) {
-        Log.d(TAG, "Disappeared: " + serviceInfo.getServiceName());
-        postServiceLost(serviceInfo.getServiceName());
+    private void createJmdns(InetAddress address) {
+        if (mJmdns == null) {
+            try {
+                mJmdns = JmDNS.create(address);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed creating JmDNS instance", e);
+            }
+        }
     }
 
-    private void handleServiceResolved(NsdServiceInfo serviceInfo) {
-        Log.d(TAG, "Resolved: " + serviceInfo.getServiceName());
+    void startDiscover(final InetAddress address) {
+        mNetworkingHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mMulticastLock.acquire();
+                createJmdns(address);
+                mJmdns.addServiceListener(SERVICE_TYPE, mDiscoveryListener);
+            }
+        });
+    }
 
-        final String url;
-        if (serviceInfo.getHost() instanceof Inet6Address) {
-            url = String.format(Locale.US, "https://[%s]:%d",
-                    serviceInfo.getHost().getHostAddress(), serviceInfo.getPort());
-        } else {
-            url = String.format(Locale.US, "https://%s:%d",
-                    serviceInfo.getHost().getHostAddress(), serviceInfo.getPort());
+    void stopDiscover() {
+        mNetworkingHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mJmdns.removeServiceListener(SERVICE_TYPE, mDiscoveryListener);
+                mMulticastLock.release();
+            }
+        });
+    }
+
+    void publish(final InetAddress address, final int port) {
+        mNetworkingHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                createJmdns(address);
+
+                final Map<String, String> props = new HashMap<>();
+                props.put("flags", Integer.toString(FLAG_SUPPORTS_MIXED_TYPES | FLAG_SUPPORTS_DISCOVER_MAYBE));
+
+                final ServiceInfo serviceInfo = ServiceInfo.create(SERVICE_TYPE, mConfigManager.getId(), port, 0, 0, props);
+                Log.d(TAG, "Publishing " + serviceInfo);
+                try {
+                    mJmdns.registerService(serviceInfo);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    void unpublish() {
+        mNetworkingHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mJmdns.unregisterAllServices();
+            }
+        });
+    }
+
+    private void handleServiceLost(ServiceInfo serviceInfo) {
+        Log.d(TAG, "Disappeared: " + serviceInfo.getName());
+        postServiceLost(serviceInfo.getName());
+    }
+
+    private void handleServiceResolved(ServiceInfo serviceInfo) {
+        if (mConfigManager.getId().equals(serviceInfo.getName())) {
+            return;
         }
 
-        postServiceResolved(serviceInfo.getServiceName(), url);
+        Log.d(TAG, "Resolved: " + serviceInfo.getName() + ", flags=" + serviceInfo.getPropertyString("flags"));
+
+        final Inet4Address[] addresses = serviceInfo.getInet4Addresses();
+        if (addresses.length > 0) {
+            final String url = String.format(Locale.US, "https://%s:%d",
+                    addresses[0].getHostAddress(), serviceInfo.getPort());
+
+            postServiceResolved(serviceInfo.getName(), url);
+        } else {
+            Log.w(TAG, "No IPv4 address available, ignored: " + serviceInfo.getName());
+        }
     }
 
     private void postServiceResolved(final String id, final String url) {
