@@ -238,7 +238,7 @@ class AirDropServer {
                         pipe.sink().write(buffer, buffer.size());
                     } catch (IOException e) {
                         Log.e(TAG, "Failed receiving upload", e);
-                        response.code(500).end();
+                        socketWrapper.close();
                     }
                 }
             });
