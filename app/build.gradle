@@ -19,6 +19,7 @@ dependencies {
     implementation 'androidx.preference:preference:1.1.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0-beta04'
     implementation 'com.google.android.material:material:1.0.0'
+    implementation 'org.jmdns:jmdns:3.5.1'
     implementation 'com.squareup.okhttp3:okhttp:4.1.0'
     implementation 'com.koushikdutta.async:androidasync:2.2.1'
     implementation 'com.googlecode.plist:dd-plist:1.22'
