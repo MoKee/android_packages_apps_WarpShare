@@ -126,7 +126,7 @@ public class AirDropManager {
         mDiscoveryListener = discoveryListener;
 
         mBleController.triggerDiscoverable();
-        mNsdController.startDiscover();
+        mNsdController.startDiscover(mLocalAddress);
     }
 
     public void stopDiscover() {
@@ -152,6 +152,7 @@ public class AirDropManager {
     }
 
     public void destroy() {
+        mNsdController.destroy();
         mArchiveHandler.removeCallbacksAndMessages(null);
         mArchiveThread.quit();
     }
