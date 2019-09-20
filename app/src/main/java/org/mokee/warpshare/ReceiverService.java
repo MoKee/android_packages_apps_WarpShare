@@ -94,12 +94,6 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
         mNotificationManager.createNotificationChannel(transferChannel);
 
-        startForeground(NOTIFICATION_ACTIVE, getNotificationBuilder(NOTIFICATION_CHANNEL_SERVICE, CATEGORY_SERVICE)
-                .setContentTitle(getString(R.string.notif_recv_active_title))
-                .setContentText(getString(R.string.notif_recv_active_desc))
-                .setOngoing(true)
-                .build());
-
         if (mAirDropManager.ready() != STATUS_OK) {
             Log.w(TAG, "Hardware not ready, quit");
             stopSelf();
@@ -111,7 +105,6 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         super.onDestroy();
         Log.d(TAG, "onDestroy");
         mAirDropManager.destroy();
-        stopForeground(true);
     }
 
     @Override
@@ -154,27 +147,51 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             }
         }
 
-        if (mRunning && mDevices.isEmpty()) {
-            Log.d(TAG, "Peers lost, sleep");
+        Log.d(TAG, "Nearby peers: " + mDevices);
 
-            mAirDropManager.stopDiscoverable();
-
+        if (mDevices.isEmpty()) {
+            stopDiscoverable();
             stopSelf();
-
-            mRunning = false;
-        } else if (!mRunning && !mDevices.isEmpty()) {
-            Log.d(TAG, "Peers discovering");
-
+        } else {
             if (mAirDropManager.ready() != STATUS_OK) {
                 Log.w(TAG, "Hardware not ready, quit");
                 stopSelf();
                 return;
             }
-
-            mAirDropManager.startDiscoverable(this);
-
-            mRunning = true;
+            startDiscoverable();
         }
+    }
+
+    private void startDiscoverable() {
+        if (mRunning) {
+            return;
+        }
+
+        Log.d(TAG, "Peers discovering");
+
+        startForeground(NOTIFICATION_ACTIVE, getNotificationBuilder(NOTIFICATION_CHANNEL_SERVICE, CATEGORY_SERVICE)
+                .setContentTitle(getString(R.string.notif_recv_active_title))
+                .setContentText(getString(R.string.notif_recv_active_desc))
+                .setOngoing(true)
+                .build());
+
+        mAirDropManager.startDiscoverable(this);
+
+        mRunning = true;
+    }
+
+    private void stopDiscoverable() {
+        if (!mRunning) {
+            return;
+        }
+
+        Log.d(TAG, "Peers lost, sleep");
+
+        mAirDropManager.stopDiscoverable();
+
+        stopForeground(true);
+
+        mRunning = false;
     }
 
     @Override
