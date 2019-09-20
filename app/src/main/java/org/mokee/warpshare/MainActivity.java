@@ -47,13 +47,15 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     private AirDropManager mAirDropManager;
 
+    private boolean mIsDiscovering = false;
+    private boolean mShouldKeepDiscovering = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mAirDropManager = new AirDropManager(this);
-        mAirDropManager.startDiscover(this);
 
         mAirDropManager.registerTrigger(ReceiverService.class, ReceiverService.ACTION_SCAN_RESULT);
 
@@ -69,8 +71,27 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mAirDropManager.stopDiscover();
         mAirDropManager.destroy();
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d(TAG, "onResume");
+        super.onResume();
+        if (!mIsDiscovering) {
+            mAirDropManager.startDiscover(this);
+            mIsDiscovering = true;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "onPause");
+        super.onPause();
+        if (mIsDiscovering && !mShouldKeepDiscovering) {
+            mAirDropManager.stopDiscover();
+            mIsDiscovering = false;
+        }
     }
 
     @Override
@@ -92,8 +113,10 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        Log.d(TAG, "onActivityResult: " + requestCode);
         switch (requestCode) {
             case REQUEST_PICK:
+                mShouldKeepDiscovering = false;
                 if (resultCode == RESULT_OK && mPeerPicked != null && data != null) {
                     final AirDropManager.Peer peer = mPeers.get(mPeerPicked);
                     if (peer != null) {
@@ -129,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     private void handleItemClick(AirDropManager.Peer peer) {
         mPeerPicked = peer.id;
+        mShouldKeepDiscovering = true;
         Intent requestIntent = new Intent(Intent.ACTION_GET_CONTENT);
         requestIntent.addCategory(Intent.CATEGORY_OPENABLE);
         requestIntent.setType("*/*");
