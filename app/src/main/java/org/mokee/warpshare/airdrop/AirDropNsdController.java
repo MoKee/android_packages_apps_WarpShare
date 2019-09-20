@@ -112,7 +112,9 @@ class AirDropNsdController {
         mNetworkingHandler.post(new Runnable() {
             @Override
             public void run() {
-                mJmdns.removeServiceListener(SERVICE_TYPE, mDiscoveryListener);
+                if (mJmdns != null) {
+                    mJmdns.removeServiceListener(SERVICE_TYPE, mDiscoveryListener);
+                }
                 mMulticastLock.release();
             }
         });
