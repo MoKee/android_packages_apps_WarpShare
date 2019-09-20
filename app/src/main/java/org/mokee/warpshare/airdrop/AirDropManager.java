@@ -15,14 +15,7 @@ import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,12 +36,11 @@ public class AirDropManager {
 
     private static final String TAG = "AirDropManager";
 
-    private static final String INTERFACE_NAME = "wlan0";
-
     private final AirDropConfigManager mConfigManager;
 
     private final AirDropBleController mBleController;
     private final AirDropNsdController mNsdController;
+    private final AirDropWlanController mWlanController;
 
     private final AirDropClient mClient;
     private final AirDropServer mServer;
@@ -62,8 +54,6 @@ public class AirDropManager {
     private DiscoveryListener mDiscoveryListener;
     private ReceiverListener mReceiverListener;
 
-    private InetAddress mLocalAddress;
-
     private ExecutorService mArchiveExecutor;
 
     private Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
@@ -72,6 +62,7 @@ public class AirDropManager {
         mBleController = new AirDropBleController(context);
         mConfigManager = new AirDropConfigManager(context, mBleController);
         mNsdController = new AirDropNsdController(context, mConfigManager, this);
+        mWlanController = new AirDropWlanController();
 
         final AirDropTrustManager trustManager = new AirDropTrustManager(context);
 
@@ -103,9 +94,11 @@ public class AirDropManager {
             return STATUS_NO_BLUETOOTH;
         }
 
-        if (!checkNetwork()) {
+        if (!mWlanController.ready()) {
             return STATUS_NO_WIFI;
         }
+
+        mClient.setNetworkInterface(mWlanController.getInterface());
 
         return STATUS_OK;
     }
@@ -122,7 +115,7 @@ public class AirDropManager {
         mDiscoveryListener = discoveryListener;
 
         mBleController.triggerDiscoverable();
-        mNsdController.startDiscover(mLocalAddress);
+        mNsdController.startDiscover(mWlanController.getLocalAddress());
     }
 
     public void stopDiscover() {
@@ -137,9 +130,9 @@ public class AirDropManager {
 
         mReceiverListener = receiverListener;
 
-        final int port = mServer.start(mLocalAddress.getHostAddress());
+        final int port = mServer.start(mWlanController.getLocalAddress().getHostAddress());
 
-        mNsdController.publish(mLocalAddress, port);
+        mNsdController.publish(mWlanController.getLocalAddress(), port);
     }
 
     public void stopDiscoverable() {
@@ -154,47 +147,6 @@ public class AirDropManager {
 
     public void registerTrigger(Class<? extends Service> receiverService, String action) {
         mBleController.registerTrigger(receiverService, action);
-    }
-
-    private boolean checkNetwork() {
-        NetworkInterface iface = null;
-        try {
-            iface = NetworkInterface.getByName(INTERFACE_NAME);
-        } catch (SocketException e) {
-            Log.e(TAG, "Failed getting " + INTERFACE_NAME, e);
-        }
-
-        mClient.setNetworkInterface(iface);
-
-        if (iface == null) {
-            Log.e(TAG, "Cannot get " + INTERFACE_NAME);
-            return false;
-        }
-
-        final Enumeration<InetAddress> addresses = iface.getInetAddresses();
-        Inet6Address address6 = null;
-        Inet4Address address4 = null;
-        while (addresses.hasMoreElements()) {
-            final InetAddress address = addresses.nextElement();
-            if (address6 == null && address instanceof Inet6Address) {
-                try {
-                    // Recreate a non-scoped address since we are going to advertise it out
-                    address6 = (Inet6Address) Inet6Address.getByAddress(null, address.getAddress());
-                } catch (UnknownHostException ignored) {
-                }
-            } else if (address4 == null && address instanceof Inet4Address) {
-                address4 = (Inet4Address) address;
-            }
-        }
-
-        mLocalAddress = address4 != null ? address4 : address6;
-
-        if (mLocalAddress == null) {
-            Log.e(TAG, "No address on interface " + INTERFACE_NAME);
-            return false;
-        }
-
-        return true;
     }
 
     void onServiceResolved(final String id, final String url) {
