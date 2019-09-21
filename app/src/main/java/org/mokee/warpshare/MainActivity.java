@@ -30,12 +30,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static org.mokee.warpshare.airdrop.AirDropManager.STATUS_OK;
+
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
 public class MainActivity extends AppCompatActivity implements AirDropManager.DiscoveryListener {
 
     private static final String TAG = "MainActivity";
 
     private static final int REQUEST_PICK = 1;
+    private static final int REQUEST_SETUP = 2;
 
     private final ArrayMap<String, AirDropManager.Peer> mPeers = new ArrayMap<>();
 
@@ -77,6 +82,14 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     @Override
     protected void onResume() {
         super.onResume();
+
+        final boolean granted = checkSelfPermission(WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
+        final boolean ready = mAirDropManager.ready() == STATUS_OK;
+        if (!granted || !ready) {
+            startActivityForResult(new Intent(this, SetupActivity.class), REQUEST_SETUP);
+            return;
+        }
+
         if (!mIsDiscovering) {
             mAirDropManager.startDiscover(this);
             mIsDiscovering = true;
@@ -123,6 +136,11 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
                             sendFile(peer, data.getClipData());
                         }
                     }
+                }
+                break;
+            case REQUEST_SETUP:
+                if (resultCode != RESULT_OK) {
+                    finish();
                 }
                 break;
             default:
