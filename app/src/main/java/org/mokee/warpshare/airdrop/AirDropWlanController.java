@@ -12,7 +12,7 @@ import java.util.Enumeration;
 
 class AirDropWlanController {
 
-    private static final String TAG = "AirDropWifiController";
+    private static final String TAG = "AirDropWlanController";
 
     private static final String INTERFACE_NAME = "wlan0";
 
@@ -20,21 +20,21 @@ class AirDropWlanController {
     private InetAddress mLocalAddress;
 
     private void getAddress() {
-        final NetworkInterface iface;
         try {
-            iface = NetworkInterface.getByName(INTERFACE_NAME);
+            mInterface = NetworkInterface.getByName(INTERFACE_NAME);
         } catch (SocketException e) {
             Log.e(TAG, "Failed getting " + INTERFACE_NAME, e);
+            mInterface = null;
+            mLocalAddress = null;
             return;
         }
-        if (iface == null) {
+        if (mInterface == null) {
             Log.e(TAG, "Cannot get " + INTERFACE_NAME);
+            mLocalAddress = null;
             return;
         }
 
-        mInterface = iface;
-
-        final Enumeration<InetAddress> addresses = iface.getInetAddresses();
+        final Enumeration<InetAddress> addresses = mInterface.getInetAddresses();
         Inet6Address address6 = null;
         Inet4Address address4 = null;
         while (addresses.hasMoreElements()) {
@@ -51,6 +51,7 @@ class AirDropWlanController {
         }
         if (address4 == null && address6 == null) {
             Log.e(TAG, "Cannot get local address for " + INTERFACE_NAME);
+            mLocalAddress = null;
             return;
         }
 
