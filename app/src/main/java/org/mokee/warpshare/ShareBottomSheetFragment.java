@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Network;
 import android.os.Bundle;
 import android.text.format.Formatter;
 import android.util.ArrayMap;
@@ -27,10 +29,17 @@ import org.mokee.warpshare.airdrop.AirDropManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static org.mokee.warpshare.airdrop.AirDropManager.STATUS_OK;
+
+@SuppressWarnings("SwitchStatementWithTooFewBranches")
 public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         implements AirDropManager.DiscoveryListener {
 
     private static final String TAG = "ShareBottomSheetFragment";
+
+    private static final int REQUEST_SETUP = 1;
 
     private final ArrayMap<String, AirDropManager.Peer> mPeers = new ArrayMap<>();
     private final List<ResolvedUri> mUris = new ArrayList<>();
@@ -50,6 +59,24 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
     private AirDropManager mAirDropManager;
 
+    private boolean mIsInSetup = false;
+
+    private final WifiStateMonitor mWifiStateMonitor = new WifiStateMonitor() {
+        @Override
+        public void onAvailable(Network network) {
+            setupIfNeeded();
+        }
+    };
+
+    private final BluetoothStateMonitor mBluetoothStateMonitor = new BluetoothStateMonitor() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            setupIfNeeded();
+        }
+    };
+
+    private boolean mIsDiscovering = false;
+
     private AirDropManager.Cancelable mSending;
 
     public ShareBottomSheetFragment() {
@@ -60,6 +87,12 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         super.onCreate(savedInstanceState);
         mAirDropManager = new AirDropManager(getContext());
         mAdapter = new PeersAdapter(getContext());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mAirDropManager.destroy();
     }
 
     @Override
@@ -129,13 +162,31 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     @Override
     public void onResume() {
         super.onResume();
-        mAirDropManager.startDiscover(this);
+
+        mWifiStateMonitor.register(getContext());
+        mBluetoothStateMonitor.register(getContext());
+
+        if (setupIfNeeded()) {
+            return;
+        }
+
+        if (!mIsDiscovering) {
+            mAirDropManager.startDiscover(this);
+            mIsDiscovering = true;
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mAirDropManager.stopDiscover();
+
+        if (mIsDiscovering) {
+            mAirDropManager.stopDiscover();
+            mIsDiscovering = false;
+        }
+
+        mWifiStateMonitor.unregister(getContext());
+        mBluetoothStateMonitor.unregister(getContext());
     }
 
     @Override
@@ -146,6 +197,20 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             mSending = null;
         }
         mParent.finish();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        switch (requestCode) {
+            case REQUEST_SETUP:
+                mIsInSetup = false;
+                if (resultCode != Activity.RESULT_OK) {
+                    mParent.finish();
+                }
+                break;
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     @Override
@@ -163,6 +228,22 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         }
         mPeers.remove(peer.id);
         mAdapter.notifyDataSetChanged();
+    }
+
+    private boolean setupIfNeeded() {
+        if (mIsInSetup) {
+            return true;
+        }
+
+        final boolean granted = mParent.checkSelfPermission(WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
+        final boolean ready = mAirDropManager.ready() == STATUS_OK;
+        if (!granted || !ready) {
+            mIsInSetup = true;
+            startActivityForResult(new Intent(mParent, SetupActivity.class), REQUEST_SETUP);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void handleItemClick(AirDropManager.Peer peer) {

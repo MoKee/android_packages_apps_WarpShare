@@ -5,6 +5,14 @@
 
     <string name="menu_settings">Settings…</string>
 
+    <string name="introduction">WarpShare can rapidly send files to others nearby, without any usage of mobile data.</string>
+    <string name="hint_perm">To use WarpShare, several permissions are required.</string>
+    <string name="button_perm">Grant permissions…</string>
+    <string name="hint_wifi">To use WarpShare, please turn on Wi-Fi and connect to the same network.</string>
+    <string name="button_wifi">Open Wi-Fi settings…</string>
+    <string name="hint_bt">To use WarpShare, please turn on Bluetooth.</string>
+    <string name="button_bt">Turn on Bluetooth…</string>
+
     <plurals name="send_files_to">
         <item quantity="one">Send %d file to…</item>
         <item quantity="other">Send %d files to…</item>
