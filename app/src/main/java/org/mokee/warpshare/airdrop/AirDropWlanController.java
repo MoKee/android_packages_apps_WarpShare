@@ -12,29 +12,41 @@ import java.util.Enumeration;
 
 class AirDropWlanController {
 
-    private static final String TAG = "AirDropWifiController";
+    private static final String TAG = "AirDropWlanController";
 
     private static final String INTERFACE_NAME = "wlan0";
+
+    private final Object mLock = new Object();
 
     private NetworkInterface mInterface;
     private InetAddress mLocalAddress;
 
-    private void getAddress() {
+    private void getInterfaceInternal() {
         final NetworkInterface iface;
         try {
             iface = NetworkInterface.getByName(INTERFACE_NAME);
         } catch (SocketException e) {
             Log.e(TAG, "Failed getting " + INTERFACE_NAME, e);
+            mInterface = null;
             return;
         }
         if (iface == null) {
             Log.e(TAG, "Cannot get " + INTERFACE_NAME);
+            mInterface = null;
             return;
         }
 
         mInterface = iface;
+    }
 
-        final Enumeration<InetAddress> addresses = iface.getInetAddresses();
+    private void getLocalAddressInternal() {
+        getInterfaceInternal();
+        if (mInterface == null) {
+            mLocalAddress = null;
+            return;
+        }
+
+        final Enumeration<InetAddress> addresses = mInterface.getInetAddresses();
         Inet6Address address6 = null;
         Inet4Address address4 = null;
         while (addresses.hasMoreElements()) {
@@ -51,6 +63,7 @@ class AirDropWlanController {
         }
         if (address4 == null && address6 == null) {
             Log.e(TAG, "Cannot get local address for " + INTERFACE_NAME);
+            mLocalAddress = null;
             return;
         }
 
@@ -58,17 +71,31 @@ class AirDropWlanController {
     }
 
     boolean ready() {
-        getAddress();
-        return mInterface != null && mLocalAddress != null;
+        synchronized (mLock) {
+            getLocalAddressInternal();
+            return mInterface != null && mLocalAddress != null;
+        }
     }
 
     NetworkInterface getInterface() {
-        getAddress();
+        synchronized (mLock) {
+            getInterfaceInternal();
+            if (mInterface == null) {
+                return null;
+            }
+        }
+
         return mInterface;
     }
 
     InetAddress getLocalAddress() {
-        getAddress();
+        synchronized (mLock) {
+            getLocalAddressInternal();
+            if (mLocalAddress == null) {
+                return null;
+            }
+        }
+
         return mLocalAddress;
     }
 
