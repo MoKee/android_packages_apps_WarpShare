@@ -3,6 +3,7 @@ package org.mokee.warpshare;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Network;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.format.Formatter;
@@ -30,12 +31,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static org.mokee.warpshare.airdrop.AirDropManager.STATUS_OK;
+
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
 public class MainActivity extends AppCompatActivity implements AirDropManager.DiscoveryListener {
 
     private static final String TAG = "MainActivity";
 
     private static final int REQUEST_PICK = 1;
+    private static final int REQUEST_SETUP = 2;
 
     private final ArrayMap<String, AirDropManager.Peer> mPeers = new ArrayMap<>();
 
@@ -46,6 +52,22 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     private String mPeerPicked = null;
 
     private AirDropManager mAirDropManager;
+
+    private boolean mIsInSetup = false;
+
+    private final WifiStateMonitor mWifiStateMonitor = new WifiStateMonitor() {
+        @Override
+        public void onAvailable(Network network) {
+            setupIfNeeded();
+        }
+    };
+
+    private final BluetoothStateMonitor mBluetoothStateMonitor = new BluetoothStateMonitor() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            setupIfNeeded();
+        }
+    };
 
     private boolean mIsDiscovering = false;
     private boolean mShouldKeepDiscovering = false;
@@ -77,6 +99,14 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     @Override
     protected void onResume() {
         super.onResume();
+
+        mWifiStateMonitor.register(this);
+        mBluetoothStateMonitor.register(this);
+
+        if (setupIfNeeded()) {
+            return;
+        }
+
         if (!mIsDiscovering) {
             mAirDropManager.startDiscover(this);
             mIsDiscovering = true;
@@ -86,10 +116,14 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     @Override
     protected void onPause() {
         super.onPause();
+
         if (mIsDiscovering && !mShouldKeepDiscovering) {
             mAirDropManager.stopDiscover();
             mIsDiscovering = false;
         }
+
+        mWifiStateMonitor.unregister(this);
+        mBluetoothStateMonitor.unregister(this);
     }
 
     @Override
@@ -125,6 +159,12 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
                     }
                 }
                 break;
+            case REQUEST_SETUP:
+                mIsInSetup = false;
+                if (resultCode != RESULT_OK) {
+                    finish();
+                }
+                break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
                 break;
@@ -145,6 +185,22 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         mPeers.remove(peer.id);
         mPeerStates.remove(peer.id);
         mAdapter.notifyDataSetChanged();
+    }
+
+    private boolean setupIfNeeded() {
+        if (mIsInSetup) {
+            return true;
+        }
+
+        final boolean granted = checkSelfPermission(WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
+        final boolean ready = mAirDropManager.ready() == STATUS_OK;
+        if (!granted || !ready) {
+            mIsInSetup = true;
+            startActivityForResult(new Intent(this, SetupActivity.class), REQUEST_SETUP);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void handleItemClick(AirDropManager.Peer peer) {
