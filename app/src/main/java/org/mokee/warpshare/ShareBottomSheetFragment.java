@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.format.Formatter;
 import android.util.ArrayMap;
@@ -26,6 +27,10 @@ import org.mokee.warpshare.airdrop.AirDropManager;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static org.mokee.warpshare.airdrop.AirDropManager.STATUS_OK;
 
 public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         implements AirDropManager.DiscoveryListener {
@@ -50,6 +55,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
     private AirDropManager mAirDropManager;
 
+    private boolean mIsDiscovering = false;
+
     private AirDropManager.Cancelable mSending;
 
     public ShareBottomSheetFragment() {
@@ -60,6 +67,12 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         super.onCreate(savedInstanceState);
         mAirDropManager = new AirDropManager(getContext());
         mAdapter = new PeersAdapter(getContext());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mAirDropManager.destroy();
     }
 
     @Override
@@ -129,13 +142,27 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     @Override
     public void onResume() {
         super.onResume();
-        mAirDropManager.startDiscover(this);
+
+        final boolean granted = mParent.checkSelfPermission(WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
+        final boolean ready = mAirDropManager.ready() == STATUS_OK;
+        if (!granted || !ready) {
+            startActivity(new Intent(mParent, SetupActivity.class));
+            return;
+        }
+
+        if (!mIsDiscovering) {
+            mAirDropManager.startDiscover(this);
+            mIsDiscovering = true;
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mAirDropManager.stopDiscover();
+        if (mIsDiscovering) {
+            mAirDropManager.stopDiscover();
+            mIsDiscovering = false;
+        }
     }
 
     @Override

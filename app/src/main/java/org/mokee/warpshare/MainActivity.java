@@ -30,6 +30,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static org.mokee.warpshare.airdrop.AirDropManager.STATUS_OK;
+
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
 public class MainActivity extends AppCompatActivity implements AirDropManager.DiscoveryListener {
 
@@ -77,6 +81,14 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     @Override
     protected void onResume() {
         super.onResume();
+
+        final boolean granted = checkSelfPermission(WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
+        final boolean ready = mAirDropManager.ready() == STATUS_OK;
+        if (!granted || !ready) {
+            startActivity(new Intent(this, SetupActivity.class));
+            return;
+        }
+
         if (!mIsDiscovering) {
             mAirDropManager.startDiscover(this);
             mIsDiscovering = true;
