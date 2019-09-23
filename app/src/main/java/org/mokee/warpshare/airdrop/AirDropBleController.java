@@ -62,11 +62,13 @@ class AirDropBleController {
     private void getAdapter() {
         final BluetoothManager manager = (BluetoothManager) mContext.getSystemService(BLUETOOTH_SERVICE);
         if (manager == null) {
+            mAdapter = null;
             return;
         }
 
         final BluetoothAdapter adapter = manager.getAdapter();
         if (adapter == null || !adapter.isEnabled()) {
+            mAdapter = null;
             return;
         }
 
@@ -76,11 +78,13 @@ class AirDropBleController {
     private void getAdvertiser() {
         getAdapter();
         if (mAdapter == null) {
+            mAdvertiser = null;
             return;
         }
 
         final BluetoothLeAdvertiser advertiser = mAdapter.getBluetoothLeAdvertiser();
         if (advertiser == null) {
+            mAdvertiser = null;
             return;
         }
 
@@ -90,11 +94,13 @@ class AirDropBleController {
     private void getScanner() {
         getAdapter();
         if (mAdapter == null) {
+            mScanner = null;
             return;
         }
 
         final BluetoothLeScanner scanner = mAdapter.getBluetoothLeScanner();
         if (scanner == null) {
+            mScanner = null;
             return;
         }
 
