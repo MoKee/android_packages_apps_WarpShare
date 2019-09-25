@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -261,18 +262,27 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         mNotificationManager.cancel(ip, NOTIFICATION_TRANSFER);
     }
 
+    private String getFileName(ReceivingSession session, String fileName) {
+        final String[] segments = fileName.split("/");
+        fileName = segments[segments.length - 1];
+
+        return String.format(Locale.US, "%s_%d_%s",
+                session.id, System.currentTimeMillis(), fileName);
+    }
+
     @Override
-    public void onAirDropTransfer(String fileName, InputStream input) {
-        Log.d(TAG, "Transferring " + fileName);
+    public void onAirDropTransfer(ReceivingSession session, String fileName, InputStream input) {
+        Log.d(TAG, "Transferring " + fileName + " from " + session.name);
+        final String targetFileName = getFileName(session, fileName);
         final File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        final File file = new File(downloadDir, fileName);
+        final File file = new File(downloadDir, getFileName(session, targetFileName));
         try {
             final Source source = Okio.source(input);
             final BufferedSink sink = Okio.buffer(Okio.sink(file));
             sink.writeAll(source);
             sink.flush();
             sink.close();
-            Log.d(TAG, "Received " + fileName);
+            Log.d(TAG, "Received " + fileName + " as " + targetFileName);
         } catch (IOException e) {
             Log.e(TAG, "Failed writing file to " + file.getAbsolutePath(), e);
         }
