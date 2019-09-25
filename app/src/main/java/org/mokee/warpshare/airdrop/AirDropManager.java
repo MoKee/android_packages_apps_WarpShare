@@ -59,8 +59,9 @@ public class AirDropManager {
     private Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
 
     public AirDropManager(Context context) {
+        mConfigManager = new AirDropConfigManager(context);
+
         mBleController = new AirDropBleController(context);
-        mConfigManager = new AirDropConfigManager(context, mBleController);
         mNsdController = new AirDropNsdController(context, mConfigManager, this);
         mWlanController = new AirDropWlanController();
 
@@ -101,10 +102,6 @@ public class AirDropManager {
         mClient.setNetworkInterface(mWlanController.getInterface());
 
         return STATUS_OK;
-    }
-
-    public AirDropConfigManager getConfig() {
-        return mConfigManager;
     }
 
     public void startDiscover(DiscoveryListener discoveryListener) {

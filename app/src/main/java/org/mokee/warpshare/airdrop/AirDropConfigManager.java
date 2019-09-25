@@ -3,30 +3,34 @@ package org.mokee.warpshare.airdrop;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.preference.PreferenceManager;
+
+import org.mokee.warpshare.ConfigManager;
 
 import java.util.Random;
 
 import okio.ByteString;
 
 @SuppressLint("ApplySharedPref")
-public class AirDropConfigManager {
+class AirDropConfigManager {
 
     private static final String TAG = "AirDropConfigManager";
 
+    private static final String KEY_ID = "airdrop_id";
+
+    private final ConfigManager mParent;
     private final SharedPreferences mPref;
-    private final AirDropBleController mBleController;
 
     @SuppressLint("ApplySharedPref")
-    AirDropConfigManager(Context context, AirDropBleController bleController) {
-        mPref = context.getSharedPreferences("airdrop", Context.MODE_PRIVATE);
-        if (!mPref.contains("id")) {
-            mPref.edit().putString("id", generateId()).commit();
-            Log.d(TAG, "Generate id: " + mPref.getString("id", null));
+    AirDropConfigManager(Context context) {
+        mParent = new ConfigManager(context);
+        mPref = PreferenceManager.getDefaultSharedPreferences(context);
+        if (!mPref.contains(KEY_ID)) {
+            mPref.edit().putString(KEY_ID, generateId()).commit();
+            Log.d(TAG, "Generate id: " + mPref.getString(KEY_ID, null));
         }
-
-        mBleController = bleController;
     }
 
     private String generateId() {
@@ -36,25 +40,11 @@ public class AirDropConfigManager {
     }
 
     String getId() {
-        return mPref.getString("id", null);
+        return mPref.getString(KEY_ID, null);
     }
 
-    public String getDefaultName() {
-        final String name = mBleController.getName();
-        return TextUtils.isEmpty(name) ? "Android" : name;
-    }
-
-    public String getNameWithoutDefault() {
-        return mPref.getString("name", "");
-    }
-
-    public String getName() {
-        final String name = getNameWithoutDefault();
-        return TextUtils.isEmpty(name) ? getDefaultName() : name;
-    }
-
-    public void setName(String name) {
-        mPref.edit().putString("name", name).commit();
+    String getName() {
+        return mParent.getName();
     }
 
 }
