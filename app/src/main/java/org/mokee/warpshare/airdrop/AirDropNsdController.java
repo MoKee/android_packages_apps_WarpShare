@@ -8,7 +8,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import java.io.IOException;
-import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Locale;
@@ -90,7 +90,7 @@ class AirDropNsdController {
     private void createJmdns(InetAddress address) {
         if (mJmdns == null) {
             try {
-                mJmdns = JmDNS.create(address);
+                mJmdns = JmDNS.create();
             } catch (IOException e) {
                 throw new RuntimeException("Failed creating JmDNS instance", e);
             }
@@ -161,9 +161,9 @@ class AirDropNsdController {
 
         Log.d(TAG, "Resolved: " + serviceInfo.getName() + ", flags=" + serviceInfo.getPropertyString("flags"));
 
-        final Inet4Address[] addresses = serviceInfo.getInet4Addresses();
+        final Inet6Address[] addresses = serviceInfo.getInet6Addresses();
         if (addresses.length > 0) {
-            final String url = String.format(Locale.US, "https://%s:%d",
+            final String url = String.format(Locale.US, "https://[%s]:%d",
                     addresses[0].getHostAddress(), serviceInfo.getPort());
 
             postServiceResolved(serviceInfo.getName(), url);

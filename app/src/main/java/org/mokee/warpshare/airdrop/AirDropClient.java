@@ -105,6 +105,7 @@ class AirDropClient {
     }
 
     private Call post(final String url, RequestBody body, final AirDropClientCallback callback) {
+        Log.d(TAG, "POST " + url);
         final Call call = mHttpClient.newCall(new Request.Builder()
                 .url(url)
                 .post(body)

@@ -52,11 +52,7 @@ class AirDropWlanController {
         while (addresses.hasMoreElements()) {
             final InetAddress address = addresses.nextElement();
             if (address6 == null && address instanceof Inet6Address) {
-                try {
-                    // Recreate a non-scoped address since we are going to advertise it out
-                    address6 = (Inet6Address) Inet6Address.getByAddress(null, address.getAddress());
-                } catch (UnknownHostException ignored) {
-                }
+                address6 = (Inet6Address) address;
             } else if (address4 == null && address instanceof Inet4Address) {
                 address4 = (Inet4Address) address;
             }
@@ -67,7 +63,7 @@ class AirDropWlanController {
             return;
         }
 
-        mLocalAddress = address4 != null ? address4 : address6;
+        mLocalAddress = address6 != null ? address6 : address4;
     }
 
     boolean ready() {
@@ -97,6 +93,26 @@ class AirDropWlanController {
         }
 
         return mLocalAddress;
+    }
+
+    InetAddress getUnboundLocalAddress() {
+        synchronized (mLock) {
+            getLocalAddressInternal();
+            if (mLocalAddress == null) {
+                return null;
+            }
+        }
+
+        if (mLocalAddress instanceof Inet6Address) {
+            try {
+                return Inet6Address.getByAddress(null, mLocalAddress.getAddress());
+            } catch (UnknownHostException e) {
+                Log.e(TAG, "Failed to get non-scoped IPv6 address", e);
+                return mLocalAddress;
+            }
+        } else {
+            return mLocalAddress;
+        }
     }
 
 }
