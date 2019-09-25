@@ -115,17 +115,6 @@ class AirDropBleController {
         }
     }
 
-    String getName() {
-        synchronized (mLock) {
-            getAdapter();
-            if (mAdapter == null) {
-                return null;
-            }
-        }
-
-        return mAdapter.getName();
-    }
-
     void triggerDiscoverable() {
         synchronized (mLock) {
             getAdvertiser();
