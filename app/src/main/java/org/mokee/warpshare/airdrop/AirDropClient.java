@@ -8,6 +8,7 @@ import android.util.Log;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.PropertyListFormatException;
 import com.dd.plist.PropertyListParser;
+import com.mokee.warpshare.airdrop.AirDropTrustManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;

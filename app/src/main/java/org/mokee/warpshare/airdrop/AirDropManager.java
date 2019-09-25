@@ -9,8 +9,10 @@ import android.util.Log;
 import com.dd.plist.NSArray;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
+import com.mokee.warpshare.airdrop.AirDropTrustManager;
 
 import org.mokee.warpshare.GossipyInputStream;
+import org.mokee.warpshare.R;
 import org.mokee.warpshare.ResolvedUri;
 
 import java.io.IOException;
@@ -65,7 +67,7 @@ public class AirDropManager {
         mNsdController = new AirDropNsdController(context, mConfigManager, this);
         mWlanController = new AirDropWlanController();
 
-        final AirDropTrustManager trustManager = new AirDropTrustManager(context);
+        final AirDropTrustManager trustManager = new AirDropTrustManager(context, R.raw.keystore, R.raw.apple_root_ca, R.raw.mokee_warp_ca);
 
         mClient = new AirDropClient(trustManager);
         mServer = new AirDropServer(trustManager, this);
