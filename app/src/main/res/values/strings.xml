@@ -30,11 +30,7 @@
     <string name="toast_completed">Files sent</string>
     <string name="toast_rejected">Receiver rejected</string>
 
-    <string name="notif_recv_service_channel">Discoverable</string>
     <string name="notif_recv_transfer_channel">File transfer</string>
-
-    <string name="notif_recv_active_title">Your device is discoverable</string>
-    <string name="notif_recv_active_desc">Someone nearby is about to send some files</string>
 
     <string name="notif_recv_transfer_request_title">File transfer</string>
     <string name="notif_recv_transfer_request_desc">%s wants to send you %d files</string>

@@ -31,10 +31,8 @@ import okio.BufferedSink;
 import okio.Okio;
 import okio.Source;
 
-import static android.app.Notification.CATEGORY_SERVICE;
 import static android.app.Notification.CATEGORY_STATUS;
 import static android.app.NotificationManager.IMPORTANCE_HIGH;
-import static android.app.NotificationManager.IMPORTANCE_MIN;
 import static android.bluetooth.le.BluetoothLeScanner.EXTRA_CALLBACK_TYPE;
 import static android.bluetooth.le.BluetoothLeScanner.EXTRA_LIST_SCAN_RESULT;
 import static android.bluetooth.le.ScanSettings.CALLBACK_TYPE_FIRST_MATCH;
@@ -51,10 +49,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
     private static final String ACTION_TRANSFER_REJECT = "org.mokee.warpshare.TRANSFER_REJECT";
     private static final String ACTION_TRANSFER_CANCEL = "org.mokee.warpshare.TRANSFER_CANCEL";
 
-    private static final String NOTIFICATION_CHANNEL_SERVICE = "receiver";
     private static final String NOTIFICATION_CHANNEL_TRANSFER = "transfer";
 
-    private static final int NOTIFICATION_ACTIVE = 1;
     private static final int NOTIFICATION_TRANSFER = 2;
 
     private final Set<String> mDevices = new HashSet<>();
@@ -81,24 +77,10 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        final NotificationChannel serviceChannel = new NotificationChannel(NOTIFICATION_CHANNEL_SERVICE,
-                getString(R.string.notif_recv_service_channel), IMPORTANCE_MIN);
-        serviceChannel.enableLights(false);
-        serviceChannel.enableVibration(false);
-        serviceChannel.setShowBadge(false);
-
-        mNotificationManager.createNotificationChannel(serviceChannel);
-
         final NotificationChannel transferChannel = new NotificationChannel(NOTIFICATION_CHANNEL_TRANSFER,
                 getString(R.string.notif_recv_transfer_channel), IMPORTANCE_HIGH);
 
         mNotificationManager.createNotificationChannel(transferChannel);
-
-        startForeground(NOTIFICATION_ACTIVE, getNotificationBuilder(NOTIFICATION_CHANNEL_SERVICE, CATEGORY_SERVICE)
-                .setContentTitle(getString(R.string.notif_recv_active_title))
-                .setContentText(getString(R.string.notif_recv_active_desc))
-                .setOngoing(true)
-                .build());
 
         if (mAirDropManager.ready() != STATUS_OK) {
             Log.w(TAG, "Hardware not ready, quit");
@@ -111,7 +93,6 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         super.onDestroy();
         Log.d(TAG, "onDestroy");
         mAirDropManager.destroy();
-        stopForeground(true);
     }
 
     @Override
@@ -316,7 +297,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
     }
 
     private PendingIntent getTransferIntent(String action, String ip) {
-        return PendingIntent.getForegroundService(this, 0,
+        return PendingIntent.getService(this, 0,
                 new Intent(action, null, this, getClass())
                         .setData(new Uri.Builder().path(ip).build()),
                 PendingIntent.FLAG_UPDATE_CURRENT);

@@ -146,6 +146,10 @@ public class AirDropManager {
         mBleController.registerTrigger(receiverService, action);
     }
 
+    public void unregisterTrigger(Class<? extends Service> receiverService, String action) {
+        mBleController.unregisterTrigger(receiverService, action);
+    }
+
     void onServiceResolved(final String id, final String url) {
         final NSDictionary req = new NSDictionary();
 

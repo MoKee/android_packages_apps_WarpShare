@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mAirDropManager.unregisterTrigger(ReceiverService.class, ReceiverService.ACTION_SCAN_RESULT);
         mAirDropManager.destroy();
     }
 

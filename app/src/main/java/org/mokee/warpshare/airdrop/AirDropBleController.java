@@ -147,7 +147,7 @@ class AirDropBleController {
     }
 
     private PendingIntent getTriggerIntent(Class<? extends Service> receiverService, String action) {
-        return PendingIntent.getForegroundService(mContext, 0,
+        return PendingIntent.getService(mContext, 0,
                 new Intent(action, null, mContext, receiverService),
                 PendingIntent.FLAG_UPDATE_CURRENT);
     }
