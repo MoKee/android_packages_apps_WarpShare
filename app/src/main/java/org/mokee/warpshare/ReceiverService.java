@@ -7,7 +7,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.le.ScanResult;
+import android.content.Context;
 import android.content.Intent;
+import android.net.Network;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.IBinder;
@@ -66,6 +68,20 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
     private NotificationManager mNotificationManager;
     private AirDropManager mAirDropManager;
 
+    private final WifiStateMonitor mWifiStateMonitor = new WifiStateMonitor() {
+        @Override
+        public void onAvailable(Network network) {
+            stopIfNotReady();
+        }
+    };
+
+    private final BluetoothStateMonitor mBluetoothStateMonitor = new BluetoothStateMonitor() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            stopIfNotReady();
+        }
+    };
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -78,6 +94,9 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         Log.d(TAG, "onCreate");
 
         mAirDropManager = new AirDropManager(this);
+
+        mWifiStateMonitor.register(this);
+        mBluetoothStateMonitor.register(this);
 
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
@@ -100,10 +119,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
                 .setOngoing(true)
                 .build());
 
-        if (mAirDropManager.ready() != STATUS_OK) {
-            Log.w(TAG, "Hardware not ready, quit");
-            stopSelf();
-        }
+        stopIfNotReady();
     }
 
     @Override
@@ -111,7 +127,18 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         super.onDestroy();
         Log.d(TAG, "onDestroy");
         mAirDropManager.destroy();
+
+        mWifiStateMonitor.unregister(this);
+        mBluetoothStateMonitor.unregister(this);
+
         stopForeground(true);
+    }
+
+    private void stopIfNotReady() {
+        if (mAirDropManager.ready() != STATUS_OK) {
+            Log.w(TAG, "Hardware not ready, quit");
+            stopSelf();
+        }
     }
 
     @Override
