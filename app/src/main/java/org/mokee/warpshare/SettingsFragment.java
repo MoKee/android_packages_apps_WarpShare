@@ -1,44 +1,48 @@
 package org.mokee.warpshare;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.preference.EditTextPreference;
-import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
-import org.mokee.warpshare.airdrop.AirDropManager;
+@SuppressWarnings("SwitchStatementWithTooFewBranches")
+public class SettingsFragment extends PreferenceFragmentCompat implements
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
-public class SettingsFragment extends PreferenceFragmentCompat {
-
-    private AirDropManager mAirDropManager;
+    private ConfigManager mConfigManager;
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         addPreferencesFromResource(R.xml.settings);
+        getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 
-        mAirDropManager = new AirDropManager(getContext());
+        mConfigManager = new ConfigManager(getContext());
 
-        final EditTextPreference namePref = findPreference("name");
+        final EditTextPreference namePref = findPreference(ConfigManager.KEY_NAME);
         if (namePref != null) {
-            namePref.setText(mAirDropManager.getConfig().getNameWithoutDefault());
-            namePref.setSummary(mAirDropManager.getConfig().getName());
+            namePref.setText(mConfigManager.getNameWithoutDefault());
+            namePref.setSummary(mConfigManager.getName());
             namePref.setOnBindEditTextListener(new EditTextPreference.OnBindEditTextListener() {
                 @Override
                 public void onBindEditText(@NonNull EditText editText) {
-                    editText.setHint(mAirDropManager.getConfig().getDefaultName());
+                    editText.setHint(mConfigManager.getDefaultName());
                 }
             });
-            namePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                @Override
-                public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    final String name = (String) newValue;
-                    mAirDropManager.getConfig().setName(name);
-                    preference.setSummary(mAirDropManager.getConfig().getName());
-                    return true;
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        switch (key) {
+            case ConfigManager.KEY_NAME:
+                final EditTextPreference namePref = findPreference(ConfigManager.KEY_NAME);
+                if (namePref != null) {
+                    namePref.setSummary(mConfigManager.getName());
                 }
-            });
+                break;
         }
     }
 
