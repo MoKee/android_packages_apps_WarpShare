@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import okio.BufferedSource;
 import okio.ByteString;
@@ -34,6 +35,7 @@ class AirDropArchiveUtil {
             for (ResolvedUri uri : uris) {
                 final CpioArchiveEntry entry = new CpioArchiveEntry(FORMAT_OLD_ASCII, uri.path());
                 entry.setMode(C_ISREG | C_IRUSR | C_IWUSR | C_IRGRP | C_IROTH);
+                entry.setTime(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()));
 
                 final InputStream stream = new GossipyInputStream(uri.stream(), streamReadListener);
                 final BufferedSource source = Okio.buffer(Okio.source(stream));
