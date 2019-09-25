@@ -296,6 +296,13 @@ public class AirDropManager {
     }
 
     void handleAsk(final String ip, NSDictionary request, final AirDropServer.ResultCallback callback) {
+        final NSObject idNode = request.get("SenderID");
+        if (idNode == null) {
+            Log.w(TAG, "Invalid ask from " + ip + ": Missing SenderID");
+            callback.call(null);
+            return;
+        }
+
         final NSObject nameNode = request.get("SenderComputerName");
         if (nameNode == null) {
             Log.w(TAG, "Invalid ask from " + ip + ": Missing SenderComputerName");
@@ -333,9 +340,10 @@ public class AirDropManager {
             return;
         }
 
+        final String id = idNode.toJavaObject(String.class);
         final String name = nameNode.toJavaObject(String.class);
 
-        final ReceivingSession session = new ReceivingSession(ip, name, fileNames, filePaths) {
+        final ReceivingSession session = new ReceivingSession(ip, id, name, fileNames, filePaths) {
             @Override
             public void accept() {
                 final NSDictionary response = new NSDictionary();
@@ -426,7 +434,7 @@ public class AirDropManager {
                     }
                 };
 
-                mReceiverListener.onAirDropTransfer(name, new GossipyInputStream(input, streamReadListener));
+                mReceiverListener.onAirDropTransfer(session, name, new GossipyInputStream(input, streamReadListener));
                 fileIndex++;
             }
         };
@@ -473,7 +481,7 @@ public class AirDropManager {
 
         void onAirDropRequestCanceled(ReceivingSession session);
 
-        void onAirDropTransfer(String fileName, InputStream input);
+        void onAirDropTransfer(ReceivingSession session, String fileName, InputStream input);
 
         void onAirDropTransferProgress(ReceivingSession session, String fileName,
                                        long bytesReceived, long bytesTotal,
@@ -509,14 +517,16 @@ public class AirDropManager {
     public abstract class ReceivingSession {
 
         public final String ip;
+        public final String id;
         public final String name;
         public final List<String> files;
         public final List<String> paths;
 
         InputStream stream;
 
-        ReceivingSession(String ip, String name, List<String> files, List<String> paths) {
+        ReceivingSession(String ip, String id, String name, List<String> files, List<String> paths) {
             this.ip = ip;
+            this.id = id;
             this.name = name;
             this.files = files;
             this.paths = paths;
