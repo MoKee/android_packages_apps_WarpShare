@@ -27,10 +27,17 @@ LOCAL_STATIC_ANDROID_LIBRARIES += \
 # Needed by JP2ForAndroid
 LOCAL_JNI_SHARED_LIBRARIES += libopenjpeg
 
+# Needed by Glide
+LOCAL_STATIC_ANDROID_LIBRARIES += \
+    android-support-fragment \
+    android-support-animatedvectordrawable \
+
 LOCAL_STATIC_JAVA_LIBRARIES += $(addprefix warpshare_,$(warpshare_jar_names))
 LOCAL_STATIC_JAVA_AAR_LIBRARIES += $(addprefix warpshare_,$(warpshare_aar_names))
 
 LOCAL_STATIC_ANDROID_LIBRARIES += warpshare_MaterialProgressBar
+
+LOCAL_PROGUARD_ENABLED := disabled
 
 include $(BUILD_PACKAGE)
 

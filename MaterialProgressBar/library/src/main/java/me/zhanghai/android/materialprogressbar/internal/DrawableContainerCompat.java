@@ -625,7 +625,7 @@ public class DrawableContainerCompat extends Drawable implements Drawable.Callba
         return mDrawableContainerState;
     }
 
-    void clearMutated() {
+    public void clearMutated() {
         mDrawableContainerState.clearMutated();
         mMutated = false;
     }
