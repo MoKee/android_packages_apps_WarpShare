@@ -14,17 +14,27 @@ android {
     }
 }
 
+repositories {
+    flatDir { dirs 'libs' }
+}
+
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.preference:preference:1.1.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0-beta04'
     implementation 'com.google.android.material:material:1.0.0'
-    implementation 'org.jmdns:jmdns:3.5.1'
-    implementation 'com.squareup.okhttp3:okhttp:4.1.0'
-    implementation 'com.koushikdutta.async:androidasync:2.2.1'
-    implementation 'com.googlecode.plist:dd-plist:1.22'
-    implementation 'org.apache.commons:commons-compress:1.19'
-    implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
-    implementation 'com.github.bumptech.glide:glide:4.9.0'
-    implementation 'com.gemalto.jp2:jp2-android:1.0'
+    implementation files('libs/com.github.bumptech.glide_annotations_4.9.0.jar')
+    implementation files('libs/com.github.bumptech.glide_disklrucache_4.9.0.jar')
+    implementation files('libs/com.googlecode.plist_dd-plist_1.22.jar')
+    implementation files('libs/com.squareup.okhttp3_okhttp_4.1.0.jar')
+    implementation files('libs/com.squareup.okio_okio_2.2.2.jar')
+    implementation files('libs/org.apache.commons_commons-compress_1.19.jar')
+    implementation files('libs/org.jetbrains.kotlin_kotlin-stdlib-common_1.3.41.jar')
+    implementation files('libs/org.jetbrains.kotlin_kotlin-stdlib_1.3.41.jar')
+    implementation files('libs/org.jmdns_jmdns_3.5.1.jar')
+    implementation files('libs/org.slf4j_slf4j-api_1.7.16.jar')
+    implementation(name: 'com.gemalto.jp2_jp2-android_1.0', ext: 'aar')
+    implementation(name: 'com.github.bumptech.glide_gifdecoder_4.9.0', ext: 'aar')
+    implementation(name: 'com.github.bumptech.glide_glide_4.9.0', ext: 'aar')
+    implementation(name: 'com.koushikdutta.async_androidasync_2.2.1', ext: 'aar')
+    implementation(name: 'me.zhanghai.android.materialprogressbar_library_1.6.1', ext: 'aar')
 }
