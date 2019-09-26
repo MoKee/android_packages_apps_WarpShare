@@ -10,7 +10,6 @@ import com.dd.plist.PropertyListFormatException;
 import com.dd.plist.PropertyListParser;
 import com.mokee.warpshare.CertificateManager;
 
-import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -97,7 +96,7 @@ class AirDropClient {
                     }
 
                     @Override
-                    public void writeTo(@NotNull BufferedSink bufferedSink) throws IOException {
+                    public void writeTo(BufferedSink bufferedSink) throws IOException {
                         bufferedSink.writeAll(Okio.source(input));
                         input.close();
                     }
@@ -113,7 +112,7 @@ class AirDropClient {
 
         call.enqueue(new Callback() {
             @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+            public void onFailure(Call call, IOException e) {
                 if (call.isCanceled()) {
                     Log.w(TAG, "Request canceled", e);
                 } else {
@@ -123,7 +122,7 @@ class AirDropClient {
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) {
+            public void onResponse(Call call, Response response) {
                 final int statusCode = response.code();
                 if (statusCode != 200) {
                     postFailure(callback, new IOException("Request failed: " + statusCode));
