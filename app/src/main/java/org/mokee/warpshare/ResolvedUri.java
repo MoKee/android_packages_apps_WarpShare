@@ -2,13 +2,18 @@ package org.mokee.warpshare;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.concurrent.ExecutionException;
 
 public class ResolvedUri {
 
@@ -88,6 +93,21 @@ public class ResolvedUri {
 
     public InputStream stream() throws FileNotFoundException {
         return mContext.getContentResolver().openInputStream(uri);
+    }
+
+    public Bitmap thumbnail(int size) {
+        try {
+            return Glide.with(mContext)
+                    .asBitmap()
+                    .load(uri)
+                    .centerCrop()
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .submit(size, size)
+                    .get();
+        } catch (ExecutionException | InterruptedException e) {
+            Log.e(TAG, "Failed generating thumbnail", e);
+            return null;
+        }
     }
 
 }

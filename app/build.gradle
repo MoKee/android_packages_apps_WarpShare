@@ -25,4 +25,6 @@ dependencies {
     implementation 'com.googlecode.plist:dd-plist:1.22'
     implementation 'org.apache.commons:commons-compress:1.19'
     implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    implementation 'com.gemalto.jp2:jp2-android:1.0'
 }
