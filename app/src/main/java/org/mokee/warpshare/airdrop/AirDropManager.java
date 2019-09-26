@@ -1,6 +1,6 @@
 package org.mokee.warpshare.airdrop;
 
-import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -36,8 +36,6 @@ public class AirDropManager {
 
     private static final String TAG = "AirDropManager";
 
-    private final Context mContext;
-
     private final AirDropConfigManager mConfigManager;
 
     private final AirDropBleController mBleController;
@@ -61,8 +59,6 @@ public class AirDropManager {
     private Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
 
     public AirDropManager(Context context) {
-        mContext = context;
-
         mConfigManager = new AirDropConfigManager(context);
 
         mBleController = new AirDropBleController(context);
@@ -146,8 +142,8 @@ public class AirDropManager {
         mArchiveExecutor.shutdownNow();
     }
 
-    public void registerTrigger(PendingIntent pendingIntent) {
-        mBleController.registerTrigger(pendingIntent);
+    public void registerTrigger(Class<? extends Service> receiverService, String action) {
+        mBleController.registerTrigger(receiverService, action);
     }
 
     void onServiceResolved(final String id, final String url) {

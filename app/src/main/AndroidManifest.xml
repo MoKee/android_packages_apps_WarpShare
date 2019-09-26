@@ -60,20 +60,7 @@
             android:name=".SettingsActivity"
             android:label="@string/settings" />
 
-        <service
-            android:name=".ReceiverService"
-            android:enabled="false" />
-
-        <receiver
-            android:name=".TriggerReceiver"
-            android:exported="true"
-            tools:ignore="ExportedReceiver" />
-
-        <receiver android:name=".InitializeReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
+        <service android:name=".ReceiverService" />
 
     </application>
 
