@@ -85,7 +85,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAirDropManager = new AirDropManager(getContext());
+        mAirDropManager = new AirDropManager(getContext(),
+                WarpShareApplication.from(getContext()).getCertificateManager());
         mAdapter = new PeersAdapter(getContext());
     }
 
