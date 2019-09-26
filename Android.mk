@@ -24,10 +24,20 @@ LOCAL_STATIC_ANDROID_LIBRARIES += \
     androidx.recyclerview_recyclerview \
     com.google.android.material_material \
 
+# Needed by Glide
+LOCAL_STATIC_ANDROID_LIBRARIES += \
+    android-support-v4 \
+    android-support-v7-appcompat \
+
 LOCAL_STATIC_JAVA_LIBRARIES += $(addprefix warpshare_,$(warpshare_jar_names))
 LOCAL_STATIC_JAVA_AAR_LIBRARIES += $(addprefix warpshare_,$(warpshare_aar_names))
 
 LOCAL_STATIC_ANDROID_LIBRARIES += warpshare_MaterialProgressBar
+
+LOCAL_AAPT_FLAGS += \
+    --extra-packages android.support.v7.appcompat
+
+LOCAL_PROGUARD_ENABLED := disabled
 
 include $(BUILD_PACKAGE)
 
