@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import okhttp3.Call;
 import okio.BufferedSink;
@@ -50,8 +51,6 @@ public class AirDropManager {
     private final Map<String, Peer> mPeers = new HashMap<>();
 
     private final Map<String, ReceivingSession> mReceivingSessions = new HashMap<>();
-
-    private final Map<String, Call> mOngoingUploads = new HashMap<>();
 
     private DiscoveryListener mDiscoveryListener;
     private ReceiverListener mReceiverListener;
@@ -206,6 +205,26 @@ public class AirDropManager {
     }
 
     public Cancelable send(final Peer peer, final List<ResolvedUri> uris, final SenderListener listener) {
+        Log.d(TAG, "Asking " + peer.id + " to receive " + uris.size() + " files");
+
+        final AtomicReference<Cancelable> ref = new AtomicReference<>();
+
+        ask(ref, peer, uris, listener);
+
+        return new Cancelable() {
+            @Override
+            public void cancel() {
+                final Cancelable cancelable = ref.getAndSet(null);
+                if (cancelable != null) {
+                    cancelable.cancel();
+                    Log.d(TAG, "Canceled");
+                }
+            }
+        };
+    }
+
+    private void ask(final AtomicReference<Cancelable> ref, final Peer peer,
+                     final List<ResolvedUri> uris, final SenderListener listener) {
         final NSDictionary req = new NSDictionary();
         req.put("SenderID", mConfigManager.getId());
         req.put("SenderComputerName", mConfigManager.getName());
@@ -225,14 +244,12 @@ public class AirDropManager {
 
         req.put("Files", files);
 
-        Log.d(TAG, "Asking " + peer.id + " to receive " + uris.size() + " files");
-
-        mOngoingUploads.put(peer.id, mClient.post(peer.url + "/Ask", req,
+        final Call call = mClient.post(peer.url + "/Ask", req,
                 new AirDropClient.AirDropClientCallback() {
                     @Override
                     public void onFailure(IOException e) {
                         Log.w(TAG, "Failed to ask: " + peer.id, e);
-                        mOngoingUploads.remove(peer.id);
+                        ref.set(null);
                         listener.onAirDropRejected();
                     }
 
@@ -240,23 +257,20 @@ public class AirDropManager {
                     public void onResponse(NSDictionary response) {
                         Log.d(TAG, "Accepted");
                         listener.onAirDropAccepted();
-                        upload(peer, uris, listener);
+                        upload(ref, peer, uris, listener);
                     }
-                }));
+                });
 
-        return new Cancelable() {
+        ref.set(new Cancelable() {
             @Override
             public void cancel() {
-                final Call call = mOngoingUploads.remove(peer.id);
-                if (call != null) {
-                    call.cancel();
-                    Log.d(TAG, "Canceled");
-                }
+                call.cancel();
             }
-        };
+        });
     }
 
-    private void upload(final Peer peer, final List<ResolvedUri> uris, final SenderListener listener) {
+    private void upload(final AtomicReference<Cancelable> ref, final Peer peer,
+                        final List<ResolvedUri> uris, final SenderListener listener) {
         final Pipe archive = new Pipe(1024);
 
         final Runnable onCompressFailed = new Runnable() {
@@ -285,23 +299,30 @@ public class AirDropManager {
             }
         };
 
-        mOngoingUploads.put(peer.id, mClient.post(peer.url + "/Upload",
+        final Call call = mClient.post(peer.url + "/Upload",
                 Okio.buffer(archive.source()).inputStream(),
                 new AirDropClient.AirDropClientCallback() {
                     @Override
                     public void onFailure(IOException e) {
                         Log.e(TAG, "Failed to upload: " + peer.id, e);
-                        mOngoingUploads.remove(peer.id);
+                        ref.set(null);
                         listener.onAirDropSendFailed();
                     }
 
                     @Override
                     public void onResponse(NSDictionary response) {
                         Log.d(TAG, "Uploaded");
-                        mOngoingUploads.remove(peer.id);
+                        ref.set(null);
                         listener.onAirDropSent();
                     }
-                }));
+                });
+
+        ref.set(new Cancelable() {
+            @Override
+            public void cancel() {
+                call.cancel();
+            }
+        });
 
         mArchiveExecutor.execute(new Runnable() {
             @Override
