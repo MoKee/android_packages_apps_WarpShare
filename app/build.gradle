@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
 
     defaultConfig {
-        applicationId "org.mokee.warpshare"
+        applicationId "org.mokee.warpshare.debug"
 
         minSdkVersion 28
         targetSdkVersion 28
@@ -19,8 +19,9 @@ repositories {
 }
 
 dependencies {
-    implementation 'androidx.preference:preference:1.1.0'
-    implementation 'androidx.recyclerview:recyclerview:1.1.0-beta04'
+    //noinspection GradleDependency
+    implementation 'androidx.preference:preference:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
     implementation files('libs/com.github.bumptech.glide_annotations_4.9.0.jar')
