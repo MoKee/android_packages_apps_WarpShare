@@ -38,4 +38,5 @@ dependencies {
     implementation(name: 'com.github.bumptech.glide_gifdecoder_4.9.0', ext: 'aar')
     implementation(name: 'com.github.bumptech.glide_glide_4.9.0', ext: 'aar')
     implementation(name: 'com.koushikdutta.async_androidasync_2.2.1', ext: 'aar')
+    compileOnly files('libs/cloud.jar')
 }
