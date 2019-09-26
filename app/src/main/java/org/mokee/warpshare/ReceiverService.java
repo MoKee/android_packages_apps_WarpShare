@@ -7,8 +7,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.le.ScanResult;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Network;
 import android.net.Uri;
 import android.os.Environment;
@@ -46,9 +48,9 @@ import static org.mokee.warpshare.airdrop.AirDropManager.STATUS_OK;
 
 public class ReceiverService extends Service implements AirDropManager.ReceiverListener {
 
-    static final String ACTION_SCAN_RESULT = "org.mokee.warpshare.SCAN_RESULT";
-
     private static final String TAG = "ReceiverService";
+
+    private static final String ACTION_SCAN_RESULT = "org.mokee.warpshare.SCAN_RESULT";
 
     private static final String ACTION_TRANSFER_ACCEPT = "org.mokee.warpshare.TRANSFER_ACCEPT";
     private static final String ACTION_TRANSFER_REJECT = "org.mokee.warpshare.TRANSFER_REJECT";
@@ -82,6 +84,29 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             stopIfNotReady();
         }
     };
+
+    static PendingIntent getTriggerIntent(Context context) {
+        return PendingIntent.getForegroundService(context, 0,
+                new Intent(ACTION_SCAN_RESULT, null, context, ReceiverService.class),
+                PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    static void updateDiscoverability(Context context) {
+        final ConfigManager configManager = new ConfigManager(context);
+        final PackageManager packageManager = context.getPackageManager();
+
+        final int state = configManager.isDiscoverable()
+                ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+
+        packageManager.setComponentEnabledSetting(
+                new ComponentName(context, ReceiverService.class),
+                state, PackageManager.DONT_KILL_APP);
+
+        if (!configManager.isDiscoverable()) {
+            context.stopService(new Intent(context, ReceiverService.class));
+        }
+    }
 
     @Nullable
     @Override
