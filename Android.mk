@@ -24,6 +24,9 @@ LOCAL_STATIC_ANDROID_LIBRARIES += \
     androidx.recyclerview_recyclerview \
     com.google.android.material_material \
 
+# Needed by JP2ForAndroid
+LOCAL_JNI_SHARED_LIBRARIES += libopenjpeg
+
 LOCAL_STATIC_JAVA_LIBRARIES += $(addprefix warpshare_,$(warpshare_jar_names))
 LOCAL_STATIC_JAVA_AAR_LIBRARIES += $(addprefix warpshare_,$(warpshare_aar_names))
 
@@ -59,3 +62,17 @@ LOCAL_STATIC_ANDROID_LIBRARIES += \
     androidx.annotation_annotation \
 
 include $(BUILD_STATIC_JAVA_LIBRARY)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := libopenjpeg
+
+LOCAL_SRC_FILES_64 := JP2ForAndroid/lib64/libopenjpeg.so
+LOCAL_SRC_FILES_32 := JP2ForAndroid/lib/libopenjpeg.so
+LOCAL_MULTILIB := both
+
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_MODULE_SUFFIX := .so
+
+include $(BUILD_PREBUILT)
