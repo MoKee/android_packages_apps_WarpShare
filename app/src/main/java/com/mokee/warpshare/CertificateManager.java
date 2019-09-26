@@ -1,10 +1,6 @@
-package org.mokee.warpshare.airdrop;
+package com.mokee.warpshare;
 
 import android.content.Context;
-
-import androidx.annotation.RawRes;
-
-import org.mokee.warpshare.R;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,18 +16,19 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-class AirDropTrustManager {
+public class CertificateManager {
 
     private static final char[] PASSWORD = "password".toCharArray();
 
     private TrustManager[] mTrustManagers;
     private SSLContext mSSLContext;
 
-    AirDropTrustManager(Context context) {
+    public CertificateManager(Context context, int keyStoreRes, int... caRes) {
         try {
-            final KeyStore keyStore = loadKeyStore(context, R.raw.keystore);
-            loadCertificates(context, R.raw.apple_root_ca, keyStore);
-            loadCertificates(context, R.raw.mokee_warp_ca, keyStore);
+            final KeyStore keyStore = loadKeyStore(context, keyStoreRes);
+            for (int ca : caRes) {
+                loadCertificates(context, ca, keyStore);
+            }
 
             final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             keyManagerFactory.init(keyStore, PASSWORD);
@@ -48,22 +45,22 @@ class AirDropTrustManager {
         }
     }
 
-    TrustManager[] getTrustManagers() {
+    public TrustManager[] getTrustManagers() {
         return mTrustManagers;
     }
 
-    SSLContext getSSLContext() {
+    public SSLContext getSSLContext() {
         return mSSLContext;
     }
 
-    private KeyStore loadKeyStore(Context context, @RawRes int id) throws GeneralSecurityException, IOException {
+    private KeyStore loadKeyStore(Context context, int id) throws GeneralSecurityException, IOException {
         final InputStream jks = context.getResources().openRawResource(id);
         final KeyStore keyStore = KeyStore.getInstance("pkcs12");
         keyStore.load(jks, PASSWORD);
         return keyStore;
     }
 
-    private void loadCertificates(Context context, @RawRes int id, KeyStore keyStore) throws GeneralSecurityException, IOException {
+    private void loadCertificates(Context context, int id, KeyStore keyStore) throws GeneralSecurityException, IOException {
         try (final InputStream ca = context.getResources().openRawResource(id)) {
             final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             final Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(ca);

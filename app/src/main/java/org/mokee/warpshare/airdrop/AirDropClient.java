@@ -8,6 +8,7 @@ import android.util.Log;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.PropertyListFormatException;
 import com.dd.plist.PropertyListParser;
+import com.mokee.warpshare.CertificateManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
@@ -49,12 +50,12 @@ class AirDropClient {
     private OkHttpClient mHttpClient;
     private NetworkInterface mInterface;
 
-    AirDropClient(AirDropTrustManager trustManager) {
+    AirDropClient(CertificateManager certificateManager) {
         mHttpClient = new OkHttpClient.Builder()
                 .socketFactory(new LinkLocalAddressSocketFactory())
                 .sslSocketFactory(
-                        trustManager.getSSLContext().getSocketFactory(),
-                        (X509TrustManager) trustManager.getTrustManagers()[0])
+                        certificateManager.getSSLContext().getSocketFactory(),
+                        (X509TrustManager) certificateManager.getTrustManagers()[0])
                 .hostnameVerifier(new HostnameVerifier() {
                     @SuppressLint("BadHostnameVerifier")
                     @Override
