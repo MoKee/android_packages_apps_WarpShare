@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import okhttp3.Call;
@@ -208,8 +209,34 @@ public class AirDropManager {
         Log.d(TAG, "Asking " + peer.id + " to receive " + uris.size() + " files");
 
         final AtomicReference<Cancelable> ref = new AtomicReference<>();
+        final AtomicBoolean thumbnailCanceled = new AtomicBoolean(false);
 
-        ask(ref, peer, uris, listener);
+        final String firstType = uris.get(0).type();
+        if (!TextUtils.isEmpty(firstType) && firstType.startsWith("image/")) {
+            ref.set(new Cancelable() {
+                @Override
+                public void cancel() {
+                    thumbnailCanceled.set(true);
+                }
+            });
+
+            mArchiveExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    final byte[] thumbnail = AirDropThumbnailUtil.generate(uris.get(0));
+                    mMainThreadHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!thumbnailCanceled.get()) {
+                                ask(ref, peer, thumbnail, uris, listener);
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            ask(ref, peer, null, uris, listener);
+        }
 
         return new Cancelable() {
             @Override
@@ -223,7 +250,7 @@ public class AirDropManager {
         };
     }
 
-    private void ask(final AtomicReference<Cancelable> ref, final Peer peer,
+    private void ask(final AtomicReference<Cancelable> ref, final Peer peer, final byte[] icon,
                      final List<ResolvedUri> uris, final SenderListener listener) {
         final NSDictionary req = new NSDictionary();
         req.put("SenderID", mConfigManager.getId());
@@ -243,6 +270,10 @@ public class AirDropManager {
         }
 
         req.put("Files", files);
+
+        if (icon != null) {
+            req.put("FileIcon", icon);
+        }
 
         final Call call = mClient.post(peer.url + "/Ask", req,
                 new AirDropClient.AirDropClientCallback() {
