@@ -1,0 +1,41 @@
+apply plugin: 'com.android.application'
+
+android {
+
+    compileSdkVersion Integer.parseInt(project.ANDROID_COMPILE_SDK_VERSION)
+    buildToolsVersion project.ANDROID_BUILD_TOOLS_VERSION
+
+    defaultConfig {
+        applicationId "me.zhanghai.android.materialprogressbar.sample"
+        minSdkVersion Integer.parseInt(project.ANDROID_MIN_SDK_VERSION)
+        targetSdkVersion Integer.parseInt(project.ANDROID_TARGET_SDK_VERSION)
+        versionCode Integer.parseInt(project.VERSION_CODE)
+        versionName project.VERSION_NAME
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('../../github.jks')
+            storePassword System.console() != null ? System.console().readLine("\nKeystore password: ") : ""
+            keyAlias 'materialprogressbar'
+            keyPassword System.console() != null ? System.console().readLine("\nKey password: ") : ""
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'com.jakewharton:butterknife:9.0.0-rc1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-rc1'
+    implementation project(':library')
+}

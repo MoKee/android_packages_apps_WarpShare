@@ -22,6 +22,7 @@ dependencies {
     implementation 'androidx.preference:preference:1.1.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0-beta04'
     implementation 'com.google.android.material:material:1.0.0'
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
     implementation files('libs/com.github.bumptech.glide_annotations_4.9.0.jar')
     implementation files('libs/com.github.bumptech.glide_disklrucache_4.9.0.jar')
     implementation files('libs/com.googlecode.plist_dd-plist_1.22.jar')
@@ -36,5 +37,4 @@ dependencies {
     implementation(name: 'com.github.bumptech.glide_gifdecoder_4.9.0', ext: 'aar')
     implementation(name: 'com.github.bumptech.glide_glide_4.9.0', ext: 'aar')
     implementation(name: 'com.koushikdutta.async_androidasync_2.2.1', ext: 'aar')
-    implementation(name: 'me.zhanghai.android.materialprogressbar_library_1.6.1', ext: 'aar')
 }

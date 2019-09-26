@@ -27,6 +27,8 @@ LOCAL_STATIC_ANDROID_LIBRARIES += \
 LOCAL_STATIC_JAVA_LIBRARIES += $(addprefix warpshare_,$(warpshare_jar_names))
 LOCAL_STATIC_JAVA_AAR_LIBRARIES += $(addprefix warpshare_,$(warpshare_aar_names))
 
+LOCAL_STATIC_ANDROID_LIBRARIES += warpshare_MaterialProgressBar
+
 include $(BUILD_PACKAGE)
 
 include $(CLEAR_VARS)
@@ -39,3 +41,21 @@ include $(BUILD_MULTI_PREBUILT)
 
 warpshare_jar_names :=
 warpshare_aar_names :=
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := warpshare_MaterialProgressBar
+
+LOCAL_MANIFEST_FILE := MaterialProgressBar/library/src/main/AndroidManifest.xml
+
+LOCAL_SRC_FILES := $(call all-java-files-under, MaterialProgressBar/library/src/main/java)
+
+LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/MaterialProgressBar/library/src/main/res
+
+LOCAL_USE_AAPT2 := true
+
+LOCAL_STATIC_ANDROID_LIBRARIES += \
+    androidx.appcompat_appcompat \
+    androidx.annotation_annotation \
+
+include $(BUILD_STATIC_JAVA_LIBRARY)
