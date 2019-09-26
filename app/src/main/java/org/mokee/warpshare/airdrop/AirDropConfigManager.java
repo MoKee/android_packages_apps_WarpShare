@@ -47,4 +47,8 @@ class AirDropConfigManager {
         return mParent.getName();
     }
 
+    boolean isDiscoverable() {
+        return mParent.isDiscoverable();
+    }
+
 }
