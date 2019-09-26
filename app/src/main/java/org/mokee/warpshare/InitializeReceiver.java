@@ -15,7 +15,8 @@ public class InitializeReceiver extends BroadcastReceiver {
     @Override
     @SuppressLint("UnsafeProtectedBroadcastReceiver")
     public void onReceive(Context context, Intent intent) {
-        final AirDropManager airDropManager = new AirDropManager(context);
+        final AirDropManager airDropManager = new AirDropManager(context,
+                WarpShareApplication.from(context).getCertificateManager());
         airDropManager.registerTrigger(TriggerReceiver.getTriggerIntent(context));
         Log.d(TAG, "Initialized");
     }

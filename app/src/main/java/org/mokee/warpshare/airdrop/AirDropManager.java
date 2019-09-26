@@ -9,6 +9,7 @@ import android.util.Log;
 import com.dd.plist.NSArray;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
+import com.mokee.warpshare.CertificateManager;
 
 import org.mokee.warpshare.GossipyInputStream;
 import org.mokee.warpshare.ResolvedUri;
@@ -58,17 +59,15 @@ public class AirDropManager {
 
     private Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
 
-    public AirDropManager(Context context) {
+    public AirDropManager(Context context, CertificateManager certificateManager) {
         mConfigManager = new AirDropConfigManager(context);
 
         mBleController = new AirDropBleController(context);
         mNsdController = new AirDropNsdController(context, mConfigManager, this);
         mWlanController = new AirDropWlanController();
 
-        final AirDropTrustManager trustManager = new AirDropTrustManager(context);
-
-        mClient = new AirDropClient(trustManager);
-        mServer = new AirDropServer(trustManager, this);
+        mClient = new AirDropClient(certificateManager);
+        mServer = new AirDropServer(certificateManager, this);
 
         mArchiveExecutor = Executors.newFixedThreadPool(10);
     }
