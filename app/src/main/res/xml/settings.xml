@@ -1,9 +1,5 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <SwitchPreference
-        app:key="discoverable"
-        app:title="@string/settings_discoverable" />
-
     <EditTextPreference
         app:key="name"
         app:title="@string/settings_name" />

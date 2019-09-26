@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
     private static final int REQUEST_PICK = 1;
     private static final int REQUEST_SETUP = 2;
-    private static final int REQUEST_SETTINGS = 3;
 
     private final ArrayMap<String, AirDropManager.Peer> mPeers = new ArrayMap<>();
 
@@ -80,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
 
         mAirDropManager = new AirDropManager(this);
 
-        mAirDropManager.updateDiscoverability(ReceiverService.class, ReceiverService.ACTION_SCAN_RESULT);
+        mAirDropManager.registerTrigger(ReceiverService.class, ReceiverService.ACTION_SCAN_RESULT);
 
         mAdapter = new PeersAdapter(this);
 
@@ -137,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.settings:
-                startActivityForResult(new Intent(this, SettingsActivity.class), REQUEST_SETTINGS);
+                startActivity(new Intent(this, SettingsActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -164,13 +163,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
                 mIsInSetup = false;
                 if (resultCode != RESULT_OK) {
                     finish();
-                    return;
                 }
-                mAirDropManager.updateDiscoverability(ReceiverService.class, ReceiverService.ACTION_SCAN_RESULT);
-                break;
-            case REQUEST_SETTINGS:
-                stopService(new Intent(this, ReceiverService.class));
-                mAirDropManager.updateDiscoverability(ReceiverService.class, ReceiverService.ACTION_SCAN_RESULT);
                 break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
