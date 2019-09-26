@@ -18,7 +18,7 @@ import javax.net.ssl.TrustManagerFactory;
 
 public class CertificateManager {
 
-    private static final char[] PASSWORD = "password".toCharArray();
+    private static final char[] PASSWORD = "kdha!%^bna9$-1kNJ19j".toCharArray();
 
     private TrustManager[] mTrustManagers;
     private SSLContext mSSLContext;
