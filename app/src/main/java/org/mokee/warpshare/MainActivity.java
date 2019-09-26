@@ -78,8 +78,7 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
         setContentView(R.layout.activity_main);
 
         mAirDropManager = new AirDropManager(this);
-
-        mAirDropManager.registerTrigger(ReceiverService.class, ReceiverService.ACTION_SCAN_RESULT);
+        mAirDropManager.registerTrigger(TriggerReceiver.getTriggerIntent(this));
 
         mAdapter = new PeersAdapter(this);
 
@@ -163,6 +162,8 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
                 mIsInSetup = false;
                 if (resultCode != RESULT_OK) {
                     finish();
+                } else {
+                    mAirDropManager.registerTrigger(TriggerReceiver.getTriggerIntent(this));
                 }
                 break;
             default:

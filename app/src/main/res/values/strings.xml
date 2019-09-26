@@ -55,4 +55,8 @@
 
     <string name="settings_name">Display name</string>
 
+    <string name="settings_discoverable">Discoverable</string>
+    <string name="settings_discoverable_on">Your device will appear to others as a recipient</string>
+    <string name="settings_discoverable_off">Your device will not be discoverable</string>
+
 </resources>

@@ -1,7 +1,6 @@
 package org.mokee.warpshare.airdrop;
 
 import android.app.PendingIntent;
-import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.AdvertiseCallback;
@@ -12,7 +11,6 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.content.Intent;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -146,13 +144,7 @@ class AirDropBleController {
         mAdvertiser.stopAdvertising(mAdvertiseCallback);
     }
 
-    private PendingIntent getTriggerIntent(Class<? extends Service> receiverService, String action) {
-        return PendingIntent.getForegroundService(mContext, 0,
-                new Intent(action, null, mContext, receiverService),
-                PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    void registerTrigger(Class<? extends Service> receiverService, String action) {
+    void registerTrigger(PendingIntent pendingIntent) {
         synchronized (mLock) {
             getScanner();
             if (mScanner == null) {
@@ -172,11 +164,9 @@ class AirDropBleController {
                         .setNumOfMatches(MATCH_NUM_MAX_ADVERTISEMENT)
                         .setScanMode(SCAN_MODE_LOW_LATENCY)
                         .build(),
-                getTriggerIntent(receiverService, action));
-    }
+                pendingIntent);
 
-    void unregisterTrigger(Class<? extends Service> receiverService, String action) {
-        mScanner.stopScan(getTriggerIntent(receiverService, action));
+        Log.d(TAG, "startScan");
     }
 
     private void handleAdvertiseStartSuccess() {
