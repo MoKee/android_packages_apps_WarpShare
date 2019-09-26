@@ -21,4 +21,8 @@
         <item name="android:windowAnimationStyle">@null</item>
     </style>
 
+    <style name="SettingsTheme" parent="AppThemeBase">
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+    </style>
+
 </resources>

@@ -23,7 +23,7 @@
 
     <string name="status_waiting_for_confirm">Waiting for confirmation…</string>
     <string name="status_sending">Sending…</string>
-    <string name="status_sending_progress">Sending… %s / %s</string>
+    <string name="status_sending_progress">Sending… %1$s / %2$s</string>
     <string name="status_rejected">Rejected</string>
 
     <string name="toast_no_file">No file can be sent</string>
@@ -37,15 +37,15 @@
     <string name="notif_recv_active_desc">Someone nearby is about to send some files</string>
 
     <string name="notif_recv_transfer_request_title">File transfer</string>
-    <string name="notif_recv_transfer_request_desc">%s wants to send you %d files</string>
+    <string name="notif_recv_transfer_request_desc">%1$s wants to send you %2$d files</string>
     <string name="notif_recv_transfer_request_accept">Accept</string>
     <string name="notif_recv_transfer_request_reject">Reject</string>
 
-    <string name="notif_recv_transfer_progress_title">Receiving %d files from %s…</string>
-    <string name="notif_recv_transfer_progress_desc">%d / %d</string>
+    <string name="notif_recv_transfer_progress_title">Receiving %1$d files from %2$s…</string>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Cancel</string>
 
-    <string name="notif_recv_transfer_done_title">%d files received from %s</string>
+    <string name="notif_recv_transfer_done_title">%1$d files received from %2$s</string>
     <string name="notif_recv_transfer_done_desc">Tap to browse received files</string>
 
     <string name="notif_recv_transfer_failed_title">Receiving aborted</string>
