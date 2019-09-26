@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="false"
@@ -60,7 +61,20 @@
             android:name=".SettingsActivity"
             android:label="@string/settings" />
 
-        <service android:name=".ReceiverService" />
+        <service
+            android:name=".ReceiverService"
+            android:enabled="false" />
+
+        <receiver
+            android:name=".TriggerReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver" />
+
+        <receiver android:name=".InitializeReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 
