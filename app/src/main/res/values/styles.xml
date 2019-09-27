@@ -22,4 +22,10 @@
         <item name="android:windowAnimationStyle">@null</item>
     </style>
 
+    <style name="SettingsTheme" parent="@android:style/Theme.DeviceDefault.Settings">
+        <item name="preferenceTheme">@style/SettingsThemeOverlay</item>
+    </style>
+
+    <style name="SettingsThemeOverlay" />
+
 </resources>
