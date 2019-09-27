@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="org.mokee.warpshare">
 
-    <uses-sdk tools:overrideLibrary="com.gemalto.jp2,com.bumptech.glide.gifdecoder,com.bumptech.glide,com.koushikdutta.async" />
+    <uses-sdk tools:overrideLibrary="androidx.preference,com.gemalto.jp2,com.bumptech.glide.gifdecoder,com.bumptech.glide,com.koushikdutta.async" />
 
     <uses-feature
         android:name="android.hardware.bluetooth_le"

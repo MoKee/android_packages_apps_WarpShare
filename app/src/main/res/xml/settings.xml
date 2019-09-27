@@ -1,11 +1,11 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <SwitchPreference
-        app:key="discoverable"
-        app:title="@string/settings_discoverable" />
+        android:key="discoverable"
+        android:title="@string/settings_discoverable" />
 
     <EditTextPreference
-        app:key="name"
-        app:title="@string/settings_name" />
+        android:key="name"
+        android:title="@string/settings_name" />
 
 </PreferenceScreen>

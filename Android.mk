@@ -20,7 +20,7 @@ LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/app/src/main/res
 LOCAL_USE_AAPT2 := true
 
 LOCAL_STATIC_ANDROID_LIBRARIES += \
-    androidx.preference_preference \
+    androidx.core_core \
     androidx.recyclerview_recyclerview \
     com.google.android.material_material \
 
@@ -38,6 +38,12 @@ LOCAL_STATIC_JAVA_AAR_LIBRARIES += $(addprefix warpshare_,$(warpshare_aar_names)
 LOCAL_STATIC_ANDROID_LIBRARIES += warpshare_MaterialProgressBar
 
 LOCAL_PROGUARD_ENABLED := disabled
+
+LOCAL_AAPT_FLAGS += \
+    --extra-packages androidx.preference
+
+LOCAL_RESOURCE_DIR += \
+    $(LOCAL_PATH)/androidx.preference/res
 
 include $(BUILD_PACKAGE)
 
