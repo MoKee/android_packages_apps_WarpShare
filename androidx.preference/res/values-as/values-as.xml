@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string msgid="3209159573327985035" name="copy">"প্ৰতিলিপি কৰক"</string>
+    <string msgid="1234962710353108940" name="expand_button_title">"উন্নত"</string>
+    <string msgid="478774118347071097" name="not_set">"ছেট কৰা হোৱা নাই"</string>
+    <string msgid="7961817945132860002" name="preference_copied">"\"<ns1:g id="SUMMARY">%1$s</ns1:g>\" ক্লিপব’ৰ্ডত প্ৰতিলিপি কৰা হ’ল"</string>
+    <string msgid="5190123168583152844" name="summary_collapsed_preference_list">"<ns1:g id="CURRENT_ITEMS">%1$s</ns1:g>, <ns1:g id="ADDED_ITEMS">%2$s</ns1:g>"</string>
+    <string msgid="5138405918326871307" name="v7_preference_off">"অফ অৱস্থাত আছে"</string>
+    <string msgid="27351710992731591" name="v7_preference_on">"অন কৰক"</string>
+</resources>

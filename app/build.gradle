@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'androidx.preference:preference:1.1.0'
+    implementation 'androidx.core:core:1.1.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0-beta04'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
@@ -33,6 +33,7 @@ dependencies {
     implementation files('libs/org.jetbrains.kotlin_kotlin-stdlib_1.3.41.jar')
     implementation files('libs/org.jmdns_jmdns_3.5.1.jar')
     implementation files('libs/org.slf4j_slf4j-api_1.7.16.jar')
+    implementation(name: 'androidx.preference_preference_1.1.0', ext: 'aar')
     implementation(name: 'com.gemalto.jp2_jp2-android_1.0', ext: 'aar')
     implementation(name: 'com.github.bumptech.glide_gifdecoder_4.9.0', ext: 'aar')
     implementation(name: 'com.github.bumptech.glide_glide_4.9.0', ext: 'aar')
