@@ -62,7 +62,8 @@
 
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/settings" />
+            android:label="@string/settings"
+            android:theme="@android:style/Theme.DeviceDefault.Settings" />
 
         <service
             android:name=".ReceiverService"

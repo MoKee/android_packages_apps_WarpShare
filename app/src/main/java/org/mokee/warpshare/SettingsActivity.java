@@ -1,28 +1,26 @@
 package org.mokee.warpshare;
 
+import android.app.ActionBar;
 import android.os.Bundle;
+import android.preference.PreferenceActivity;
 import android.view.MenuItem;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
-public class SettingsActivity extends AppCompatActivity {
+public class SettingsActivity extends PreferenceActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
 
-        final Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        final ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
-        //noinspection ConstantConditions
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        getSupportFragmentManager()
+        getFragmentManager()
                 .beginTransaction()
-                .replace(R.id.container, new SettingsFragment())
+                .replace(android.R.id.content, new SettingsFragment())
                 .commit();
     }
 
