@@ -4,11 +4,11 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.preference.EditTextPreference;
-import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceFragment;
 import androidx.preference.SwitchPreference;
 
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
-public class SettingsFragment extends PreferenceFragmentCompat implements
+public class SettingsFragment extends PreferenceFragment implements
         SharedPreferences.OnSharedPreferenceChangeListener {
 
     private ConfigManager mConfigManager;
@@ -44,7 +44,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
                             ? R.string.settings_discoverable_on
                             : R.string.settings_discoverable_off);
                 }
-                ReceiverService.updateDiscoverability(getContext());
+                ReceiverService.updateDiscoverability(getActivity());
                 break;
             case ConfigManager.KEY_NAME:
                 final EditTextPreference namePref = (EditTextPreference) findPreference(ConfigManager.KEY_NAME);
