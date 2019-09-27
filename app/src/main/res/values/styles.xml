@@ -22,4 +22,51 @@
         <item name="android:windowAnimationStyle">@null</item>
     </style>
 
+    <style name="SettingsTheme" parent="@android:style/Theme.DeviceDefault.Settings">
+        <item name="preferenceTheme">@style/PreferenceTheme</item>
+        <item name="preferenceFragmentStyle">@style/PreferenceTheme.PreferenceFragmentStyle</item>
+        <item name="preferenceCategoryStyle">@style/PreferenceTheme.PreferenceCategoryStyle</item>
+        <item name="preferenceStyle">@style/PreferenceTheme.PreferenceStyle</item>
+        <item name="switchPreferenceStyle">@style/PreferenceTheme.SwitchPreferenceStyle</item>
+        <item name="android:dialogPreferenceStyle">@style/PreferenceTheme.DialogPreferenceStyle
+        </item>
+        <item name="android:editTextPreferenceStyle">
+            @style/PreferenceTheme.EditTextPreferenceStyle
+        </item>
+    </style>
+
+    <style name="PreferenceTheme" />
+
+    <style name="PreferenceTheme.PreferenceFragmentStyle">
+        <item name="allowDividerAfterLastItem">false</item>
+    </style>
+
+    <style name="PreferenceTheme.PreferenceCategoryStyle">
+        <item name="allowDividerAbove">true</item>
+        <item name="allowDividerBelow">true</item>
+        <item name="shouldDisableView">false</item>
+        <item name="selectable">false</item>
+        <item name="android:layout">@layout/preference_category_material_settings</item>
+    </style>
+
+    <style name="PreferenceTheme.PreferenceStyle">
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">true</item>
+        <item name="singleLineTitle">false</item>
+        <item name="android:layout">@layout/preference_material_settings</item>
+    </style>
+
+    <style name="PreferenceTheme.SwitchPreferenceStyle" parent="@style/PreferenceTheme.PreferenceStyle">
+        <item name="widgetLayout">@layout/preference_widget_material_switch</item>
+    </style>
+
+    <style name="PreferenceTheme.DialogPreferenceStyle" parent="@style/PreferenceTheme.PreferenceStyle">
+        <item name="positiveButtonText">@android:string/ok</item>
+        <item name="negativeButtonText">@android:string/cancel</item>
+    </style>
+
+    <style name="PreferenceTheme.EditTextPreferenceStyle" parent="@style/PreferenceTheme.DialogPreferenceStyle">
+        <item name="dialogLayout">@layout/preference_dialog_edittext_material</item>
+    </style>
+
 </resources>
