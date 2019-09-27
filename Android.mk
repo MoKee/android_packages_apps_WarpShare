@@ -45,6 +45,8 @@ LOCAL_AAPT_FLAGS += \
 LOCAL_RESOURCE_DIR += \
     $(LOCAL_PATH)/androidx.preference/res
 
+LOCAL_JAVA_LIBRARIES := mokee-cloud
+
 include $(BUILD_PACKAGE)
 
 include $(CLEAR_VARS)
