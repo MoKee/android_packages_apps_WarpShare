@@ -60,34 +60,15 @@
         android:orientation="vertical"
         app:layoutManager="LinearLayoutManager" />
 
-    <LinearLayout
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/send"
+        style="@style/Widget.MaterialComponents.Button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:orientation="horizontal">
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/cancel"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:minWidth="120dp"
-            android:text="@string/send_cancel" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/send"
-            style="@style/Widget.AppCompat.Button.Colored"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:enabled="false"
-            android:minWidth="120dp"
-            android:text="@string/send_confirm" />
-
-    </LinearLayout>
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="8dp"
+        android:enabled="false"
+        android:text="@string/send_confirm"
+        tools:enabled="true" />
 
 </LinearLayout>
