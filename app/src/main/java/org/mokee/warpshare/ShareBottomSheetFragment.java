@@ -162,13 +162,6 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
         mDiscoveringView = view.findViewById(R.id.discovering);
 
-        view.findViewById(R.id.cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-            }
-        });
-
         if (mUris.isEmpty()) {
             Log.w(TAG, "No file was selected");
             Toast.makeText(getContext(), R.string.toast_no_file, Toast.LENGTH_SHORT).show();
