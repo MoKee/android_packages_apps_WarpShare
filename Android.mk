@@ -35,6 +35,8 @@ LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/app/src/main/res
 
 LOCAL_USE_AAPT2 := true
 
+LOCAL_DEX_PREOPT := false
+
 LOCAL_STATIC_ANDROID_LIBRARIES += \
     androidx.core_core \
     androidx.recyclerview_recyclerview \
