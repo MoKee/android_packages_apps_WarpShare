@@ -167,6 +167,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             Toast.makeText(getContext(), R.string.toast_no_file, Toast.LENGTH_SHORT).show();
             handleSendFailed();
             dismiss();
+            mParent.finish();
         }
     }
 
