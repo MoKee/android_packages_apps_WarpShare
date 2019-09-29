@@ -166,7 +166,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             Log.w(TAG, "No file was selected");
             Toast.makeText(getContext(), R.string.toast_no_file, Toast.LENGTH_SHORT).show();
             handleSendFailed();
-            dismiss();
+            mParent.finish();
         }
     }
 
