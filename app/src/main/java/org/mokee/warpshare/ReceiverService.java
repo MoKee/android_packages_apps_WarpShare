@@ -160,6 +160,12 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         startForeground(NOTIFICATION_ACTIVE, getNotificationBuilder(NOTIFICATION_CHANNEL_SERVICE, CATEGORY_SERVICE)
                 .setContentTitle(getString(R.string.notif_recv_active_title))
                 .setContentText(getString(R.string.notif_recv_active_desc))
+                .addAction(new Notification.Action.Builder(null,
+                        getString(R.string.settings),
+                        PendingIntent.getActivity(this, 0,
+                                new Intent(this, SettingsActivity.class),
+                                PendingIntent.FLAG_UPDATE_CURRENT))
+                        .build())
                 .setOngoing(true)
                 .build());
 
