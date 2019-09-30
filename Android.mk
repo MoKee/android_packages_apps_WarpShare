@@ -50,6 +50,11 @@ LOCAL_STATIC_ANDROID_LIBRARIES += \
     android-support-fragment \
     android-support-animatedvectordrawable \
 
+# Needed by Project Rome
+LOCAL_JNI_SHARED_LIBRARIES += \
+    libc++_shared \
+    libcdp_one_sdk_android.1.3.0 \
+
 LOCAL_STATIC_JAVA_LIBRARIES += $(addprefix warpshare_,$(warpshare_jar_names))
 LOCAL_STATIC_JAVA_AAR_LIBRARIES += $(addprefix warpshare_,$(warpshare_aar_names))
 
@@ -102,6 +107,34 @@ LOCAL_MODULE := libopenjpeg
 
 LOCAL_SRC_FILES_64 := JP2ForAndroid/lib64/libopenjpeg.so
 LOCAL_SRC_FILES_32 := JP2ForAndroid/lib/libopenjpeg.so
+LOCAL_MULTILIB := both
+
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_MODULE_SUFFIX := .so
+
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := libc++_shared
+
+LOCAL_SRC_FILES_64 := ProjectRome/lib64/libc++_shared.so
+LOCAL_SRC_FILES_32 := ProjectRome/lib/libc++_shared.so
+LOCAL_MULTILIB := both
+
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_MODULE_SUFFIX := .so
+
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := libcdp_one_sdk_android.1.3.0
+
+LOCAL_SRC_FILES_64 := ProjectRome/lib64/libcdp_one_sdk_android.1.3.0.so
+LOCAL_SRC_FILES_32 := ProjectRome/lib/libcdp_one_sdk_android.1.3.0.so
 LOCAL_MULTILIB := both
 
 LOCAL_MODULE_TAGS := optional
