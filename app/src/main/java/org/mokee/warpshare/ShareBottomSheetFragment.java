@@ -48,6 +48,8 @@ import org.mokee.warpshare.base.Entity;
 import org.mokee.warpshare.base.Peer;
 import org.mokee.warpshare.base.SendListener;
 import org.mokee.warpshare.base.SendingSession;
+import org.mokee.warpshare.nearbysharing.NearShareManager;
+import org.mokee.warpshare.nearbysharing.NearSharePeer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +83,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     private long mBytesSent = 0;
 
     private AirDropManager mAirDropManager;
+    private NearShareManager mNearShareManager;
 
     private boolean mIsInSetup = false;
 
@@ -110,6 +113,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         super.onCreate(savedInstanceState);
         mAirDropManager = new AirDropManager(getContext(),
                 WarpShareApplication.from(getContext()).getCertificateManager());
+        mNearShareManager = new NearShareManager(getContext());
         mAdapter = new PeersAdapter(getContext());
     }
 
@@ -117,6 +121,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     public void onDestroy() {
         super.onDestroy();
         mAirDropManager.destroy();
+        mNearShareManager.destroy();
     }
 
     @Override
@@ -185,6 +190,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
         if (!mIsDiscovering) {
             mAirDropManager.startDiscover(this);
+            mNearShareManager.startDiscover(this);
             mIsDiscovering = true;
         }
     }
@@ -195,6 +201,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
         if (mIsDiscovering) {
             mAirDropManager.stopDiscover();
+            mNearShareManager.stopDiscover();
             mIsDiscovering = false;
         }
 
@@ -347,6 +354,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
         if (peer instanceof AirDropPeer) {
             mSending = mAirDropManager.send((AirDropPeer) peer, entities, listener);
+        } else if (peer instanceof NearSharePeer) {
+            mSending = mNearShareManager.send((NearSharePeer) peer, entities, listener);
         }
     }
 
@@ -399,10 +408,12 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             if (peer instanceof AirDropPeer) {
                 final boolean isMokee = ((AirDropPeer) peer).getMokeeApiVersion() > 0;
                 if (isMokee) {
-                    holder.iconView.setImageResource(R.drawable.ic_phone_android_24dp);
+                    holder.iconView.setImageResource(R.drawable.ic_mokee_24dp);
                 } else {
-                    holder.iconView.setImageResource(R.drawable.ic_mac_24dp);
+                    holder.iconView.setImageResource(R.drawable.ic_apple_24dp);
                 }
+            } else if (peer instanceof NearSharePeer) {
+                holder.iconView.setImageResource(R.drawable.ic_windows_24dp);
             } else {
                 holder.iconView.setImageDrawable(null);
             }
