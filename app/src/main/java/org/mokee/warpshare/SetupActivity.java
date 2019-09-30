@@ -74,28 +74,13 @@ public class SetupActivity extends AppCompatActivity {
         setContentView(R.layout.activity_setup);
 
         mGroupPerm = findViewById(R.id.group_perm);
-        findViewById(R.id.perm).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                requestPermission();
-            }
-        });
+        findViewById(R.id.perm).setOnClickListener(v -> requestPermission());
 
         mGroupWifi = findViewById(R.id.group_wifi);
-        findViewById(R.id.wifi).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setupWifi();
-            }
-        });
+        findViewById(R.id.wifi).setOnClickListener(v -> setupWifi());
 
         mGroupBt = findViewById(R.id.group_bt);
-        findViewById(R.id.bt).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                turnOnBluetooth();
-            }
-        });
+        findViewById(R.id.bt).setOnClickListener(v -> turnOnBluetooth());
 
         mAirDropManager = new AirDropManager(this,
                 WarpShareApplication.from(this).getCertificateManager());

@@ -44,8 +44,8 @@ import static org.apache.commons.compress.archivers.cpio.CpioConstants.FORMAT_OL
 
 class AirDropArchiveUtil {
 
-    static void pack(List<ResolvedUri> uris, OutputStream output, GossipyInputStream.Listener streamReadListener)
-            throws IOException {
+    static void pack(List<ResolvedUri> uris, OutputStream output,
+                     GossipyInputStream.Listener streamReadListener) throws IOException {
         try (final GzipCompressorOutputStream gzip = new GzipCompressorOutputStream(output);
              final CpioArchiveOutputStream cpio = new CpioArchiveOutputStream(gzip, FORMAT_OLD_ASCII)) {
             for (ResolvedUri uri : uris) {

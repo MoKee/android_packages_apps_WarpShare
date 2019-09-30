@@ -22,10 +22,7 @@ import com.dd.plist.NSDictionary;
 import com.dd.plist.PropertyListParser;
 import com.koushikdutta.async.AsyncNetworkSocket;
 import com.koushikdutta.async.AsyncSSLSocketWrapper;
-import com.koushikdutta.async.ByteBufferList;
 import com.koushikdutta.async.DataEmitter;
-import com.koushikdutta.async.callback.CompletedCallback;
-import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
 import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
@@ -64,13 +61,15 @@ class AirDropServer {
         mServer.listenSecure(PORT, mCertificateManager.getSSLContext());
         mServer.post("/Discover", new NSDictionaryHttpServerRequestCallback() {
             @Override
-            protected void onRequest(InetAddress remote, NSDictionary request, NSDictionaryHttpServerResponse response) {
+            protected void onRequest(InetAddress remote, NSDictionary request,
+                                     NSDictionaryHttpServerResponse response) {
                 handleDiscover(remote, request, response);
             }
         });
         mServer.post("/Ask", new NSDictionaryHttpServerRequestCallback() {
             @Override
-            protected void onRequest(InetAddress remote, NSDictionary request, NSDictionaryHttpServerResponse response) {
+            protected void onRequest(InetAddress remote, NSDictionary request,
+                                     NSDictionaryHttpServerResponse response) {
                 handleAsk(remote, request, response);
             }
 
@@ -81,7 +80,8 @@ class AirDropServer {
         });
         mServer.post("/Upload", new InputStreamHttpServerRequestCallback() {
             @Override
-            protected void onRequest(InetAddress remote, InputStream request, NSDictionaryHttpServerResponse response) {
+            protected void onRequest(InetAddress remote, InputStream request,
+                                     NSDictionaryHttpServerResponse response) {
                 handleUpload(remote, request, response);
             }
         });
@@ -93,28 +93,24 @@ class AirDropServer {
         mServer.stop();
     }
 
-    private void handleDiscover(InetAddress remote, NSDictionary request, final NSDictionaryHttpServerResponse response) {
-        mParent.handleDiscover(remote.getHostAddress(), request, new ResultCallback() {
-            @Override
-            public void call(NSDictionary result) {
-                if (result != null) {
-                    response.send(result);
-                } else {
-                    response.send(401);
-                }
+    private void handleDiscover(InetAddress remote, NSDictionary request,
+                                final NSDictionaryHttpServerResponse response) {
+        mParent.handleDiscover(remote.getHostAddress(), request, result -> {
+            if (result != null) {
+                response.send(result);
+            } else {
+                response.send(401);
             }
         });
     }
 
-    private void handleAsk(InetAddress remote, NSDictionary request, final NSDictionaryHttpServerResponse response) {
-        mParent.handleAsk(remote.getHostAddress(), request, new ResultCallback() {
-            @Override
-            public void call(NSDictionary result) {
-                if (result != null) {
-                    response.send(result);
-                } else {
-                    response.send(401);
-                }
+    private void handleAsk(InetAddress remote, NSDictionary request,
+                           final NSDictionaryHttpServerResponse response) {
+        mParent.handleAsk(remote.getHostAddress(), request, result -> {
+            if (result != null) {
+                response.send(result);
+            } else {
+                response.send(401);
             }
         });
     }
@@ -123,15 +119,13 @@ class AirDropServer {
         mParent.handleAskCanceled(remote.getHostAddress());
     }
 
-    private void handleUpload(InetAddress remote, InputStream request, final NSDictionaryHttpServerResponse response) {
-        mParent.handleUpload(remote.getHostAddress(), request, new ResultCallback() {
-            @Override
-            public void call(NSDictionary result) {
-                if (result != null) {
-                    response.send(200);
-                } else {
-                    response.send(401);
-                }
+    private void handleUpload(InetAddress remote, InputStream request,
+                              final NSDictionaryHttpServerResponse response) {
+        mParent.handleUpload(remote.getHostAddress(), request, result -> {
+            if (result != null) {
+                response.send(200);
+            } else {
+                response.send(401);
             }
         });
     }
@@ -153,7 +147,8 @@ class AirDropServer {
     private abstract class NSDictionaryHttpServerRequestCallback implements HttpServerRequestCallback {
 
         @Override
-        public final void onRequest(final AsyncHttpServerRequest request, final AsyncHttpServerResponse response) {
+        public final void onRequest(final AsyncHttpServerRequest request,
+                                    final AsyncHttpServerResponse response) {
             Log.d(TAG, "Request: " + request.getMethod() + " " + request.getPath());
 
             final AsyncSSLSocketWrapper socketWrapper = (AsyncSSLSocketWrapper) request.getSocket();
@@ -165,66 +160,54 @@ class AirDropServer {
 
             final Buffer buffer = new Buffer();
 
-            socket.setClosedCallback(new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) {
-                    onCanceled(address);
+            socket.setClosedCallback(ex -> onCanceled(address));
+
+            emitter.setDataCallback((emitter1, bb) -> buffer.write(bb.getAllByteArray()));
+
+            request.setEndCallback(ex -> {
+                buffer.flush();
+
+                if (ex != null) {
+                    Log.e(TAG, "Failed receiving request", ex);
+                    buffer.close();
+                    response.code(500).end();
+                    return;
                 }
-            });
 
-            emitter.setDataCallback(new DataCallback() {
-                @Override
-                public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
-                    buffer.write(bb.getAllByteArray());
+                final NSDictionary req;
+                try {
+                    req = (NSDictionary) PropertyListParser.parse(buffer.readByteArray());
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed deserializing request", e);
+                    response.code(500).end();
+                    return;
+                } finally {
+                    buffer.close();
                 }
-            });
 
-            request.setEndCallback(new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) {
-                    buffer.flush();
-
-                    if (ex != null) {
-                        Log.e(TAG, "Failed receiving request", ex);
-                        buffer.close();
-                        response.code(500).end();
-                        return;
+                onRequest(address, req, new NSDictionaryHttpServerResponse() {
+                    @Override
+                    public void send(int code) {
+                        response.code(code).end();
                     }
 
-                    final NSDictionary req;
-                    try {
-                        req = (NSDictionary) PropertyListParser.parse(buffer.readByteArray());
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed deserializing request", e);
-                        response.code(500).end();
-                        return;
-                    } finally {
-                        buffer.close();
+                    @Override
+                    public void send(NSDictionary res) {
+                        try {
+                            final Buffer buffer1 = new Buffer();
+                            PropertyListParser.saveAsBinary(res, buffer1.outputStream());
+                            response.send(MIME_OCTET_STREAM, buffer1.readByteArray());
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed serializing response", e);
+                            response.code(500).end();
+                        }
                     }
-
-                    onRequest(address, req, new NSDictionaryHttpServerResponse() {
-                        @Override
-                        public void send(int code) {
-                            response.code(code).end();
-                        }
-
-                        @Override
-                        public void send(NSDictionary res) {
-                            try {
-                                final Buffer buffer = new Buffer();
-                                PropertyListParser.saveAsBinary(res, buffer.outputStream());
-                                response.send(MIME_OCTET_STREAM, buffer.readByteArray());
-                            } catch (Exception e) {
-                                Log.e(TAG, "Failed serializing response", e);
-                                response.code(500).end();
-                            }
-                        }
-                    });
-                }
+                });
             });
         }
 
-        protected abstract void onRequest(InetAddress remote, NSDictionary request, NSDictionaryHttpServerResponse response);
+        protected abstract void onRequest(InetAddress remote, NSDictionary request,
+                                          NSDictionaryHttpServerResponse response);
 
         protected void onCanceled(InetAddress remote) {
         }
@@ -234,7 +217,8 @@ class AirDropServer {
     private abstract class InputStreamHttpServerRequestCallback implements HttpServerRequestCallback {
 
         @Override
-        public final void onRequest(AsyncHttpServerRequest request, final AsyncHttpServerResponse response) {
+        public final void onRequest(AsyncHttpServerRequest request,
+                                    final AsyncHttpServerResponse response) {
             Log.d(TAG, "Request: " + request.getMethod() + " " + request.getPath());
 
             final AsyncSSLSocketWrapper socketWrapper = (AsyncSSLSocketWrapper) request.getSocket();
@@ -246,30 +230,24 @@ class AirDropServer {
 
             final Pipe pipe = new Pipe(Long.MAX_VALUE);
 
-            emitter.setDataCallback(new DataCallback() {
-                @Override
-                public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
-                    try (final Buffer buffer = new Buffer()) {
-                        buffer.write(bb.getAllByteArray());
-                        bb.recycle();
-                        pipe.sink().write(buffer, buffer.size());
-                    } catch (IOException e) {
-                        Log.e(TAG, "Failed receiving upload", e);
-                        socketWrapper.close();
-                    }
+            emitter.setDataCallback((emitter1, bb) -> {
+                try (final Buffer buffer = new Buffer()) {
+                    buffer.write(bb.getAllByteArray());
+                    bb.recycle();
+                    pipe.sink().write(buffer, buffer.size());
+                } catch (IOException e) {
+                    Log.e(TAG, "Failed receiving upload", e);
+                    socketWrapper.close();
                 }
             });
 
-            request.setEndCallback(new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) {
-                    try {
-                        pipe.sink().flush();
-                        pipe.sink().close();
-                    } catch (IOException e) {
-                        Log.e(TAG, "Failed receiving upload", e);
-                        response.code(500).end();
-                    }
+            request.setEndCallback(ex -> {
+                try {
+                    pipe.sink().flush();
+                    pipe.sink().close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Failed receiving upload", e);
+                    response.code(500).end();
                 }
             });
 
@@ -286,7 +264,8 @@ class AirDropServer {
             });
         }
 
-        protected abstract void onRequest(InetAddress remote, InputStream request, NSDictionaryHttpServerResponse response);
+        protected abstract void onRequest(InetAddress remote, InputStream request,
+                                          NSDictionaryHttpServerResponse response);
 
     }
 

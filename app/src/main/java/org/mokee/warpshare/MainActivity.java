@@ -406,18 +406,8 @@ public class MainActivity extends AppCompatActivity implements AirDropManager.Di
             } else {
                 holder.iconView.setImageResource(R.drawable.ic_mac_24dp);
             }
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    handleItemClick(peer);
-                }
-            });
-            holder.cancelButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    handleItemCancelClick(peer, state);
-                }
-            });
+            holder.itemView.setOnClickListener(v -> handleItemClick(peer));
+            holder.cancelButton.setOnClickListener(v -> handleItemCancelClick(peer, state));
         }
 
         @Override

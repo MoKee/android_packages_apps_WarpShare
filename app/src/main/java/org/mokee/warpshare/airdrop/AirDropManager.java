@@ -233,39 +233,25 @@ public class AirDropManager {
 
         final String firstType = uris.get(0).type();
         if (!TextUtils.isEmpty(firstType) && firstType.startsWith("image/")) {
-            ref.set(new Cancelable() {
-                @Override
-                public void cancel() {
-                    thumbnailCanceled.set(true);
-                }
-            });
+            ref.set(() -> thumbnailCanceled.set(true));
 
-            mArchiveExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    final byte[] thumbnail = AirDropThumbnailUtil.generate(uris.get(0));
-                    mMainThreadHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!thumbnailCanceled.get()) {
-                                ask(ref, peer, thumbnail, uris, listener);
-                            }
-                        }
-                    });
-                }
+            mArchiveExecutor.execute(() -> {
+                final byte[] thumbnail = AirDropThumbnailUtil.generate(uris.get(0));
+                mMainThreadHandler.post(() -> {
+                    if (!thumbnailCanceled.get()) {
+                        ask(ref, peer, thumbnail, uris, listener);
+                    }
+                });
             });
         } else {
             ask(ref, peer, null, uris, listener);
         }
 
-        return new Cancelable() {
-            @Override
-            public void cancel() {
-                final Cancelable cancelable = ref.getAndSet(null);
-                if (cancelable != null) {
-                    cancelable.cancel();
-                    Log.d(TAG, "Canceled");
-                }
+        return () -> {
+            final Cancelable cancelable = ref.getAndSet(null);
+            if (cancelable != null) {
+                cancelable.cancel();
+                Log.d(TAG, "Canceled");
             }
         };
     }
@@ -312,24 +298,12 @@ public class AirDropManager {
                     }
                 });
 
-        ref.set(new Cancelable() {
-            @Override
-            public void cancel() {
-                call.cancel();
-            }
-        });
+        ref.set(call::cancel);
     }
 
     private void upload(final AtomicReference<Cancelable> ref, final Peer peer,
                         final List<ResolvedUri> uris, final SenderListener listener) {
         final Pipe archive = new Pipe(1024);
-
-        final Runnable onCompressFailed = new Runnable() {
-            @Override
-            public void run() {
-                listener.onAirDropSendFailed();
-            }
-        };
 
         final long bytesTotal = totalLength(uris);
         final GossipyInputStream.Listener streamReadListener = new GossipyInputStream.Listener() {
@@ -341,12 +315,7 @@ public class AirDropManager {
                     return;
                 }
                 bytesSent += length;
-                mMainThreadHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.onAirDropProgress(bytesSent, bytesTotal);
-                    }
-                });
+                mMainThreadHandler.post(() -> listener.onAirDropProgress(bytesSent, bytesTotal));
             }
         };
 
@@ -368,27 +337,21 @@ public class AirDropManager {
                     }
                 });
 
-        ref.set(new Cancelable() {
-            @Override
-            public void cancel() {
-                call.cancel();
-            }
-        });
+        ref.set(call::cancel);
 
-        mArchiveExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try (final BufferedSink sink = Okio.buffer(archive.sink())) {
-                    AirDropArchiveUtil.pack(uris, sink.outputStream(), streamReadListener);
-                } catch (IOException e) {
-                    Log.e(TAG, "Failed to pack upload payload: " + peer.id, e);
-                    mMainThreadHandler.post(onCompressFailed);
-                }
+        mArchiveExecutor.execute(() -> {
+            try (final BufferedSink sink = Okio.buffer(archive.sink())) {
+                AirDropArchiveUtil.pack(uris, sink.outputStream(), streamReadListener);
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to pack upload payload: " + peer.id, e);
+                mMainThreadHandler.post(listener::onAirDropSendFailed);
             }
         });
     }
 
-    void handleDiscover(String ip, NSDictionary request, AirDropServer.ResultCallback callback) {
+    void handleDiscover(@SuppressWarnings("unused") String ip,
+                        @SuppressWarnings("unused") NSDictionary request,
+                        AirDropServer.ResultCallback callback) {
         final JsonObject mokee = new JsonObject();
         mokee.addProperty("APIVersion", 1);
 
@@ -514,24 +477,6 @@ public class AirDropManager {
 
         session.stream = stream;
 
-        final Runnable onDecompressFailed = new Runnable() {
-            @Override
-            public void run() {
-                mReceiverListener.onAirDropTransferFailed(session);
-                mReceivingSessions.remove(ip);
-                callback.call(null);
-            }
-        };
-
-        final Runnable onDecompressDone = new Runnable() {
-            @Override
-            public void run() {
-                mReceiverListener.onAirDropTransferDone(session);
-                mReceivingSessions.remove(ip);
-                callback.call(new NSDictionary());
-            }
-        };
-
         final AirDropArchiveUtil.FileFactory fileFactory = new AirDropArchiveUtil.FileFactory() {
             private final int fileCount = session.files.size();
             private int fileIndex = 0;
@@ -544,13 +489,10 @@ public class AirDropManager {
                     @Override
                     public void onRead(int length) {
                         bytesReceived += length;
-                        mMainThreadHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (fileIndex < fileCount && mReceivingSessions.containsKey(ip)) {
-                                    mReceiverListener.onAirDropTransferProgress(session, name,
-                                            bytesReceived, size, fileIndex, fileCount);
-                                }
+                        mMainThreadHandler.post(() -> {
+                            if (fileIndex < fileCount && mReceivingSessions.containsKey(ip)) {
+                                mReceiverListener.onAirDropTransferProgress(session, name,
+                                        bytesReceived, size, fileIndex, fileCount);
                             }
                         });
                     }
@@ -561,16 +503,21 @@ public class AirDropManager {
             }
         };
 
-        mArchiveExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    AirDropArchiveUtil.unpack(stream, new HashSet<>(session.paths), fileFactory);
-                    mMainThreadHandler.post(onDecompressDone);
-                } catch (IOException e) {
-                    Log.e(TAG, "Failed receiving files", e);
-                    mMainThreadHandler.post(onDecompressFailed);
-                }
+        mArchiveExecutor.execute(() -> {
+            try {
+                AirDropArchiveUtil.unpack(stream, new HashSet<>(session.paths), fileFactory);
+                mMainThreadHandler.post(() -> {
+                    mReceiverListener.onAirDropTransferDone(session);
+                    mReceivingSessions.remove(ip);
+                    callback.call(new NSDictionary());
+                });
+            } catch (IOException e) {
+                Log.e(TAG, "Failed receiving files", e);
+                mMainThreadHandler.post(() -> {
+                    mReceiverListener.onAirDropTransferFailed(session);
+                    mReceivingSessions.remove(ip);
+                    callback.call(null);
+                });
             }
         });
     }

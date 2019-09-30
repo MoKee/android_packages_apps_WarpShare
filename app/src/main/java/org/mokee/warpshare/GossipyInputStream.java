@@ -16,6 +16,8 @@
 
 package org.mokee.warpshare;
 
+import androidx.annotation.NonNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -37,7 +39,7 @@ public class GossipyInputStream extends InputStream {
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(@NonNull byte[] b, int off, int len) throws IOException {
         final int ret = mSource.read(b, off, len);
         if (ret == -1) {
             return -1;

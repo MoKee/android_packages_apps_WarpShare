@@ -87,19 +87,16 @@ class AirDropNsdController {
     }
 
     void destroy() {
-        mNetworkingHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (mJmdns != null) {
-                    try {
-                        mJmdns.close();
-                    } catch (IOException ignored) {
-                    }
-                    mJmdns = null;
+        mNetworkingHandler.post(() -> {
+            if (mJmdns != null) {
+                try {
+                    mJmdns.close();
+                } catch (IOException ignored) {
                 }
-                mNetworkingHandler.removeCallbacksAndMessages(null);
-                mNetworkingThread.quit();
+                mJmdns = null;
             }
+            mNetworkingHandler.removeCallbacksAndMessages(null);
+            mNetworkingThread.quit();
         });
     }
 
@@ -114,55 +111,43 @@ class AirDropNsdController {
     }
 
     void startDiscover(final InetAddress address) {
-        mNetworkingHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mMulticastLock.acquire();
-                createJmdns(address);
-                mJmdns.addServiceListener(SERVICE_TYPE, mDiscoveryListener);
-            }
+        mNetworkingHandler.post(() -> {
+            mMulticastLock.acquire();
+            createJmdns(address);
+            mJmdns.addServiceListener(SERVICE_TYPE, mDiscoveryListener);
         });
     }
 
     void stopDiscover() {
-        mNetworkingHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (mJmdns != null) {
-                    mJmdns.removeServiceListener(SERVICE_TYPE, mDiscoveryListener);
-                }
-                mMulticastLock.release();
+        mNetworkingHandler.post(() -> {
+            if (mJmdns != null) {
+                mJmdns.removeServiceListener(SERVICE_TYPE, mDiscoveryListener);
             }
+            mMulticastLock.release();
         });
     }
 
     void publish(final InetAddress address, final int port) {
-        mNetworkingHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                createJmdns(address);
+        mNetworkingHandler.post(() -> {
+            createJmdns(address);
 
-                final Map<String, String> props = new HashMap<>();
-                props.put("flags", Integer.toString(FLAG_SUPPORTS_MIXED_TYPES | FLAG_SUPPORTS_DISCOVER_MAYBE));
+            final Map<String, String> props = new HashMap<>();
+            props.put("flags", Integer.toString(
+                    FLAG_SUPPORTS_MIXED_TYPES | FLAG_SUPPORTS_DISCOVER_MAYBE));
 
-                final ServiceInfo serviceInfo = ServiceInfo.create(SERVICE_TYPE, mConfigManager.getId(), port, 0, 0, props);
-                Log.d(TAG, "Publishing " + serviceInfo);
-                try {
-                    mJmdns.registerService(serviceInfo);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            final ServiceInfo serviceInfo = ServiceInfo.create(SERVICE_TYPE,
+                    mConfigManager.getId(), port, 0, 0, props);
+            Log.d(TAG, "Publishing " + serviceInfo);
+            try {
+                mJmdns.registerService(serviceInfo);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
     }
 
     void unpublish() {
-        mNetworkingHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mJmdns.unregisterAllServices();
-            }
-        });
+        mNetworkingHandler.post(() -> mJmdns.unregisterAllServices());
     }
 
     private void handleServiceLost(ServiceInfo serviceInfo) {
@@ -175,7 +160,8 @@ class AirDropNsdController {
             return;
         }
 
-        Log.d(TAG, "Resolved: " + serviceInfo.getName() + ", flags=" + serviceInfo.getPropertyString("flags"));
+        Log.d(TAG, "Resolved: " + serviceInfo.getName() +
+                ", flags=" + serviceInfo.getPropertyString("flags"));
 
         final Inet4Address[] addresses = serviceInfo.getInet4Addresses();
         if (addresses.length > 0) {
@@ -189,21 +175,11 @@ class AirDropNsdController {
     }
 
     private void postServiceResolved(final String id, final String url) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mParent.onServiceResolved(id, url);
-            }
-        });
+        mHandler.post(() -> mParent.onServiceResolved(id, url));
     }
 
     private void postServiceLost(final String id) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mParent.onServiceLost(id);
-            }
-        });
+        mHandler.post(() -> mParent.onServiceLost(id));
     }
 
 }

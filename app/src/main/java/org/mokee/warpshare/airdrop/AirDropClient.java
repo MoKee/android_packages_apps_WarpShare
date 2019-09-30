@@ -16,10 +16,11 @@
 
 package org.mokee.warpshare.airdrop;
 
-import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.dd.plist.NSDictionary;
 import com.dd.plist.PropertyListFormatException;
@@ -39,8 +40,6 @@ import java.net.SocketAddress;
 import java.text.ParseException;
 
 import javax.net.SocketFactory;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -71,13 +70,7 @@ class AirDropClient {
                 .sslSocketFactory(
                         certificateManager.getSSLContext().getSocketFactory(),
                         (X509TrustManager) certificateManager.getTrustManagers()[0])
-                .hostnameVerifier(new HostnameVerifier() {
-                    @SuppressLint("BadHostnameVerifier")
-                    @Override
-                    public boolean verify(String hostname, SSLSession session) {
-                        return true;
-                    }
-                })
+                .hostnameVerifier((hostname, session) -> true)
                 .build();
     }
 
@@ -112,7 +105,7 @@ class AirDropClient {
                     }
 
                     @Override
-                    public void writeTo(BufferedSink bufferedSink) throws IOException {
+                    public void writeTo(@NonNull BufferedSink bufferedSink) throws IOException {
                         bufferedSink.writeAll(Okio.source(input));
                         input.close();
                     }
@@ -128,7 +121,7 @@ class AirDropClient {
 
         call.enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 if (call.isCanceled()) {
                     Log.w(TAG, "Request canceled", e);
                 } else {
@@ -138,7 +131,7 @@ class AirDropClient {
             }
 
             @Override
-            public void onResponse(Call call, Response response) {
+            public void onResponse(@NonNull Call call, @NonNull Response response) {
                 final int statusCode = response.code();
                 if (statusCode != 200) {
                     postFailure(callback, new IOException("Request failed: " + statusCode));
@@ -154,7 +147,8 @@ class AirDropClient {
                 try {
                     NSDictionary root = (NSDictionary) PropertyListParser.parse(responseBody.byteStream());
                     postResponse(callback, root);
-                } catch (PropertyListFormatException | ParseException | ParserConfigurationException | SAXException e) {
+                } catch (PropertyListFormatException | ParseException |
+                        ParserConfigurationException | SAXException e) {
                     postFailure(callback, new IOException(e));
                 } catch (IOException e) {
                     postFailure(callback, e);
@@ -165,23 +159,12 @@ class AirDropClient {
         return call;
     }
 
-    private void postResponse(final AirDropClientCallback callback,
-                              final NSDictionary response) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                callback.onResponse(response);
-            }
-        });
+    private void postResponse(final AirDropClientCallback callback, final NSDictionary response) {
+        mHandler.post(() -> callback.onResponse(response));
     }
 
     private void postFailure(final AirDropClientCallback callback, final IOException e) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                callback.onFailure(e);
-            }
-        });
+        mHandler.post(() -> callback.onFailure(e));
     }
 
     interface AirDropClientCallback {

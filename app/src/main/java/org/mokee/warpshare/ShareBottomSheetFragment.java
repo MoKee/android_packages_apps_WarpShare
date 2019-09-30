@@ -154,12 +154,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         titleView.setText(titleText);
 
         mSendButton = view.findViewById(R.id.send);
-        mSendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendFile(mPeers.get(mPeerPicked), mUris);
-            }
-        });
+        mSendButton.setOnClickListener(v -> sendFile(mPeers.get(mPeerPicked), mUris));
 
         mDiscoveringView = view.findViewById(R.id.discovering);
 
@@ -395,12 +390,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             } else {
                 holder.iconView.setImageResource(R.drawable.ic_mac_24dp);
             }
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    handleItemClick(peer);
-                }
-            });
+            holder.itemView.setOnClickListener(v -> handleItemClick(peer));
         }
 
         @Override
