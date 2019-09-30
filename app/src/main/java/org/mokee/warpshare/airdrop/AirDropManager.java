@@ -18,10 +18,13 @@ package org.mokee.warpshare.airdrop;
 
 import android.app.PendingIntent;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import com.dd.plist.NSArray;
 import com.dd.plist.NSDictionary;
@@ -451,7 +454,18 @@ public class AirDropManager {
         final String id = idNode.toJavaObject(String.class);
         final String name = nameNode.toJavaObject(String.class);
 
-        final ReceivingSession session = new ReceivingSession(ip, id, name, fileNames, filePaths) {
+        Bitmap icon = null;
+        final NSObject iconNode = request.get("FileIcon");
+        if (iconNode != null) {
+            try {
+                final byte[] data = iconNode.toJavaObject(byte[].class);
+                icon = AirDropThumbnailUtil.decode(data);
+            } catch (Exception e) {
+                Log.e(TAG, "Error decoding file icon", e);
+            }
+        }
+
+        final ReceivingSession session = new ReceivingSession(ip, id, name, fileNames, filePaths, icon) {
             @Override
             public void accept() {
                 final NSDictionary response = new NSDictionary();
@@ -682,14 +696,19 @@ public class AirDropManager {
         public final List<String> files;
         public final List<String> paths;
 
+        @Nullable
+        public final Bitmap preview;
+
         InputStream stream;
 
-        ReceivingSession(String ip, String id, String name, List<String> files, List<String> paths) {
+        ReceivingSession(String ip, String id, String name, List<String> files, List<String> paths,
+                         @Nullable Bitmap preview) {
             this.ip = ip;
             this.id = id;
             this.name = name;
             this.files = files;
             this.paths = paths;
+            this.preview = preview;
         }
 
         public abstract void accept();

@@ -27,6 +27,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Icon;
 import android.net.Network;
 import android.net.Uri;
 import android.os.Environment;
@@ -253,21 +254,28 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
         mSessions.put(session.ip, session);
 
-        mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER,
-                getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
-                        .setContentTitle(getString(R.string.notif_recv_transfer_request_title))
-                        .setContentText(getString(R.string.notif_recv_transfer_request_desc,
-                                session.name, session.files.size()))
-                        .addAction(new Notification.Action.Builder(null,
-                                getString(R.string.notif_recv_transfer_request_accept),
-                                getTransferIntent(ACTION_TRANSFER_ACCEPT, session.ip))
-                                .build())
-                        .addAction(new Notification.Action.Builder(null,
-                                getString(R.string.notif_recv_transfer_request_reject),
-                                getTransferIntent(ACTION_TRANSFER_REJECT, session.ip))
-                                .build())
-                        .setDeleteIntent(getTransferIntent(ACTION_TRANSFER_REJECT, session.ip))
-                        .build());
+        final Notification.Builder builder = getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
+                .setContentTitle(getString(R.string.notif_recv_transfer_request_title))
+                .setContentText(getString(R.string.notif_recv_transfer_request_desc,
+                        session.name, session.files.size()))
+                .addAction(new Notification.Action.Builder(null,
+                        getString(R.string.notif_recv_transfer_request_accept),
+                        getTransferIntent(ACTION_TRANSFER_ACCEPT, session.ip))
+                        .build())
+                .addAction(new Notification.Action.Builder(null,
+                        getString(R.string.notif_recv_transfer_request_reject),
+                        getTransferIntent(ACTION_TRANSFER_REJECT, session.ip))
+                        .build())
+                .setDeleteIntent(getTransferIntent(ACTION_TRANSFER_REJECT, session.ip));
+
+        if (session.preview != null) {
+            builder.setLargeIcon(session.preview);
+            builder.setStyle(new Notification.BigPictureStyle()
+                    .bigLargeIcon((Icon) null)
+                    .bigPicture(session.preview));
+        }
+
+        mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER, builder.build());
     }
 
     @Override

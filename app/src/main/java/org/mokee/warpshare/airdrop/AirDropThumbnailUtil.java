@@ -18,6 +18,7 @@ package org.mokee.warpshare.airdrop;
 
 import android.graphics.Bitmap;
 
+import com.gemalto.jp2.JP2Decoder;
 import com.gemalto.jp2.JP2Encoder;
 
 import org.mokee.warpshare.ResolvedUri;
@@ -29,6 +30,10 @@ class AirDropThumbnailUtil {
     static byte[] generate(ResolvedUri uri) {
         final Bitmap thumbnail = uri.thumbnail(SIZE);
         return new JP2Encoder(thumbnail).encode();
+    }
+
+    static Bitmap decode(byte[] data) {
+        return new JP2Decoder(data).decode();
     }
 
 }
