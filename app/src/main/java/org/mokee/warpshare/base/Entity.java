@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.mokee.warpshare;
+package org.mokee.warpshare.base;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -35,9 +35,10 @@ import java.util.concurrent.ExecutionException;
 import static android.content.ContentResolver.SCHEME_CONTENT;
 import static android.content.ContentResolver.SCHEME_FILE;
 
-public class ResolvedUri {
+@SuppressWarnings("WeakerAccess")
+public class Entity {
 
-    private static final String TAG = "ResolvedUri";
+    private static final String TAG = "Entity";
 
     public final Uri uri;
 
@@ -50,7 +51,7 @@ public class ResolvedUri {
     private String mType;
     private long mSize;
 
-    ResolvedUri(Context context, Uri uri, String type) {
+    public Entity(Context context, Uri uri, String type) {
         mContext = context;
         this.uri = uri;
 

@@ -30,13 +30,16 @@ import com.dd.plist.NSArray;
 import com.dd.plist.NSDictionary;
 import com.dd.plist.NSObject;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.mokee.warpshare.CertificateManager;
 
 import org.mokee.warpshare.GossipyInputStream;
-import org.mokee.warpshare.ResolvedUri;
+import org.mokee.warpshare.base.DiscoverListener;
+import org.mokee.warpshare.base.Discoverer;
+import org.mokee.warpshare.base.Entity;
+import org.mokee.warpshare.base.SendListener;
+import org.mokee.warpshare.base.Sender;
+import org.mokee.warpshare.base.SendingSession;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,7 +58,9 @@ import okio.BufferedSink;
 import okio.Okio;
 import okio.Pipe;
 
-public class AirDropManager {
+public class AirDropManager implements
+        Discoverer,
+        Sender<AirDropPeer> {
 
     public static final int STATUS_OK = 0;
     public static final int STATUS_NO_BLUETOOTH = 1;
@@ -72,11 +77,11 @@ public class AirDropManager {
     private final AirDropClient mClient;
     private final AirDropServer mServer;
 
-    private final Map<String, Peer> mPeers = new HashMap<>();
+    private final Map<String, AirDropPeer> mPeers = new HashMap<>();
 
     private final Map<String, ReceivingSession> mReceivingSessions = new HashMap<>();
 
-    private DiscoveryListener mDiscoveryListener;
+    private DiscoverListener mDiscoverListener;
     private ReceiverListener mReceiverListener;
 
     private ExecutorService mArchiveExecutor;
@@ -96,11 +101,11 @@ public class AirDropManager {
         mArchiveExecutor = Executors.newFixedThreadPool(10);
     }
 
-    private long totalLength(List<ResolvedUri> uris) {
+    private long totalLength(List<Entity> entities) {
         long total = -1;
 
-        for (ResolvedUri uri : uris) {
-            final long size = uri.size();
+        for (Entity entity : entities) {
+            final long size = entity.size();
             if (size >= 0) {
                 if (total == -1) {
                     total = size;
@@ -127,17 +132,19 @@ public class AirDropManager {
         return STATUS_OK;
     }
 
-    public void startDiscover(DiscoveryListener discoveryListener) {
+    @Override
+    public void startDiscover(DiscoverListener discoverListener) {
         if (ready() != STATUS_OK) {
             return;
         }
 
-        mDiscoveryListener = discoveryListener;
+        mDiscoverListener = discoverListener;
 
         mBleController.triggerDiscoverable();
         mNsdController.startDiscover(mWlanController.getLocalAddress());
     }
 
+    @Override
     public void stopDiscover() {
         mBleController.stop();
         mNsdController.stopDiscover();
@@ -169,7 +176,7 @@ public class AirDropManager {
         mBleController.registerTrigger(pendingIntent);
     }
 
-    void onServiceResolved(final String id, final String url) {
+    void onServiceResolved(String id, String url) {
         final NSDictionary req = new NSDictionary();
 
         mClient.post(url + "/Discover", req, new AirDropClient.AirDropClientCallback() {
@@ -180,30 +187,30 @@ public class AirDropManager {
 
             @Override
             public void onResponse(NSDictionary response) {
-                final Peer peer = Peer.from(response, id, url);
+                final AirDropPeer peer = AirDropPeer.from(response, id, url);
                 if (peer == null) {
                     return;
                 }
 
                 mPeers.put(id, peer);
-                mDiscoveryListener.onAirDropPeerFound(peer);
+                mDiscoverListener.onPeerFound(peer);
             }
         });
     }
 
     void onServiceLost(String id) {
-        final Peer peer = mPeers.remove(id);
+        final AirDropPeer peer = mPeers.remove(id);
         if (peer != null) {
-            mDiscoveryListener.onAirDropPeerDisappeared(peer);
+            mDiscoverListener.onPeerDisappeared(peer);
         }
     }
 
-    private String getEntryType(ResolvedUri uri) {
-        final String mime = uri.type();
+    private String getEntryType(Entity entity) {
+        final String mime = entity.type();
 
         if (!TextUtils.isEmpty(mime)) {
             if (mime.startsWith("image/")) {
-                final String name = uri.name().toLowerCase();
+                final String name = entity.name().toLowerCase();
                 if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
                     return "public.jpeg";
                 } else if (name.endsWith(".jp2")) {
@@ -225,39 +232,43 @@ public class AirDropManager {
         return "public.content";
     }
 
-    public Cancelable send(final Peer peer, final List<ResolvedUri> uris, final SenderListener listener) {
-        Log.d(TAG, "Asking " + peer.id + " to receive " + uris.size() + " files");
+    @Override
+    public SendingSession send(AirDropPeer peer, List<Entity> entities, SendListener listener) {
+        Log.d(TAG, "Asking " + peer.id + " to receive " + entities.size() + " files");
 
         final AtomicReference<Cancelable> ref = new AtomicReference<>();
         final AtomicBoolean thumbnailCanceled = new AtomicBoolean(false);
 
-        final String firstType = uris.get(0).type();
+        final String firstType = entities.get(0).type();
         if (!TextUtils.isEmpty(firstType) && firstType.startsWith("image/")) {
             ref.set(() -> thumbnailCanceled.set(true));
 
             mArchiveExecutor.execute(() -> {
-                final byte[] thumbnail = AirDropThumbnailUtil.generate(uris.get(0));
+                final byte[] thumbnail = AirDropThumbnailUtil.generate(entities.get(0));
                 mMainThreadHandler.post(() -> {
                     if (!thumbnailCanceled.get()) {
-                        ask(ref, peer, thumbnail, uris, listener);
+                        ask(ref, peer, thumbnail, entities, listener);
                     }
                 });
             });
         } else {
-            ask(ref, peer, null, uris, listener);
+            ask(ref, peer, null, entities, listener);
         }
 
-        return () -> {
-            final Cancelable cancelable = ref.getAndSet(null);
-            if (cancelable != null) {
-                cancelable.cancel();
-                Log.d(TAG, "Canceled");
+        return new SendingSession() {
+            @Override
+            public final void cancel() {
+                final Cancelable cancelable = ref.getAndSet(null);
+                if (cancelable != null) {
+                    cancelable.cancel();
+                    Log.d(TAG, "Canceled");
+                }
             }
         };
     }
 
-    private void ask(final AtomicReference<Cancelable> ref, final Peer peer, final byte[] icon,
-                     final List<ResolvedUri> uris, final SenderListener listener) {
+    private void ask(AtomicReference<Cancelable> ref, AirDropPeer peer, byte[] icon,
+                     List<Entity> entities, SendListener listener) {
         final NSDictionary req = new NSDictionary();
         req.put("SenderID", mConfigManager.getId());
         req.put("SenderComputerName", mConfigManager.getName());
@@ -265,11 +276,11 @@ public class AirDropManager {
         req.put("ConvertMediaFormats", false);
 
         final List<NSDictionary> files = new ArrayList<>();
-        for (ResolvedUri uri : uris) {
+        for (Entity entity : entities) {
             final NSDictionary file = new NSDictionary();
-            file.put("FileName", uri.name());
-            file.put("FileType", getEntryType(uri));
-            file.put("FileBomPath", uri.path());
+            file.put("FileName", entity.name());
+            file.put("FileType", getEntryType(entity));
+            file.put("FileBomPath", entity.path());
             file.put("FileIsDirectory", false);
             file.put("ConvertMediaFormats", 0);
             files.add(file);
@@ -287,25 +298,25 @@ public class AirDropManager {
                     public void onFailure(IOException e) {
                         Log.w(TAG, "Failed to ask: " + peer.id, e);
                         ref.set(null);
-                        listener.onAirDropRejected();
+                        listener.onRejected();
                     }
 
                     @Override
                     public void onResponse(NSDictionary response) {
                         Log.d(TAG, "Accepted");
-                        listener.onAirDropAccepted();
-                        upload(ref, peer, uris, listener);
+                        listener.onAccepted();
+                        upload(ref, peer, entities, listener);
                     }
                 });
 
         ref.set(call::cancel);
     }
 
-    private void upload(final AtomicReference<Cancelable> ref, final Peer peer,
-                        final List<ResolvedUri> uris, final SenderListener listener) {
+    private void upload(AtomicReference<Cancelable> ref, AirDropPeer peer,
+                        List<Entity> entities, SendListener listener) {
         final Pipe archive = new Pipe(1024);
 
-        final long bytesTotal = totalLength(uris);
+        final long bytesTotal = totalLength(entities);
         final GossipyInputStream.Listener streamReadListener = new GossipyInputStream.Listener() {
             private long bytesSent = 0;
 
@@ -315,7 +326,7 @@ public class AirDropManager {
                     return;
                 }
                 bytesSent += length;
-                mMainThreadHandler.post(() -> listener.onAirDropProgress(bytesSent, bytesTotal));
+                mMainThreadHandler.post(() -> listener.onProgress(bytesSent, bytesTotal));
             }
         };
 
@@ -326,14 +337,14 @@ public class AirDropManager {
                     public void onFailure(IOException e) {
                         Log.e(TAG, "Failed to upload: " + peer.id, e);
                         ref.set(null);
-                        listener.onAirDropSendFailed();
+                        listener.onSendFailed();
                     }
 
                     @Override
                     public void onResponse(NSDictionary response) {
                         Log.d(TAG, "Uploaded");
                         ref.set(null);
-                        listener.onAirDropSent();
+                        listener.onSent();
                     }
                 });
 
@@ -341,10 +352,10 @@ public class AirDropManager {
 
         mArchiveExecutor.execute(() -> {
             try (final BufferedSink sink = Okio.buffer(archive.sink())) {
-                AirDropArchiveUtil.pack(uris, sink.outputStream(), streamReadListener);
+                AirDropArchiveUtil.pack(entities, sink.outputStream(), streamReadListener);
             } catch (IOException e) {
                 Log.e(TAG, "Failed to pack upload payload: " + peer.id, e);
-                mMainThreadHandler.post(listener::onAirDropSendFailed);
+                mMainThreadHandler.post(listener::onSendFailed);
             }
         });
     }
@@ -369,7 +380,7 @@ public class AirDropManager {
         callback.call(response);
     }
 
-    void handleAsk(final String ip, NSDictionary request, final AirDropServer.ResultCallback callback) {
+    void handleAsk(String ip, NSDictionary request, AirDropServer.ResultCallback callback) {
         final NSObject idNode = request.get("SenderID");
         if (idNode == null) {
             Log.w(TAG, "Invalid ask from " + ip + ": Missing SenderID");
@@ -467,7 +478,7 @@ public class AirDropManager {
         mReceiverListener.onAirDropRequestCanceled(session);
     }
 
-    void handleUpload(final String ip, final InputStream stream, final AirDropServer.ResultCallback callback) {
+    void handleUpload(String ip, InputStream stream, AirDropServer.ResultCallback callback) {
         final ReceivingSession session = mReceivingSessions.get(ip);
         if (session == null) {
             Log.w(TAG, "Upload from " + ip + " not accepted");
@@ -522,28 +533,6 @@ public class AirDropManager {
         });
     }
 
-    public interface DiscoveryListener {
-
-        void onAirDropPeerFound(Peer peer);
-
-        void onAirDropPeerDisappeared(Peer peer);
-
-    }
-
-    public interface SenderListener {
-
-        void onAirDropAccepted();
-
-        void onAirDropRejected();
-
-        void onAirDropProgress(long bytesSent, long bytesTotal);
-
-        void onAirDropSent();
-
-        void onAirDropSendFailed();
-
-    }
-
     public interface ReceiverListener {
 
         void onAirDropRequest(ReceivingSession session);
@@ -562,75 +551,9 @@ public class AirDropManager {
 
     }
 
-    public interface Cancelable {
+    private interface Cancelable {
 
         void cancel();
-
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    public static class Peer {
-
-        public final String id;
-        public final String name;
-
-        public final JsonObject capabilities;
-
-        final String url;
-
-        private Peer(String id, String name, String url, JsonObject capabilities) {
-            this.id = id;
-            this.name = name;
-            this.url = url;
-            this.capabilities = capabilities;
-        }
-
-        static Peer from(NSDictionary dict, String id, String url) {
-            final NSObject nameNode = dict.get("ReceiverComputerName");
-            if (nameNode == null) {
-                Log.w(TAG, "Name is null: " + id);
-                return null;
-            }
-
-            final String name = nameNode.toJavaObject(String.class);
-
-            JsonObject capabilities = null;
-
-            final NSObject capabilitiesNode = dict.get("ReceiverMediaCapabilities");
-            if (capabilitiesNode != null) {
-                final byte[] caps = capabilitiesNode.toJavaObject(byte[].class);
-                try {
-                    capabilities = (JsonObject) new JsonParser().parse(new String(caps));
-                } catch (Exception e) {
-                    Log.e(TAG, "Error parsing ReceiverMediaCapabilities", e);
-                }
-            }
-
-            return new Peer(id, name, url, capabilities);
-        }
-
-        public int getMokeeApiVersion() {
-            if (capabilities == null) {
-                return 0;
-            }
-
-            final JsonObject vendor = capabilities.getAsJsonObject("Vendor");
-            if (vendor == null) {
-                return 0;
-            }
-
-            final JsonObject mokee = vendor.getAsJsonObject("org.mokee");
-            if (mokee == null) {
-                return 0;
-            }
-
-            final JsonElement api = mokee.get("APIVersion");
-            if (api == null) {
-                return 0;
-            }
-
-            return api.getAsInt();
-        }
 
     }
 

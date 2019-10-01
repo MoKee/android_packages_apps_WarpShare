@@ -22,7 +22,7 @@ import org.apache.commons.compress.archivers.cpio.CpioArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.mokee.warpshare.GossipyInputStream;
-import org.mokee.warpshare.ResolvedUri;
+import org.mokee.warpshare.base.Entity;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,18 +44,18 @@ import static org.apache.commons.compress.archivers.cpio.CpioConstants.FORMAT_OL
 
 class AirDropArchiveUtil {
 
-    static void pack(List<ResolvedUri> uris, OutputStream output,
+    static void pack(List<Entity> entities, OutputStream output,
                      GossipyInputStream.Listener streamReadListener) throws IOException {
         try (final GzipCompressorOutputStream gzip = new GzipCompressorOutputStream(output);
              final CpioArchiveOutputStream cpio = new CpioArchiveOutputStream(gzip, FORMAT_OLD_ASCII)) {
-            for (ResolvedUri uri : uris) {
-                final CpioArchiveEntry entry = new CpioArchiveEntry(FORMAT_OLD_ASCII, uri.path());
+            for (Entity entity : entities) {
+                final CpioArchiveEntry entry = new CpioArchiveEntry(FORMAT_OLD_ASCII, entity.path());
                 entry.setMode(C_ISREG | C_IRUSR | C_IWUSR | C_IRGRP | C_IROTH);
                 entry.setTime(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()));
 
-                final InputStream stream = new GossipyInputStream(uri.stream(), streamReadListener);
+                final InputStream stream = new GossipyInputStream(entity.stream(), streamReadListener);
                 final BufferedSource source = Okio.buffer(Okio.source(stream));
-                final long size = uri.size();
+                final long size = entity.size();
                 if (size == -1) {
                     final ByteString content = source.readByteString();
                     entry.setSize(content.size());

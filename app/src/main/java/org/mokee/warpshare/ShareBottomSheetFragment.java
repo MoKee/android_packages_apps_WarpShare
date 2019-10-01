@@ -42,6 +42,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import org.mokee.warpshare.airdrop.AirDropManager;
+import org.mokee.warpshare.airdrop.AirDropPeer;
+import org.mokee.warpshare.base.DiscoverListener;
+import org.mokee.warpshare.base.Entity;
+import org.mokee.warpshare.base.Peer;
+import org.mokee.warpshare.base.SendListener;
+import org.mokee.warpshare.base.SendingSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,14 +58,14 @@ import static org.mokee.warpshare.airdrop.AirDropManager.STATUS_OK;
 
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
 public class ShareBottomSheetFragment extends BottomSheetDialogFragment
-        implements AirDropManager.DiscoveryListener {
+        implements DiscoverListener {
 
     private static final String TAG = "ShareBottomSheetFragment";
 
     private static final int REQUEST_SETUP = 1;
 
-    private final ArrayMap<String, AirDropManager.Peer> mPeers = new ArrayMap<>();
-    private final List<ResolvedUri> mUris = new ArrayList<>();
+    private final ArrayMap<String, Peer> mPeers = new ArrayMap<>();
+    private final List<Entity> mEntities = new ArrayList<>();
 
     private ShareActivity mParent;
 
@@ -94,7 +100,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
     private boolean mIsDiscovering = false;
 
-    private AirDropManager.Cancelable mSending;
+    private SendingSession mSending;
 
     public ShareBottomSheetFragment() {
     }
@@ -142,23 +148,23 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
         final String type = mParent.getIntent().getType();
         for (int i = 0; i < clipData.getItemCount(); i++) {
-            final ResolvedUri uri = new ResolvedUri(getContext(), clipData.getItemAt(i).getUri(), type);
-            if (uri.ok()) {
-                mUris.add(uri);
+            final Entity entity = new Entity(getContext(), clipData.getItemAt(i).getUri(), type);
+            if (entity.ok()) {
+                mEntities.add(entity);
             }
         }
 
-        final int count = mUris.size();
+        final int count = mEntities.size();
         final String titleText = getResources().getQuantityString(R.plurals.send_files_to, count, count);
         final TextView titleView = view.findViewById(R.id.title);
         titleView.setText(titleText);
 
         mSendButton = view.findViewById(R.id.send);
-        mSendButton.setOnClickListener(v -> sendFile(mPeers.get(mPeerPicked), mUris));
+        mSendButton.setOnClickListener(v -> sendFile(mPeers.get(mPeerPicked), mEntities));
 
         mDiscoveringView = view.findViewById(R.id.discovering);
 
-        if (mUris.isEmpty()) {
+        if (mEntities.isEmpty()) {
             Log.w(TAG, "No file was selected");
             Toast.makeText(getContext(), R.string.toast_no_file, Toast.LENGTH_SHORT).show();
             handleSendFailed();
@@ -221,14 +227,14 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     }
 
     @Override
-    public void onAirDropPeerFound(AirDropManager.Peer peer) {
+    public void onPeerFound(Peer peer) {
         Log.d(TAG, "Found: " + peer.id + " (" + peer.name + ")");
         mPeers.put(peer.id, peer);
         mAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public void onAirDropPeerDisappeared(AirDropManager.Peer peer) {
+    public void onPeerDisappeared(Peer peer) {
         Log.d(TAG, "Disappeared: " + peer.id + " (" + peer.name + ")");
         if (peer.id.equals(mPeerPicked)) {
             mPeerPicked = null;
@@ -253,7 +259,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         }
     }
 
-    private void handleItemClick(AirDropManager.Peer peer) {
+    private void handleItemClick(Peer peer) {
         if (mPeerStatus != 0 && mPeerStatus != R.string.status_rejected) {
             return;
         }
@@ -307,36 +313,41 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         mDiscoveringView.setVisibility(View.VISIBLE);
     }
 
-    private void sendFile(final AirDropManager.Peer peer, final List<ResolvedUri> uris) {
+    private <P extends Peer> void sendFile(P peer, List<Entity> entities) {
         handleSendConfirming();
-        mSending = mAirDropManager.send(peer, uris, new AirDropManager.SenderListener() {
+
+        final SendListener listener = new SendListener() {
             @Override
-            public void onAirDropAccepted() {
+            public void onAccepted() {
                 handleSending();
             }
 
             @Override
-            public void onAirDropRejected() {
+            public void onRejected() {
                 handleSendRejected();
             }
 
             @Override
-            public void onAirDropProgress(long bytesSent, long bytesTotal) {
+            public void onProgress(long bytesSent, long bytesTotal) {
                 mBytesSent = bytesSent;
                 mBytesTotal = bytesTotal;
                 mAdapter.notifyDataSetChanged();
             }
 
             @Override
-            public void onAirDropSent() {
+            public void onSent() {
                 handleSendSucceed();
             }
 
             @Override
-            public void onAirDropSendFailed() {
+            public void onSendFailed() {
                 handleSendFailed();
             }
-        });
+        };
+
+        if (peer instanceof AirDropPeer) {
+            mSending = mAirDropManager.send((AirDropPeer) peer, entities, listener);
+        }
     }
 
     private class PeersAdapter extends RecyclerView.Adapter<PeersAdapter.ViewHolder> {
@@ -357,7 +368,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         @Override
         public void onBindViewHolder(@NonNull PeersAdapter.ViewHolder holder, int position) {
             final String id = mPeers.keyAt(position);
-            final AirDropManager.Peer peer = mPeers.valueAt(position);
+            final Peer peer = mPeers.valueAt(position);
             final boolean selected = id.equals(mPeerPicked);
             holder.nameView.setText(peer.name);
             holder.itemView.setSelected(selected);
@@ -385,10 +396,15 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
             } else {
                 holder.progressBar.setVisibility(View.GONE);
             }
-            if (peer.getMokeeApiVersion() > 0) {
-                holder.iconView.setImageResource(R.drawable.ic_phone_android_24dp);
+            if (peer instanceof AirDropPeer) {
+                final boolean isMokee = ((AirDropPeer) peer).getMokeeApiVersion() > 0;
+                if (isMokee) {
+                    holder.iconView.setImageResource(R.drawable.ic_phone_android_24dp);
+                } else {
+                    holder.iconView.setImageResource(R.drawable.ic_mac_24dp);
+                }
             } else {
-                holder.iconView.setImageResource(R.drawable.ic_mac_24dp);
+                holder.iconView.setImageDrawable(null);
             }
             holder.itemView.setOnClickListener(v -> handleItemClick(peer));
         }

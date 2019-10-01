@@ -14,26 +14,12 @@
  * limitations under the License.
  */
 
-package org.mokee.warpshare.airdrop;
+package org.mokee.warpshare.base;
 
-import android.graphics.Bitmap;
+public interface Discoverer {
 
-import com.gemalto.jp2.JP2Decoder;
-import com.gemalto.jp2.JP2Encoder;
+    void startDiscover(DiscoverListener discoverListener);
 
-import org.mokee.warpshare.base.Entity;
-
-class AirDropThumbnailUtil {
-
-    private static final int SIZE = 540;
-
-    static byte[] generate(Entity entity) {
-        final Bitmap thumbnail = entity.thumbnail(SIZE);
-        return new JP2Encoder(thumbnail).encode();
-    }
-
-    static Bitmap decode(byte[] data) {
-        return new JP2Decoder(data).decode();
-    }
+    void stopDiscover();
 
 }
