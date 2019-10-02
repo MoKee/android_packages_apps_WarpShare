@@ -27,13 +27,9 @@ import android.util.Log;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.concurrent.ExecutionException;
-
-import static android.content.ContentResolver.SCHEME_CONTENT;
-import static android.content.ContentResolver.SCHEME_FILE;
 
 @SuppressWarnings("WeakerAccess")
 public class Entity {
@@ -59,17 +55,6 @@ public class Entity {
             return;
         }
 
-        final String scheme = uri.getScheme();
-        if (SCHEME_CONTENT.equals(scheme)) {
-            resolveContent(context, uri, type);
-        } else if (SCHEME_FILE.equals(scheme)) {
-            resolveFile(uri, type);
-        } else {
-            Log.w(TAG, "Unsupported uri: " + uri);
-        }
-    }
-
-    private void resolveContent(Context context, Uri uri, String type) {
         Cursor cursor;
 
         try {
@@ -99,27 +84,6 @@ public class Entity {
         if (TextUtils.isEmpty(mType)) {
             mType = context.getContentResolver().getType(uri);
         }
-
-        mOk = true;
-    }
-
-    private void resolveFile(Uri uri, String type) {
-        final String path = uri.getPath();
-        if (TextUtils.isEmpty(path)) {
-            Log.e(TAG, "Empty uri path: " + uri);
-            return;
-        }
-
-        final File file = new File(path);
-        if (!file.exists()) {
-            Log.e(TAG, "File not exists: " + uri);
-            return;
-        }
-
-        mName = file.getName();
-        mPath = "./" + mName;
-        mType = type;
-        mSize = file.length();
 
         mOk = true;
     }
