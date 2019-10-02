@@ -16,25 +16,46 @@
   ~ limitations under the License.
   -->
 <resources>
+    <string name="app_name">WarpShare</string>
     <string name="menu_settings">Seaded...</string>
+    <string name="introduction">WarpShare saab kiiresti saata faile teistele lähedal, ilma mobiilset andmesidet kasutamatta.</string>
+    <string name="hint_perm">WarpShare\'i kasutamiseks on vaja mitut luba.</string>
     <string name="button_perm">Anna õigused...</string>
+    <string name="hint_wifi">WarpShare\'i kasutamiseks lülitage sisse Wi-Fi ja looge ühendus sama võrguga.</string>
     <string name="button_wifi">Wi-Fi-seadete avamine...</string>
+    <string name="hint_bt">WarpShare\'i kasutamiseks lülitage Bluetooth sisse.</string>
     <string name="button_bt">Lülitan Bluetoothi sisse...</string>
+    <plurals name="send_files_to">
+        <item quantity="one">Saada %d fail…</item>
+        <item quantity="other">Saada %d faili…</item>
+    </plurals>
     <string name="send_cancel">Tühista</string>
     <string name="send_confirm">Saada</string>
     <string name="status_waiting_for_confirm">Ootab kinnitust...</string>
     <string name="status_sending">Saatmine...</string>
     <string name="status_sending_progress">Saatmine… %1$s / %2$s</string>
     <string name="status_rejected">Tagasi lükatud</string>
+    <string name="toast_no_file">Ühtegi faili ei saa saata</string>
     <string name="toast_completed">Failid saadetud</string>
+    <string name="toast_rejected">Vastuvõtja lükati tagasi</string>
     <string name="notif_recv_service_channel">Tuvastamatu</string>
     <string name="notif_recv_transfer_channel">Failide ülekanne</string>
+    <string name="notif_recv_active_title">Teie seade on leitav</string>
+    <string name="notif_recv_active_desc">Keegi läheduses on saatmas mõnda faili</string>
     <string name="notif_recv_transfer_request_title">Failide ülekanne</string>
+    <string name="notif_recv_transfer_request_desc">%1$s soovib saata teile %2$d faili</string>
     <string name="notif_recv_transfer_request_accept">Nõustu</string>
     <string name="notif_recv_transfer_request_reject">Keeldu</string>
+    <string name="notif_recv_transfer_progress_title">%1$d faili vastuvõtmine %2$s…</string>
     <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Tühista</string>
+    <string name="notif_recv_transfer_done_title">%1$d faili saadud %2$s</string>
+    <string name="notif_recv_transfer_done_desc">Koputage vastuvõetud failide sirvimiseks</string>
+    <string name="notif_recv_transfer_failed_title">Vastuvõtmine katkestati</string>
+    <string name="notif_recv_transfer_failed_desc">Failide vastuvõtmine failist %s ebaõnnestus</string>
     <string name="settings">Seaded</string>
     <string name="settings_name">Kuvatav nimi</string>
     <string name="settings_discoverable">Tuvastamatu</string>
+    <string name="settings_discoverable_on">Teie seade kuvatakse adressaadina teistele</string>
+    <string name="settings_discoverable_off">Teie seadet ei leita</string>
 </resources>
