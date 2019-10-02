@@ -27,9 +27,13 @@ import android.util.Log;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.concurrent.ExecutionException;
+
+import static android.content.ContentResolver.SCHEME_FILE;
+import static androidx.core.content.FileProvider.getUriForFile;
 
 @SuppressWarnings("WeakerAccess")
 public class Entity {
@@ -49,11 +53,21 @@ public class Entity {
 
     public Entity(Context context, Uri uri, String type) {
         mContext = context;
-        this.uri = uri;
 
         if (uri == null) {
+            this.uri = null;
             return;
         }
+
+        if (SCHEME_FILE.equals(uri.getScheme())) {
+            uri = generateContentUri(context, uri);
+            if (uri == null) {
+                this.uri = null;
+                return;
+            }
+        }
+
+        this.uri = uri;
 
         Cursor cursor;
 
@@ -86,6 +100,22 @@ public class Entity {
         }
 
         mOk = true;
+    }
+
+    private Uri generateContentUri(Context context, Uri uri) {
+        final String path = uri.getPath();
+        if (TextUtils.isEmpty(path)) {
+            Log.e(TAG, "Empty uri path: " + uri);
+            return null;
+        }
+
+        final File file = new File(path);
+        if (!file.exists()) {
+            Log.e(TAG, "File not exists: " + uri);
+            return null;
+        }
+
+        return getUriForFile(context, "org.mokee.warpshare.files", file);
     }
 
     public boolean ok() {
