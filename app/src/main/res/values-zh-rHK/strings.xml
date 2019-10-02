@@ -17,12 +17,44 @@
   -->
 <resources>
     <string name="app_name">躍傳</string>
-    <string name="menu_settings">設定...</string>
+    <string name="menu_settings">設定…</string>
     <string name="introduction">躍傳可以快速將文件發送給附近的其他人，而無需使用任何行動網路。</string>
     <string name="hint_perm">要使用躍傳，需要幾個權限。</string>
     <string name="button_perm">授予權限…</string>
+    <string name="hint_wifi">要使用躍傳，請打開 Wi-Fi 並連線到同一個網路。</string>
+    <string name="button_wifi">打開 Wi-Fi 設定…</string>
+    <string name="hint_bt">要使用躍傳，請打開藍芽。</string>
+    <string name="button_bt">打開藍牙…</string>
+    <plurals name="send_files_to">
+        <item quantity="other">將 %d 檔案傳送到…</item>
+    </plurals>
     <string name="send_cancel">取消</string>
+    <string name="send_confirm">傳送</string>
+    <string name="status_waiting_for_confirm">等待確認…</string>
+    <string name="status_sending">傳送中...</string>
+    <string name="status_sending_progress">傳送…%1$s / %2$s</string>
+    <string name="status_rejected">被拒絕</string>
+    <string name="toast_no_file">不能傳送任何檔案</string>
+    <string name="toast_completed">檔案已傳送</string>
+    <string name="toast_rejected">對方拒絕了請求</string>
+    <string name="notif_recv_service_channel">可發現</string>
+    <string name="notif_recv_transfer_channel">檔案傳輸</string>
+    <string name="notif_recv_active_title">您的裝置當前可被發現</string>
+    <string name="notif_recv_active_desc">附近有人正要傳送檔案</string>
+    <string name="notif_recv_transfer_request_title">檔案傳輸</string>
+    <string name="notif_recv_transfer_request_desc">%1$s 想向您傳送 %2$d 個檔案</string>
     <string name="notif_recv_transfer_request_accept">接受</string>
+    <string name="notif_recv_transfer_request_reject">拒絕</string>
+    <string name="notif_recv_transfer_progress_title">正在從 %2$s 接收 %1$d 個檔案…</string>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">取消</string>
+    <string name="notif_recv_transfer_done_title">已從 %2$s 收到 %1$d 個檔案</string>
+    <string name="notif_recv_transfer_done_desc">點選以瀏覽收到的檔案</string>
+    <string name="notif_recv_transfer_failed_title">接收已中止</string>
+    <string name="notif_recv_transfer_failed_desc">從 %s 接收檔案失敗</string>
     <string name="settings">設定</string>
+    <string name="settings_name">顯示名稱</string>
+    <string name="settings_discoverable">可發現</string>
+    <string name="settings_discoverable_on">你的裝置將會作為接收者出現</string>
+    <string name="settings_discoverable_off">您的裝置將不會被發現</string>
 </resources>

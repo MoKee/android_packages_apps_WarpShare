@@ -16,8 +16,47 @@
   ~ limitations under the License.
   -->
 <resources>
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Подешавања…</string>
+    <string name="introduction">WarpShare може брзо да пошаље датотеке свима који су близу, без икакве употребе мобилних података.</string>
+    <string name="hint_perm">За употребу WarpShare потребне су неке дозволе.</string>
+    <string name="button_perm">Одобри дозволе…</string>
+    <string name="hint_wifi">За коришћење WarpShare укључите Wi-Fi и конектујте се у исту мрежу.</string>
+    <string name="button_wifi">Отвори Wi-Fi подешавања…</string>
+    <string name="hint_bt">За коришћење WarpShare укључите Bluetooth.</string>
+    <string name="button_bt">Укључи Bluetooth…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">Пошаљи %d датотеку…</item>
+        <item quantity="few">Пошаљи %d датотеке…</item>
+        <item quantity="other">Пошаљи %d датотеку…</item>
+    </plurals>
     <string name="send_cancel">Откажи</string>
+    <string name="send_confirm">Пошаљи</string>
+    <string name="status_waiting_for_confirm">Чека се потврда…</string>
+    <string name="status_sending">Шаље се…</string>
+    <string name="status_sending_progress">Шаље се…%1$s / %2$s</string>
+    <string name="status_rejected">Одбијено</string>
+    <string name="toast_no_file">Ниједна датотека се не може послати</string>
+    <string name="toast_completed">Датотека је послата</string>
+    <string name="toast_rejected">Пријемник је одбио</string>
+    <string name="notif_recv_service_channel">Видљиво</string>
+    <string name="notif_recv_transfer_channel">Пренос датотека</string>
+    <string name="notif_recv_active_title">Ваш уређај је видљив</string>
+    <string name="notif_recv_active_desc">Неко у близини хоће да вам пошаље фајлове</string>
+    <string name="notif_recv_transfer_request_title">Пренос датотека</string>
+    <string name="notif_recv_transfer_request_desc">%1$s хоће да вам пошаље %2$d датотеке</string>
     <string name="notif_recv_transfer_request_accept">Прихвати</string>
+    <string name="notif_recv_transfer_request_reject">Одбијте</string>
+    <string name="notif_recv_transfer_progress_title">Пријем %1$d датотека од %2$s…</string>
+    <string name="notif_recv_transfer_progress_desc">%1$d/%2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Откажи</string>
+    <string name="notif_recv_transfer_done_title">%1$d датотеке примљене од %2$s</string>
+    <string name="notif_recv_transfer_done_desc">Тапни да прегледаш примљене датотеке</string>
+    <string name="notif_recv_transfer_failed_title">Пријем је прекинут</string>
+    <string name="notif_recv_transfer_failed_desc">Онемогућен је пријем датотека од %s</string>
     <string name="settings">Подешавања</string>
+    <string name="settings_name">Прикажи име</string>
+    <string name="settings_discoverable">Видљиво</string>
+    <string name="settings_discoverable_on">Ваш уређај је видљив другима као пријемник</string>
+    <string name="settings_discoverable_off">Ваш уређај неће бити видљив</string>
 </resources>
