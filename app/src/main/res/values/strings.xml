@@ -53,15 +53,24 @@
     <string name="notif_recv_active_desc">Someone nearby is about to send some files</string>
 
     <string name="notif_recv_transfer_request_title">File transfer</string>
-    <string name="notif_recv_transfer_request_desc">%1$s wants to send you %2$d files</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%1$s wants to send you %2$d file</item>
+        <item quantity="other">%1$s wants to send you %2$d files</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Accept</string>
     <string name="notif_recv_transfer_request_reject">Reject</string>
 
-    <string name="notif_recv_transfer_progress_title">Receiving %1$d files from %2$s…</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">Receiving %1$d file from %2$s…</item>
+        <item quantity="other">Receiving %1$d files from %2$s…</item>
+    </plurals>
     <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Cancel</string>
 
-    <string name="notif_recv_transfer_done_title">%1$d files received from %2$s</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%1$d file received from %2$s</item>
+        <item quantity="other">%1$d files received from %2$s</item>
+    </plurals>
     <string name="notif_recv_transfer_done_desc">Tap to browse received files</string>
     <string name="notif_recv_transfer_done_share">Share</string>
 

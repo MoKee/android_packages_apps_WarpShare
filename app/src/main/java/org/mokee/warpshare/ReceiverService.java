@@ -266,7 +266,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
         final Notification.Builder builder = getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                 .setContentTitle(getString(R.string.notif_recv_transfer_request_title))
-                .setContentText(getString(R.string.notif_recv_transfer_request_desc,
+                .setContentText(getResources().getQuantityString(
+                        R.plurals.notif_recv_transfer_request_desc, session.paths.size(),
                         session.name, session.paths.size()))
                 .addAction(new Notification.Action.Builder(null,
                         getString(R.string.notif_recv_transfer_request_accept),
@@ -304,7 +305,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
             mNotificationManager.notify(ip, NOTIFICATION_TRANSFER,
                     getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
-                            .setContentTitle(getString(R.string.notif_recv_transfer_progress_title,
+                            .setContentTitle(getResources().getQuantityString(
+                                    R.plurals.notif_recv_transfer_progress_title, session.paths.size(),
                                     session.paths.size(), session.name))
                             .setContentText(getString(R.string.notif_recv_transfer_progress_desc,
                                     0, session.paths.size()))
@@ -358,7 +360,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
                                           int index, int count) {
         mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER,
                 getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
-                        .setContentTitle(getString(R.string.notif_recv_transfer_progress_title,
+                        .setContentTitle(getResources().getQuantityString(
+                                R.plurals.notif_recv_transfer_progress_title, session.paths.size(),
                                 session.paths.size(), session.name))
                         .setContentText(getString(R.string.notif_recv_transfer_progress_desc,
                                 index + 1, count))
@@ -396,7 +399,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         final Notification.Builder builder = getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
-                .setContentTitle(getString(R.string.notif_recv_transfer_done_title,
+                .setContentTitle(getResources().getQuantityString(
+                        R.plurals.notif_recv_transfer_done_title, session.paths.size(),
                         session.paths.size(), session.name))
                 .setContentText(getString(R.string.notif_recv_transfer_done_desc))
                 .setContentIntent(PendingIntent.getActivity(this, 0,
