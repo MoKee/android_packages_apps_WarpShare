@@ -18,7 +18,6 @@ package org.mokee.warpshare;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Network;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -54,7 +53,7 @@ public class SetupActivity extends AppCompatActivity {
 
     private final WifiStateMonitor mWifiStateMonitor = new WifiStateMonitor() {
         @Override
-        public void onAvailable(Network network) {
+        public void onReceive(Context context, Intent intent) {
             updateState();
         }
     };

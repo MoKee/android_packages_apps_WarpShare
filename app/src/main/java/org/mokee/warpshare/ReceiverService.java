@@ -28,7 +28,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Icon;
-import android.net.Network;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.IBinder;
@@ -92,7 +91,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
     private final WifiStateMonitor mWifiStateMonitor = new WifiStateMonitor() {
         @Override
-        public void onAvailable(Network network) {
+        public void onReceive(Context context, Intent intent) {
             stopIfNotReady();
         }
     };

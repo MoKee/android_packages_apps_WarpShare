@@ -19,7 +19,6 @@ package org.mokee.warpshare;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Network;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.format.Formatter;
@@ -85,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements DiscoverListener 
 
     private final WifiStateMonitor mWifiStateMonitor = new WifiStateMonitor() {
         @Override
-        public void onAvailable(Network network) {
+        public void onReceive(Context context, Intent intent) {
             setupIfNeeded();
         }
     };
