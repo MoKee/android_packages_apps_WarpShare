@@ -15,9 +15,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="send_cancel">Utzi</string>
     <string name="notif_recv_transfer_request_accept">Onartu</string>
     <string name="notif_recv_transfer_progress_cancel">Utzi</string>
+    <string name="notif_recv_transfer_done_share">Partekatu</string>
     <string name="settings">Ezarpenak</string>
 </resources>

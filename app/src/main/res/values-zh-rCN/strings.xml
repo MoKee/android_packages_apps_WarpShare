@@ -15,7 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name">跃传</string>
     <string name="menu_settings">设置…</string>
     <string name="introduction">跃传可以用来向身边的人快速、免流量地发送文件。</string>
@@ -42,14 +42,21 @@
     <string name="notif_recv_active_title">您的设备当前可被发现</string>
     <string name="notif_recv_active_desc">附近有人正准备发送文件</string>
     <string name="notif_recv_transfer_request_title">文件传输</string>
-    <string name="notif_recv_transfer_request_desc">%1$s 想向你发送 %2$d 个文件</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="other">%1$s 想向你发送 %2$d 个文件</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">接受</string>
     <string name="notif_recv_transfer_request_reject">拒绝</string>
-    <string name="notif_recv_transfer_progress_title">正在从 %2$s 接收 %1$d 个文件…</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="other">正在从 %2$s 接收 %1$d 个文件…</item>
+    </plurals>
     <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">取消</string>
-    <string name="notif_recv_transfer_done_title">已从 %2$s 收到 %1$d 个文件</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="other">已从 %2$s 收到 %1$d 个文件</item>
+    </plurals>
     <string name="notif_recv_transfer_done_desc">点按以浏览收到的文件</string>
+    <string name="notif_recv_transfer_done_share">分享</string>
     <string name="notif_recv_transfer_failed_title">接收已中止</string>
     <string name="notif_recv_transfer_failed_desc">从 %s 接收文件失败</string>
     <string name="settings">设置</string>

@@ -15,7 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name">WarpShare</string>
     <string name="menu_settings">Seaded...</string>
     <string name="introduction">WarpShare saab kiiresti saata faile teistele lähedal, ilma mobiilset andmesidet kasutamatta.</string>
@@ -43,14 +43,12 @@
     <string name="notif_recv_active_title">Teie seade on leitav</string>
     <string name="notif_recv_active_desc">Keegi läheduses on saatmas mõnda faili</string>
     <string name="notif_recv_transfer_request_title">Failide ülekanne</string>
-    <string name="notif_recv_transfer_request_desc">%1$s soovib saata teile %2$d faili</string>
     <string name="notif_recv_transfer_request_accept">Nõustu</string>
     <string name="notif_recv_transfer_request_reject">Keeldu</string>
-    <string name="notif_recv_transfer_progress_title">%1$d faili vastuvõtmine %2$s…</string>
     <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Tühista</string>
-    <string name="notif_recv_transfer_done_title">%1$d faili saadud %2$s</string>
     <string name="notif_recv_transfer_done_desc">Koputage vastuvõetud failide sirvimiseks</string>
+    <string name="notif_recv_transfer_done_share">Jaga</string>
     <string name="notif_recv_transfer_failed_title">Vastuvõtmine katkestati</string>
     <string name="notif_recv_transfer_failed_desc">Failide vastuvõtmine failist %s ebaõnnestus</string>
     <string name="settings">Seaded</string>

@@ -15,8 +15,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="send_cancel">Atšaukti</string>
     <string name="notif_recv_transfer_request_accept">Atsiliepti</string>
     <string name="notif_recv_transfer_progress_cancel">Atšaukti</string>
+    <string name="notif_recv_transfer_done_share">Bendrinti</string>
 </resources>

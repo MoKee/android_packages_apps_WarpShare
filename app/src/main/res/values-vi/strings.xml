@@ -15,9 +15,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="send_cancel">Hủy</string>
     <string name="notif_recv_transfer_request_accept">Chấp nhận</string>
     <string name="notif_recv_transfer_progress_cancel">Hủy</string>
+    <string name="notif_recv_transfer_done_share">Chia sẻ</string>
     <string name="settings">Cài đặt</string>
 </resources>
