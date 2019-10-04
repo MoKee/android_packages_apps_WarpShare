@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_name">WarpShare</string>
 
@@ -63,6 +63,7 @@
 
     <string name="notif_recv_transfer_done_title">%1$d files received from %2$s</string>
     <string name="notif_recv_transfer_done_desc">Tap to browse received files</string>
+    <string name="notif_recv_transfer_done_share">Share</string>
 
     <string name="notif_recv_transfer_failed_title">Receiving aborted</string>
     <string name="notif_recv_transfer_failed_desc">Failed receiving files from %s</string>

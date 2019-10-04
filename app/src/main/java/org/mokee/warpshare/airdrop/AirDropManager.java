@@ -24,6 +24,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.dd.plist.NSArray;
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,6 +59,9 @@ import okhttp3.Call;
 import okio.BufferedSink;
 import okio.Okio;
 import okio.Pipe;
+
+import static org.mokee.warpshare.airdrop.AirDropTypes.getEntryType;
+import static org.mokee.warpshare.airdrop.AirDropTypes.getMimeType;
 
 public class AirDropManager implements
         Discoverer,
@@ -203,33 +208,6 @@ public class AirDropManager implements
         if (peer != null) {
             mDiscoverListener.onPeerDisappeared(peer);
         }
-    }
-
-    private String getEntryType(Entity entity) {
-        final String mime = entity.type();
-
-        if (!TextUtils.isEmpty(mime)) {
-            if (mime.startsWith("image/")) {
-                final String name = entity.name().toLowerCase();
-                if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
-                    return "public.jpeg";
-                } else if (name.endsWith(".jp2")) {
-                    return "public.jpeg-2000";
-                } else if (name.endsWith(".gif")) {
-                    return "com.compuserve.gif";
-                } else if (name.endsWith(".png")) {
-                    return "public.png";
-                } else {
-                    return "public.image";
-                }
-            } else if (mime.startsWith("audio/")) {
-                return "public.audio";
-            } else if (mime.startsWith("video/")) {
-                return "public.video";
-            }
-        }
-
-        return "public.content";
     }
 
     @Override
@@ -407,19 +385,19 @@ public class AirDropManager implements
         }
 
         final NSObject[] files = ((NSArray) filesNode).getArray();
-        final List<String> fileNames = new ArrayList<>();
+        final List<String> fileTypes = new ArrayList<>();
         final List<String> filePaths = new ArrayList<>();
         for (NSObject file : files) {
             final NSDictionary fileNode = (NSDictionary) file;
-            final NSObject fileNameNode = fileNode.get("FileName");
+            final NSObject fileTypeNode = fileNode.get("FileType");
             final NSObject filePathNode = fileNode.get("FileBomPath");
-            if (fileNameNode != null && filePathNode != null) {
-                fileNames.add(fileNameNode.toJavaObject(String.class));
+            if (fileTypeNode != null && filePathNode != null) {
+                fileTypes.add(getMimeType(fileTypeNode.toJavaObject(String.class)));
                 filePaths.add(filePathNode.toJavaObject(String.class));
             }
         }
 
-        if (fileNames.isEmpty()) {
+        if (filePaths.isEmpty()) {
             Log.w(TAG, "Invalid ask from " + ip + ": No file asked");
             callback.call(null);
             return;
@@ -439,7 +417,7 @@ public class AirDropManager implements
             }
         }
 
-        final ReceivingSession session = new ReceivingSession(ip, id, name, fileNames, filePaths, icon) {
+        final ReceivingSession session = new ReceivingSession(ip, id, name, fileTypes, filePaths, icon) {
             @Override
             public void accept() {
                 final NSDictionary response = new NSDictionary();
@@ -489,7 +467,7 @@ public class AirDropManager implements
         session.stream = stream;
 
         final AirDropArchiveUtil.FileFactory fileFactory = new AirDropArchiveUtil.FileFactory() {
-            private final int fileCount = session.files.size();
+            private final int fileCount = session.paths.size();
             private int fileIndex = 0;
 
             @Override
@@ -563,22 +541,27 @@ public class AirDropManager implements
         public final String ip;
         public final String id;
         public final String name;
-        public final List<String> files;
+        public final List<String> types;
         public final List<String> paths;
 
         @Nullable
         public final Bitmap preview;
 
+        private final Map<String, String> targetFileNames = new HashMap<>();
+
         InputStream stream;
 
-        ReceivingSession(String ip, String id, String name, List<String> files, List<String> paths,
+        ReceivingSession(String ip, String id, String name, List<String> types, List<String> paths,
                          @Nullable Bitmap preview) {
             this.ip = ip;
             this.id = id;
             this.name = name;
-            this.files = files;
+            this.types = types;
             this.paths = paths;
             this.preview = preview;
+            for (String path : paths) {
+                targetFileNames.put(path, assignFileName(path));
+            }
         }
 
         public abstract void accept();
@@ -586,6 +569,20 @@ public class AirDropManager implements
         public abstract void reject();
 
         public abstract void cancel();
+
+        private String assignFileName(String fileName) {
+            final String[] segments = fileName.split("/");
+            fileName = segments[segments.length - 1];
+
+            return String.format(Locale.US, "%s_%d_%s",
+                    id, System.currentTimeMillis(), fileName);
+        }
+
+        @NonNull
+        @SuppressWarnings("ConstantConditions")
+        public String getFileName(String path) {
+            return targetFileNames.get(path);
+        }
 
     }
 

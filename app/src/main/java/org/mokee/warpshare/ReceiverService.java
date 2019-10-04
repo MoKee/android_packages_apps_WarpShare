@@ -41,10 +41,10 @@ import org.mokee.warpshare.airdrop.AirDropManager.ReceivingSession;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -60,6 +60,7 @@ import static android.bluetooth.le.BluetoothLeScanner.EXTRA_CALLBACK_TYPE;
 import static android.bluetooth.le.BluetoothLeScanner.EXTRA_LIST_SCAN_RESULT;
 import static android.bluetooth.le.ScanSettings.CALLBACK_TYPE_FIRST_MATCH;
 import static android.bluetooth.le.ScanSettings.CALLBACK_TYPE_MATCH_LOST;
+import static androidx.core.content.FileProvider.getUriForFile;
 import static org.mokee.warpshare.airdrop.AirDropManager.STATUS_OK;
 
 public class ReceiverService extends Service implements AirDropManager.ReceiverListener {
@@ -266,7 +267,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         final Notification.Builder builder = getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                 .setContentTitle(getString(R.string.notif_recv_transfer_request_title))
                 .setContentText(getString(R.string.notif_recv_transfer_request_desc,
-                        session.name, session.files.size()))
+                        session.name, session.paths.size()))
                 .addAction(new Notification.Action.Builder(null,
                         getString(R.string.notif_recv_transfer_request_accept),
                         getTransferIntent(ACTION_TRANSFER_ACCEPT, session.ip))
@@ -304,9 +305,9 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             mNotificationManager.notify(ip, NOTIFICATION_TRANSFER,
                     getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                             .setContentTitle(getString(R.string.notif_recv_transfer_progress_title,
-                                    session.files.size(), session.name))
+                                    session.paths.size(), session.name))
                             .setContentText(getString(R.string.notif_recv_transfer_progress_desc,
-                                    0, session.files.size()))
+                                    0, session.paths.size()))
                             .setProgress(0, 0, true)
                             .setOngoing(true)
                             .setOnlyAlertOnce(true)
@@ -324,20 +325,12 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         mWakeLock.release();
     }
 
-    private String getFileName(ReceivingSession session, String fileName) {
-        final String[] segments = fileName.split("/");
-        fileName = segments[segments.length - 1];
-
-        return String.format(Locale.US, "%s_%d_%s",
-                session.id, System.currentTimeMillis(), fileName);
-    }
-
     @Override
     public void onAirDropTransfer(ReceivingSession session, String fileName, InputStream input) {
         Log.d(TAG, "Transferring " + fileName + " from " + session.name);
-        final String targetFileName = getFileName(session, fileName);
+        final String targetFileName = session.getFileName(fileName);
         final File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        final File file = new File(downloadDir, getFileName(session, targetFileName));
+        final File file = new File(downloadDir, targetFileName);
         try {
             final Source source = Okio.source(input);
             final BufferedSink sink = Okio.buffer(Okio.sink(file));
@@ -366,7 +359,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER,
                 getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                         .setContentTitle(getString(R.string.notif_recv_transfer_progress_title,
-                                session.files.size(), session.name))
+                                session.paths.size(), session.name))
                         .setContentText(getString(R.string.notif_recv_transfer_progress_desc,
                                 index + 1, count))
                         .setProgress((int) bytesTotal, (int) bytesReceived, false)
@@ -385,14 +378,38 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
         mNotificationManager.cancel(session.ip, NOTIFICATION_TRANSFER);
 
+        final Intent shareIntent;
+        if (session.paths.size() > 1) {
+            final ArrayList<Uri> uris = new ArrayList<>();
+            for (String path : session.paths) {
+                uris.add(getUriForReceivedFile(session.getFileName(path)));
+            }
+            shareIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uris);
+        } else {
+            final Uri uri = getUriForReceivedFile(session.getFileName(session.paths.get(0)));
+            shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+        }
+
+        shareIntent.setType(getGeneralMimeType(session.types));
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
         final Notification.Builder builder = getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
                 .setContentTitle(getString(R.string.notif_recv_transfer_done_title,
-                        session.files.size(), session.name))
+                        session.paths.size(), session.name))
                 .setContentText(getString(R.string.notif_recv_transfer_done_desc))
                 .setContentIntent(PendingIntent.getActivity(this, 0,
                         new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                        PendingIntent.FLAG_UPDATE_CURRENT));
+                        PendingIntent.FLAG_UPDATE_CURRENT))
+                .addAction(new Notification.Action.Builder(null,
+                        getString(R.string.notif_recv_transfer_done_share),
+                        PendingIntent.getActivity(this, 0,
+                                Intent.createChooser(shareIntent, null)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                                PendingIntent.FLAG_UPDATE_CURRENT))
+                        .build());
 
         if (session.preview != null) {
             builder.setLargeIcon(session.preview);
@@ -438,6 +455,50 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
                 .setCategory(category)
                 .setSmallIcon(R.drawable.ic_notification_white_24dp)
                 .setColor(getColor(R.color.primary));
+    }
+
+    private Uri getUriForReceivedFile(String fileName) {
+        final File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        final File file = new File(downloadDir, fileName);
+        return getUriForFile(this, "org.mokee.warpshare.files", file);
+    }
+
+    private String getGeneralMimeType(List<String> mimeTypes) {
+        String generalType = null;
+        String generalSubtype = null;
+
+        for (String mimeType : mimeTypes) {
+            final String[] segments = mimeType.split("/");
+            if (segments.length != 2) continue;
+            final String type = segments[0];
+            final String subtype = segments[1];
+            if (type.equals("*") && !subtype.equals("*")) continue;
+
+            if (generalType == null) {
+                generalType = type;
+                generalSubtype = subtype;
+                continue;
+            }
+
+            if (!generalType.equals(type)) {
+                generalType = "*";
+                generalSubtype = "*";
+                break;
+            }
+
+            if (!generalSubtype.equals(subtype)) {
+                generalSubtype = "*";
+            }
+        }
+
+        if (generalType == null) {
+            generalType = "*";
+        }
+        if (generalSubtype == null) {
+            generalSubtype = "*";
+        }
+
+        return generalType + "/" + generalSubtype;
     }
 
 }
