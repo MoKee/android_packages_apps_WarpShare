@@ -76,6 +76,8 @@ public class MainActivity extends AppCompatActivity implements DiscoverListener 
 
     private String mPeerPicked = null;
 
+    private PartialWakeLock mWakeLock;
+
     private AirDropManager mAirDropManager;
     private NearShareManager mNearShareManager;
 
@@ -102,6 +104,8 @@ public class MainActivity extends AppCompatActivity implements DiscoverListener 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mWakeLock = new PartialWakeLock(this, TAG);
 
         mAirDropManager = new AirDropManager(this,
                 WarpShareApplication.from(this).getCertificateManager());
@@ -258,11 +262,15 @@ public class MainActivity extends AppCompatActivity implements DiscoverListener 
         state.bytesTotal = -1;
         state.bytesSent = 0;
         mAdapter.notifyDataSetChanged();
+        mShouldKeepDiscovering = true;
+        mWakeLock.acquire();
     }
 
     private void handleSendRejected(Peer peer, PeerState state) {
         state.status = R.string.status_rejected;
         mAdapter.notifyDataSetChanged();
+        mShouldKeepDiscovering = false;
+        mWakeLock.release();
     }
 
     private void handleSending(Peer peer, PeerState state) {
@@ -273,6 +281,8 @@ public class MainActivity extends AppCompatActivity implements DiscoverListener 
     private void handleSendSucceed(Peer peer, PeerState state) {
         state.status = 0;
         mAdapter.notifyDataSetChanged();
+        mShouldKeepDiscovering = false;
+        mWakeLock.release();
     }
 
     private void handleSendFailed(Peer peer) {
@@ -281,6 +291,8 @@ public class MainActivity extends AppCompatActivity implements DiscoverListener 
             state.status = 0;
         }
         mAdapter.notifyDataSetChanged();
+        mShouldKeepDiscovering = false;
+        mWakeLock.release();
     }
 
     private void sendFile(Peer peer, Uri uri, String type) {

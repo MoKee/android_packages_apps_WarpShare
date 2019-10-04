@@ -85,6 +85,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
     private boolean mRunning = false;
 
+    private PartialWakeLock mWakeLock;
+
     private NotificationManager mNotificationManager;
     private AirDropManager mAirDropManager;
 
@@ -135,6 +137,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate");
+
+        mWakeLock = new PartialWakeLock(this, TAG);
 
         mAirDropManager = new AirDropManager(this,
                 WarpShareApplication.from(this).getCertificateManager());
@@ -282,12 +286,14 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
         }
 
         mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER, builder.build());
+        mWakeLock.acquire();
     }
 
     @Override
     public void onAirDropRequestCanceled(ReceivingSession session) {
         Log.d(TAG, "Transfer ask canceled");
         mNotificationManager.cancel(session.ip, NOTIFICATION_TRANSFER);
+        mWakeLock.release();
     }
 
     private void handleTransferAccept(String ip) {
@@ -316,6 +322,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             session.reject();
         }
         mNotificationManager.cancel(ip, NOTIFICATION_TRANSFER);
+        mWakeLock.release();
     }
 
     private String getFileName(ReceivingSession session, String fileName) {
@@ -350,6 +357,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             session.cancel();
         }
         mNotificationManager.cancel(ip, NOTIFICATION_TRANSFER);
+        mWakeLock.release();
     }
 
     @Override
@@ -390,6 +398,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
                         .build());
 
         mSessions.remove(session.ip);
+
+        mWakeLock.release();
     }
 
     @Override
@@ -406,6 +416,8 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
                         .build());
 
         mSessions.remove(session.ip);
+
+        mWakeLock.release();
     }
 
     private PendingIntent getTransferIntent(String action, String ip) {

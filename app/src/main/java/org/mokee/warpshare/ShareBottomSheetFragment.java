@@ -82,6 +82,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     private long mBytesTotal = -1;
     private long mBytesSent = 0;
 
+    private PartialWakeLock mWakeLock;
+
     private AirDropManager mAirDropManager;
     private NearShareManager mNearShareManager;
 
@@ -102,6 +104,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     };
 
     private boolean mIsDiscovering = false;
+    private boolean mShouldKeepDiscovering = false;
 
     private SendingSession mSending;
 
@@ -111,6 +114,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mWakeLock = new PartialWakeLock(getContext(), TAG);
         mAirDropManager = new AirDropManager(getContext(),
                 WarpShareApplication.from(getContext()).getCertificateManager());
         mNearShareManager = new NearShareManager(getContext());
@@ -199,7 +203,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
     public void onPause() {
         super.onPause();
 
-        if (mIsDiscovering) {
+        if (mIsDiscovering && !mShouldKeepDiscovering) {
             mAirDropManager.stopDiscover();
             mNearShareManager.stopDiscover();
             mIsDiscovering = false;
@@ -288,6 +292,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         mAdapter.notifyDataSetChanged();
         mSendButton.setEnabled(false);
         mDiscoveringView.setVisibility(View.GONE);
+        mShouldKeepDiscovering = true;
+        mWakeLock.acquire();
     }
 
     private void handleSendRejected() {
@@ -296,6 +302,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         mAdapter.notifyDataSetChanged();
         mSendButton.setEnabled(true);
         mDiscoveringView.setVisibility(View.VISIBLE);
+        mShouldKeepDiscovering = false;
+        mWakeLock.release();
         Toast.makeText(getContext(), R.string.toast_rejected, Toast.LENGTH_SHORT).show();
     }
 
@@ -306,6 +314,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
     private void handleSendSucceed() {
         mSending = null;
+        mShouldKeepDiscovering = false;
+        mWakeLock.release();
         Toast.makeText(getContext(), R.string.toast_completed, Toast.LENGTH_SHORT).show();
         mParent.setResult(Activity.RESULT_OK);
         dismiss();
@@ -318,6 +328,8 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         mAdapter.notifyDataSetChanged();
         mSendButton.setEnabled(true);
         mDiscoveringView.setVisibility(View.VISIBLE);
+        mShouldKeepDiscovering = false;
+        mWakeLock.release();
     }
 
     private <P extends Peer> void sendFile(P peer, List<Entity> entities) {
