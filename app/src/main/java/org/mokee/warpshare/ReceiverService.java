@@ -385,16 +385,23 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
 
         mNotificationManager.cancel(session.ip, NOTIFICATION_TRANSFER);
 
-        mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER,
-                getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
-                        .setContentTitle(getString(R.string.notif_recv_transfer_done_title,
-                                session.files.size(), session.name))
-                        .setContentText(getString(R.string.notif_recv_transfer_done_desc))
-                        .setContentIntent(PendingIntent.getActivity(this, 0,
-                                new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
-                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                                PendingIntent.FLAG_UPDATE_CURRENT))
-                        .build());
+        final Notification.Builder builder = getNotificationBuilder(NOTIFICATION_CHANNEL_TRANSFER, CATEGORY_STATUS)
+                .setContentTitle(getString(R.string.notif_recv_transfer_done_title,
+                        session.files.size(), session.name))
+                .setContentText(getString(R.string.notif_recv_transfer_done_desc))
+                .setContentIntent(PendingIntent.getActivity(this, 0,
+                        new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        PendingIntent.FLAG_UPDATE_CURRENT));
+
+        if (session.preview != null) {
+            builder.setLargeIcon(session.preview);
+            builder.setStyle(new Notification.BigPictureStyle()
+                    .bigLargeIcon((Icon) null)
+                    .bigPicture(session.preview));
+        }
+
+        mNotificationManager.notify(session.ip, NOTIFICATION_TRANSFER, builder.build());
 
         mSessions.remove(session.ip);
 
