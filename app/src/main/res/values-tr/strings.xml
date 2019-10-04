@@ -15,9 +15,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="send_cancel">İptal</string>
     <string name="notif_recv_transfer_request_accept">Kabul et</string>
     <string name="notif_recv_transfer_progress_cancel">İptal</string>
+    <string name="notif_recv_transfer_done_share">Paylaş</string>
     <string name="settings">Ayarlar</string>
 </resources>

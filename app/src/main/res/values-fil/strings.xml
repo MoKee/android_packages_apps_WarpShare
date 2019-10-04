@@ -15,8 +15,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="send_cancel">Kanselahin</string>
     <string name="notif_recv_transfer_progress_cancel">Kanselahin</string>
+    <string name="notif_recv_transfer_done_share">Ibahagi</string>
     <string name="settings">Mga setting</string>
 </resources>

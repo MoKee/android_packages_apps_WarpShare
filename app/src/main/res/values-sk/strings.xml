@@ -15,9 +15,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="send_cancel">Zrušiť</string>
     <string name="notif_recv_transfer_request_accept">Prijať</string>
     <string name="notif_recv_transfer_progress_cancel">Zrušiť</string>
+    <string name="notif_recv_transfer_done_share">Zdieľať</string>
     <string name="settings">Nastavenia</string>
 </resources>

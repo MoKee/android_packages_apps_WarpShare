@@ -15,7 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="notif_recv_transfer_request_accept">স্বীকার করুন</string>
     <string name="settings">Settings</string>
 </resources>

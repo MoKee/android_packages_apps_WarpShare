@@ -15,9 +15,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="send_cancel">Avbryt</string>
     <string name="notif_recv_transfer_request_accept">Godta</string>
     <string name="notif_recv_transfer_progress_cancel">Avbryt</string>
+    <string name="notif_recv_transfer_done_share">Del</string>
     <string name="settings">Innstillinger</string>
 </resources>

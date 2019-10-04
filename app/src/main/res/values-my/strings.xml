@@ -15,7 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="send_cancel">မလုပ်တော့</string>
     <string name="notif_recv_transfer_request_accept">လက်ခံရန်</string>
     <string name="notif_recv_transfer_progress_cancel">မလုပ်တော့</string>

@@ -15,7 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name">WarpShare</string>
     <string name="menu_settings">Подешавања…</string>
     <string name="introduction">WarpShare може брзо да пошаље датотеке свима који су близу, без икакве употребе мобилних података.</string>
@@ -44,14 +44,12 @@
     <string name="notif_recv_active_title">Ваш уређај је видљив</string>
     <string name="notif_recv_active_desc">Неко у близини хоће да вам пошаље фајлове</string>
     <string name="notif_recv_transfer_request_title">Пренос датотека</string>
-    <string name="notif_recv_transfer_request_desc">%1$s хоће да вам пошаље %2$d датотеке</string>
     <string name="notif_recv_transfer_request_accept">Прихвати</string>
     <string name="notif_recv_transfer_request_reject">Одбијте</string>
-    <string name="notif_recv_transfer_progress_title">Пријем %1$d датотека од %2$s…</string>
     <string name="notif_recv_transfer_progress_desc">%1$d/%2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Откажи</string>
-    <string name="notif_recv_transfer_done_title">%1$d датотеке примљене од %2$s</string>
     <string name="notif_recv_transfer_done_desc">Тапни да прегледаш примљене датотеке</string>
+    <string name="notif_recv_transfer_done_share">Дели</string>
     <string name="notif_recv_transfer_failed_title">Пријем је прекинут</string>
     <string name="notif_recv_transfer_failed_desc">Онемогућен је пријем датотека од %s</string>
     <string name="settings">Подешавања</string>

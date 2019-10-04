@@ -16,6 +16,5 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="notif_recv_transfer_request_accept">Зөвшөөрөх</string>
-    <string name="notif_recv_transfer_done_share">Хуваалцах</string>
+    <string name="notif_recv_transfer_done_share">Konigi</string>
 </resources>
