@@ -101,6 +101,7 @@ class AirDropNsdController {
     }
 
     private void createJmdns(InetAddress address) {
+        // TODO: should handle address change
         if (mJmdns == null) {
             try {
                 mJmdns = JmDNS.create(address);

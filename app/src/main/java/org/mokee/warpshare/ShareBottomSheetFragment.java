@@ -21,7 +21,6 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Network;
 import android.os.Bundle;
 import android.text.format.Formatter;
 import android.util.ArrayMap;
@@ -91,7 +90,7 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
     private final WifiStateMonitor mWifiStateMonitor = new WifiStateMonitor() {
         @Override
-        public void onAvailable(Network network) {
+        public void onReceive(Context context, Intent intent) {
             setupIfNeeded();
         }
     };
