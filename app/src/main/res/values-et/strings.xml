@@ -43,10 +43,22 @@
     <string name="notif_recv_active_title">Teie seade on leitav</string>
     <string name="notif_recv_active_desc">Keegi läheduses on saatmas mõnda faili</string>
     <string name="notif_recv_transfer_request_title">Failide ülekanne</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%1$s soovib saata teile %2$d faili</item>
+        <item quantity="other">%1$s soovib saata teile %2$d faili</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Nõustu</string>
     <string name="notif_recv_transfer_request_reject">Keeldu</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">%1$d faili vastuvõtmine %2$s…</item>
+        <item quantity="other">%1$d faili vastuvõtmine %2$s…</item>
+    </plurals>
     <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Tühista</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%1$d fail saadud %2$s</item>
+        <item quantity="other">%1$d faili saadud %2$s</item>
+    </plurals>
     <string name="notif_recv_transfer_done_desc">Koputage vastuvõetud failide sirvimiseks</string>
     <string name="notif_recv_transfer_done_share">Jaga</string>
     <string name="notif_recv_transfer_failed_title">Vastuvõtmine katkestati</string>
