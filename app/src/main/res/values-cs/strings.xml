@@ -16,9 +16,17 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Nastavení…</string>
+    <string name="button_perm">Udělit oprávnění…</string>
     <string name="send_cancel">Zrušit</string>
     <string name="notif_recv_transfer_request_accept">Přijmout</string>
+    <string name="notif_recv_transfer_request_reject">Odmítnout</string>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Zrušit</string>
     <string name="notif_recv_transfer_done_share">Sdílet</string>
     <string name="settings">Nastavení</string>
+    <string name="settings_name">Zobrazovaný název</string>
+    <string name="settings_discoverable">Zjistitelné</string>
+    <string name="settings_discoverable_off">Vaše zařízení nebude zjistitelné</string>
 </resources>
