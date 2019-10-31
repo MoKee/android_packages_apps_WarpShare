@@ -16,9 +16,56 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Ayarlar…</string>
+    <string name="introduction">WapShare, mobil veri kullanmadan, yakındaki diğerlerine hızlı bir şekilde dosya gönderebilir.</string>
+    <string name="hint_perm">WarpShare\'i kullanmak için birkaç izin gerekir.</string>
+    <string name="button_perm">İzin ver…</string>
+    <string name="hint_wifi">WarpShare\'ı kullanmak için lütfen Wi-Fi\'yi açın ve aynı ağa bağlanın.</string>
+    <string name="button_wifi">Wifi ayarlarını aç…</string>
+    <string name="hint_bt">WarpShare\'ı kullanmak için lütfen Bluetooth\'u açın.</string>
+    <string name="button_bt">Bluetooth\'u aç…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">%d dosyasını şuraya gönder…</item>
+        <item quantity="other">%d dosyalarını şuraya gönder…</item>
+    </plurals>
     <string name="send_cancel">İptal</string>
+    <string name="send_confirm">Gönder</string>
+    <string name="status_waiting_for_confirm">E-posta için bekliyor…</string>
+    <string name="status_sending">Gönderiliyor…</string>
+    <string name="status_sending_progress">Gönderiliyor... %1$s / %2$s</string>
+    <string name="status_rejected">Reddedildi</string>
+    <string name="toast_no_file">Hiçbir dosya gönderilemez</string>
+    <string name="toast_completed">Dosya gönderildi</string>
+    <string name="toast_rejected">Alıcı reddedildi</string>
+    <string name="notif_recv_service_channel">Keşfedilebilir</string>
+    <string name="notif_recv_transfer_channel">Dosya transferi</string>
+    <string name="notif_recv_active_title">Cihazınız keşfedilebilir</string>
+    <string name="notif_recv_active_desc">Yakında birileri bazı dosyaları göndermek üzere</string>
+    <string name="notif_recv_transfer_request_title">Dosya transferi</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%1$s size %2$d dosya göndermek istiyor</item>
+        <item quantity="other">%1$s size %2$d dosyalar göndermek istiyor</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Kabul et</string>
+    <string name="notif_recv_transfer_request_reject">Reddet</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">%2$s\'dan %1$d dosya alınıyor…</item>
+        <item quantity="other">%2$s\'dan %1$d dosyalar alınıyor…</item>
+    </plurals>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">İptal</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%2$s dosyasından %1$d dosya alındı</item>
+        <item quantity="other">%2$s dosyasından %1$d dosyalar alındı</item>
+    </plurals>
+    <string name="notif_recv_transfer_done_desc">Alınan dosyalara göz atmak için dokunun</string>
     <string name="notif_recv_transfer_done_share">Paylaş</string>
+    <string name="notif_recv_transfer_failed_title">İptal edildi</string>
+    <string name="notif_recv_transfer_failed_desc">%s kaynağından dosya alınamadı</string>
     <string name="settings">Ayarlar</string>
+    <string name="settings_name">Ekran adı</string>
+    <string name="settings_discoverable">Keşfedilebilir</string>
+    <string name="settings_discoverable_on">Cihazınız alıcı olarak başkalarına görünecek</string>
+    <string name="settings_discoverable_off">Cihazınız keşfedilemez</string>
 </resources>
