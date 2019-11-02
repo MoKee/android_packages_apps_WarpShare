@@ -39,16 +39,13 @@ LOCAL_DEX_PREOPT := false
 
 LOCAL_STATIC_ANDROID_LIBRARIES += \
     androidx.core_core \
+    androidx.collection_collection \
+    androidx.preference_preference \
     androidx.recyclerview_recyclerview \
     com.google.android.material_material \
 
 # Needed by JP2ForAndroid
 LOCAL_JNI_SHARED_LIBRARIES += libopenjpeg
-
-# Needed by Glide
-LOCAL_STATIC_ANDROID_LIBRARIES += \
-    android-support-fragment \
-    android-support-animatedvectordrawable \
 
 # Needed by Project Rome
 LOCAL_STATIC_JAVA_LIBRARIES += AndroidCll
@@ -62,12 +59,6 @@ LOCAL_STATIC_JAVA_AAR_LIBRARIES += $(addprefix warpshare_,$(warpshare_aar_names)
 LOCAL_STATIC_ANDROID_LIBRARIES += warpshare_MaterialProgressBar
 
 LOCAL_PROGUARD_ENABLED := disabled
-
-LOCAL_AAPT_FLAGS += \
-    --extra-packages androidx.preference
-
-LOCAL_RESOURCE_DIR += \
-    $(LOCAL_PATH)/androidx.preference/res
 
 LOCAL_JAVA_LIBRARIES := mokee-cloud
 
