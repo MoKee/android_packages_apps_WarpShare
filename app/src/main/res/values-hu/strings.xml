@@ -16,9 +16,56 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Beállítás…</string>
+    <string name="introduction">A WarpShare alkalmazással gyorsan küldhet fájlokat a közelben lévőknek, mobiladatforgalom nélkül.</string>
+    <string name="hint_perm">A WarpShare használatához néhány jogosultság szükséges.</string>
+    <string name="button_perm">Jogosultságbiztosítás…</string>
+    <string name="hint_wifi">A WarpShare használatához, kérjük, kapcsolja be a Wi-Fit és csatlakozzon ugyanahhoz a hálózathoz.</string>
+    <string name="button_wifi">A Wi-Fi beállításainak megnyitása…</string>
+    <string name="hint_bt">A WarpShare használatához, kérjük, kapcsolja be a Bluetooth-ot.</string>
+    <string name="button_bt">Bluetooth-bekapcsolás…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">%d fájl küldése…</item>
+        <item quantity="other">%d fájl küldése…</item>
+    </plurals>
     <string name="send_cancel">Mégse</string>
+    <string name="send_confirm">Küldés</string>
+    <string name="status_waiting_for_confirm">Visszaigazolásra vár…</string>
+    <string name="status_sending">Küldés…</string>
+    <string name="status_sending_progress">Küldés… %1$s / %2$s</string>
+    <string name="status_rejected">Elutasítva</string>
+    <string name="toast_no_file">Nincs elküdhető fájl</string>
+    <string name="toast_completed">Fájlok elküldve</string>
+    <string name="toast_rejected">Fogadás elutasítva</string>
+    <string name="notif_recv_service_channel">Felfedezhető</string>
+    <string name="notif_recv_transfer_channel">Fájlátvitel</string>
+    <string name="notif_recv_active_title">Az Ön készüléke felfedezhető</string>
+    <string name="notif_recv_active_desc">Valaki a közelben fájlokat készül küldeni</string>
+    <string name="notif_recv_transfer_request_title">Fájlátvitel</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%2$d fájlt kíván Önnek küldeni a következő: %1$s</item>
+        <item quantity="other">%2$d fájlt kíván Önnek küldeni a következő: %1$s</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Elfogadás</string>
+    <string name="notif_recv_transfer_request_reject">Elutasítás</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">%1$d fájl fogadása a következőtől: %2$s…</item>
+        <item quantity="other">%1$d fájl fogadása a következőtől: %2$s…</item>
+    </plurals>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Mégse</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%1$d fájl fogadva a következőtől: %2$s</item>
+        <item quantity="other">%1$d fájl fogadva a következőtől: %2$s</item>
+    </plurals>
+    <string name="notif_recv_transfer_done_desc">Érintse meg a fogadott fájlok közötti böngészéshez</string>
     <string name="notif_recv_transfer_done_share">Megosztás</string>
+    <string name="notif_recv_transfer_failed_title">Fájlfogadás megszakítva</string>
+    <string name="notif_recv_transfer_failed_desc">A fájl fogadása meghiúsult a következőtől: %s</string>
     <string name="settings">Beállítások</string>
+    <string name="settings_name">Megjelenítési név</string>
+    <string name="settings_discoverable">Felfedezhetőség</string>
+    <string name="settings_discoverable_on">Készüléke láthatóvá válik mások számára, mint fogadó</string>
+    <string name="settings_discoverable_off">Készüléke nem lesz felfedezhető mások számára</string>
 </resources>
