@@ -16,9 +16,32 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Настройки…</string>
+    <string name="introduction">WarpShare может быстро отправлять файлы другим пользователям без использования мобильных данных.</string>
+    <string name="hint_perm">Для использования WarpShare требуются некоторые разрешения.</string>
+    <string name="button_perm">Предоставить разрешения…</string>
+    <string name="hint_wifi">Чтобы использовать WarpShare, включите Wi-Fi и подключитесь к одной сети.</string>
+    <string name="button_wifi">Открыть настройки Wi-Fi…</string>
+    <string name="hint_bt">Для использования WarpShare, пожалуйста, включите Bluetooth.</string>
+    <string name="button_bt">Включить Bluetooth…</string>
     <string name="send_cancel">Отмена</string>
+    <string name="send_confirm">Отправить</string>
+    <string name="status_waiting_for_confirm">Ожидание подтверждения…</string>
+    <string name="status_sending">Отправка…</string>
+    <string name="status_sending_progress">Отправка… %1$s / %2$s</string>
+    <string name="status_rejected">Отклонено</string>
+    <string name="toast_no_file">Файл не может быть отправлен</string>
+    <string name="toast_completed">Файлы отправлены</string>
+    <string name="toast_rejected">Получатель отклонил</string>
+    <string name="notif_recv_service_channel">Видимый</string>
+    <string name="notif_recv_transfer_channel">Передача файлов</string>
+    <string name="notif_recv_active_title">Ваше устройство можно обнаружить</string>
+    <string name="notif_recv_active_desc">Кое-кто рядом собирается отправить файлы</string>
+    <string name="notif_recv_transfer_request_title">Передача файлов</string>
     <string name="notif_recv_transfer_request_accept">Принять</string>
     <string name="notif_recv_transfer_progress_cancel">Отмена</string>
     <string name="notif_recv_transfer_done_share">Отправить</string>
     <string name="settings">Настройки</string>
+    <string name="settings_discoverable">Видимый</string>
 </resources>
