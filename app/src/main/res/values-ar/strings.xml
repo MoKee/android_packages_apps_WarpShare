@@ -16,9 +16,31 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">إعدادات…</string>
+    <string name="introduction">يمكن لـ WarpShare إرسال الملفات بسرعة إلى الآخرين في مكان قريب ، دون أي استخدام لبيانات الجوال.</string>
+    <string name="hint_perm">لاستخدام WarpShare ، هناك عدة أذونات مطلوبة.</string>
+    <string name="button_perm">منح الإذن…</string>
+    <string name="hint_wifi">لاستخدام WarpShare ، يرجى تشغيل Wi-Fi والاتصال بنفس الشبكة.</string>
+    <string name="button_wifi">افتح إعدادات Wi-Fi…</string>
+    <string name="hint_bt">لاستخدام WarpShare ، يرجى تشغيل Bluetooth.</string>
+    <string name="button_bt">تشغيل البلوتوث…</string>
     <string name="send_cancel">إلغاء</string>
+    <string name="send_confirm">إرسال</string>
+    <string name="status_waiting_for_confirm">في انتظار التأكيد…</string>
+    <string name="status_sending">إرسال…</string>
+    <string name="status_rejected">مرفوض</string>
+    <string name="toast_no_file">لا يمكن إرسال ملف</string>
+    <string name="toast_completed">تم إرسال الملف</string>
+    <string name="toast_rejected">رفض الاستقبال</string>
+    <string name="notif_recv_service_channel">قابل للاكتشاف</string>
+    <string name="notif_recv_transfer_channel">نقل الملفات</string>
+    <string name="notif_recv_active_title">جهازك قابل للاكتشاف</string>
+    <string name="notif_recv_active_desc">شخص قريب على وشك إرسال بعض الملفات</string>
+    <string name="notif_recv_transfer_request_title">نقل الملفات</string>
     <string name="notif_recv_transfer_request_accept">قبول</string>
     <string name="notif_recv_transfer_progress_cancel">إلغاء</string>
     <string name="notif_recv_transfer_done_share">مشاركة</string>
     <string name="settings">الإعدادات</string>
+    <string name="settings_discoverable">قابل للاكتشاف</string>
 </resources>
