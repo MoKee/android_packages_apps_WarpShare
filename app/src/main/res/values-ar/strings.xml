@@ -25,6 +25,14 @@
     <string name="button_wifi">افتح إعدادات Wi-Fi…</string>
     <string name="hint_bt">لاستخدام WarpShare ، يرجى تشغيل Bluetooth.</string>
     <string name="button_bt">تشغيل البلوتوث…</string>
+    <plurals name="send_files_to">
+        <item quantity="zero">ارسال %d ملفات إلى…</item>
+        <item quantity="one">ارسال %d ملف إلى…</item>
+        <item quantity="two">ارسال %d ملفات إلى…</item>
+        <item quantity="few">ارسال %d ملفات إلى…</item>
+        <item quantity="many">ارسال %d ملفات إلى…</item>
+        <item quantity="other">ارسال %d ملفات إلى…</item>
+    </plurals>
     <string name="send_cancel">إلغاء</string>
     <string name="send_confirm">إرسال</string>
     <string name="status_waiting_for_confirm">في انتظار التأكيد…</string>
@@ -39,6 +47,8 @@
     <string name="notif_recv_active_desc">شخص قريب على وشك إرسال بعض الملفات</string>
     <string name="notif_recv_transfer_request_title">نقل الملفات</string>
     <string name="notif_recv_transfer_request_accept">قبول</string>
+    <string name="notif_recv_transfer_request_reject">رفض</string>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">إلغاء</string>
     <string name="notif_recv_transfer_done_share">مشاركة</string>
     <string name="settings">الإعدادات</string>
