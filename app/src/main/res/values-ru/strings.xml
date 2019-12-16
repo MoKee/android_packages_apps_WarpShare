@@ -25,6 +25,12 @@
     <string name="button_wifi">Открыть настройки Wi-Fi…</string>
     <string name="hint_bt">Для использования WarpShare, пожалуйста, включите Bluetooth.</string>
     <string name="button_bt">Включить Bluetooth…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">Отправить %d файл …</item>
+        <item quantity="few">Отправить %d файлов …</item>
+        <item quantity="many">Отправить %d файлов …</item>
+        <item quantity="other">Отправить %d файлов…</item>
+    </plurals>
     <string name="send_cancel">Отмена</string>
     <string name="send_confirm">Отправить</string>
     <string name="status_waiting_for_confirm">Ожидание подтверждения…</string>
@@ -40,8 +46,15 @@
     <string name="notif_recv_active_desc">Кое-кто рядом собирается отправить файлы</string>
     <string name="notif_recv_transfer_request_title">Передача файлов</string>
     <string name="notif_recv_transfer_request_accept">Принять</string>
+    <string name="notif_recv_transfer_request_reject">Отклонить</string>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Отмена</string>
+    <string name="notif_recv_transfer_done_desc">Нажмите, чтобы просмотреть полученные файлы</string>
     <string name="notif_recv_transfer_done_share">Отправить</string>
+    <string name="notif_recv_transfer_failed_title">Получение прервано</string>
+    <string name="notif_recv_transfer_failed_desc">Не удалось получить файлы из %s</string>
     <string name="settings">Настройки</string>
     <string name="settings_discoverable">Видимый</string>
+    <string name="settings_discoverable_on">Ваше устройство будет доступно</string>
+    <string name="settings_discoverable_off">Ваше устройство будет недоступно</string>
 </resources>
