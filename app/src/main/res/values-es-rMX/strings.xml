@@ -16,7 +16,11 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="menu_settings">Ajustes…</string>
     <string name="send_cancel">Cancelar</string>
+    <string name="send_confirm">Enviar</string>
+    <string name="status_waiting_for_confirm">Esperando confirmación…</string>
+    <string name="status_sending">Enviando…</string>
     <string name="notif_recv_transfer_request_accept">Aceptar</string>
     <string name="notif_recv_transfer_progress_cancel">Cancelar</string>
     <string name="notif_recv_transfer_done_share">Compartir</string>
