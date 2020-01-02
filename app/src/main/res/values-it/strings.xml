@@ -16,9 +16,49 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Impostazioni…</string>
+    <string name="hint_bt">Per utilizzare WarpShare, per favore attiva il Bluetooth.</string>
+    <string name="button_bt">Attiva Bluetooth…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">Invia %d file a…</item>
+        <item quantity="other">Invia %d file a…</item>
+    </plurals>
     <string name="send_cancel">Annulla</string>
+    <string name="send_confirm">Invia</string>
+    <string name="status_waiting_for_confirm">In attesa di conferma…</string>
+    <string name="status_sending">Invio in corso…</string>
+    <string name="status_sending_progress">Invio in corso… %1$s / %2$s</string>
+    <string name="status_rejected">Rifiutato</string>
+    <string name="toast_no_file">Nessun file può essere inviato</string>
+    <string name="toast_completed">File inviati</string>
+    <string name="toast_rejected">Rifiutato dal destinatario</string>
+    <string name="notif_recv_service_channel">Visibile</string>
+    <string name="notif_recv_transfer_channel">Trasferimento di file</string>
+    <string name="notif_recv_active_title">Il tuo dispositivo è rilevabile</string>
+    <string name="notif_recv_active_desc">Qualcuno nelle vicinanze vuole inviare alcuni file</string>
+    <string name="notif_recv_transfer_request_title">Trasferimento di file</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%1$s vuole inviarti %2$d file</item>
+        <item quantity="other">%1$s vuole inviarti %2$d file</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Accetta</string>
+    <string name="notif_recv_transfer_request_reject">Rifiuta</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">Ricezione di %1$d file da %2$s…</item>
+        <item quantity="other">Ricezione di %1$d file da %2$s…</item>
+    </plurals>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Annulla</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%1$d file ricevuto da %2$s</item>
+        <item quantity="other">%1$d file ricevuti da %2$s</item>
+    </plurals>
+    <string name="notif_recv_transfer_done_desc">Tocca per visualizzare i file ricevuti</string>
     <string name="notif_recv_transfer_done_share">Condividi</string>
+    <string name="notif_recv_transfer_failed_title">Ricezione interrotta</string>
+    <string name="notif_recv_transfer_failed_desc">Impossibile ricevere i file da %s</string>
     <string name="settings">Impostazioni</string>
+    <string name="settings_name">Visualizza nome</string>
+    <string name="settings_discoverable">Visibile</string>
 </resources>
