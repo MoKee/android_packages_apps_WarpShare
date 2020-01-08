@@ -16,9 +16,56 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Einstellungen…</string>
+    <string name="introduction">WarpShare kann Dateien schnell an andere in der Nähe senden, ohne dass mobile Daten verwendet werden.</string>
+    <string name="hint_perm">Um WarpShare nutzen zu können, sind mehrere Berechtigungen erforderlich.</string>
+    <string name="button_perm">Berechtigungen erteilen…</string>
+    <string name="hint_wifi">Um WarpShare zu verwenden, aktivieren Sie bitte das Wlan und verbinden Sie sich mit demselben Netzwerk.</string>
+    <string name="button_wifi">WLAN Einstellungen öffnen…</string>
+    <string name="hint_bt">Um WarpShare zu verwenden, aktivieren Sie bitte Bluetooth.</string>
+    <string name="button_bt">Bluetooth wird aktiviert…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">Sende %d Datei an…</item>
+        <item quantity="other">Sende %d Dateien an…</item>
+    </plurals>
     <string name="send_cancel">Abbrechen</string>
+    <string name="send_confirm">Senden</string>
+    <string name="status_waiting_for_confirm">Warte auf Bestätigung…</string>
+    <string name="status_sending">Wird gesendet…</string>
+    <string name="status_sending_progress">Sende… %1$s / %2$s</string>
+    <string name="status_rejected">Zurückgewiesen</string>
+    <string name="toast_no_file">Datei kann nicht gesendet werden</string>
+    <string name="toast_completed">Datei versendet</string>
+    <string name="toast_rejected">Empfänger abgelehnt</string>
+    <string name="notif_recv_service_channel">Sichtbarkeit</string>
+    <string name="notif_recv_transfer_channel">Dateiübertragung</string>
+    <string name="notif_recv_active_title">Ihr Gerät ist Sichtbar</string>
+    <string name="notif_recv_active_desc">Jemand in der Nähe ist dabei, Dateien zu senden</string>
+    <string name="notif_recv_transfer_request_title">Dateiübertragung</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%1$s möchte Ihnen %2$d Datei senden</item>
+        <item quantity="other">%1$s möchte Ihnen %2$d Dateien senden</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Akzeptieren</string>
+    <string name="notif_recv_transfer_request_reject">Ablehnen</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">Empfange %1$d Datei von %2$s…</item>
+        <item quantity="other">Empfange %1$d Dateien von %2$s…</item>
+    </plurals>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Abbrechen</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%1$d Datei von %2$s empfangen</item>
+        <item quantity="other">%1$d Dateien empfangen von %2$s</item>
+    </plurals>
+    <string name="notif_recv_transfer_done_desc">Tippen, um empfangene Dateien zu durchsuchen</string>
     <string name="notif_recv_transfer_done_share">Teilen</string>
+    <string name="notif_recv_transfer_failed_title">Empfang abgebrochen</string>
+    <string name="notif_recv_transfer_failed_desc">Empfang der Datei von %s wurde abgebrochen</string>
     <string name="settings">Einstellungen</string>
+    <string name="settings_name">Anzeigename</string>
+    <string name="settings_discoverable">Sichtbarkeit</string>
+    <string name="settings_discoverable_on">Ihr Gerät wird bei anderen als Empfänger angezeigt</string>
+    <string name="settings_discoverable_off">Ihr Gerät ist nicht Sichtbar</string>
 </resources>
