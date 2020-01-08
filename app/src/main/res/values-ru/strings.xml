@@ -54,6 +54,7 @@
     <string name="notif_recv_transfer_failed_title">Получение прервано</string>
     <string name="notif_recv_transfer_failed_desc">Не удалось получить файлы из %s</string>
     <string name="settings">Настройки</string>
+    <string name="settings_name">Отображаемое имя</string>
     <string name="settings_discoverable">Видимый</string>
     <string name="settings_discoverable_on">Ваше устройство будет доступно</string>
     <string name="settings_discoverable_off">Ваше устройство будет недоступно</string>
