@@ -45,8 +45,20 @@
     <string name="notif_recv_active_title">Ваше устройство можно обнаружить</string>
     <string name="notif_recv_active_desc">Кое-кто рядом собирается отправить файлы</string>
     <string name="notif_recv_transfer_request_title">Передача файлов</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%1$s wants to send you %2$d file</item>
+        <item quantity="few">%1$s wants to send you %2$d files</item>
+        <item quantity="many">%1$s wants to send you %2$d files</item>
+        <item quantity="other">%1$s wants to send you %2$d files</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Принять</string>
     <string name="notif_recv_transfer_request_reject">Отклонить</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">Receiving %1$d file from %2$s…</item>
+        <item quantity="few">Receiving %1$d files from %2$s…</item>
+        <item quantity="many">Receiving %1$d files from %2$s…</item>
+        <item quantity="other">Receiving %1$d files from %2$s…</item>
+    </plurals>
     <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Отмена</string>
     <string name="notif_recv_transfer_done_desc">Нажмите, чтобы просмотреть полученные файлы</string>
