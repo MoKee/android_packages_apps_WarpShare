@@ -18,6 +18,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name">WarpShare</string>
     <string name="menu_settings">Impostazioni…</string>
+    <string name="introduction">WarpShare può inviare rapidamente file ad altri nelle vicinanze, senza alcun utilizzo di dati mobili.</string>
+    <string name="hint_perm">Per utilizzare WarpShare, sono necessarie diverse autorizzazioni.</string>
+    <string name="button_perm">Concedi permessi…</string>
+    <string name="hint_wifi">Per utilizzare WarpShare, attiva il Wi-Fi e connettiti alla stessa rete.</string>
+    <string name="button_wifi">Apri impostazioni Wi-Fi…</string>
     <string name="hint_bt">Per utilizzare WarpShare, per favore attiva il Bluetooth.</string>
     <string name="button_bt">Attiva Bluetooth…</string>
     <plurals name="send_files_to">
@@ -61,4 +66,6 @@
     <string name="settings">Impostazioni</string>
     <string name="settings_name">Visualizza nome</string>
     <string name="settings_discoverable">Visibile</string>
+    <string name="settings_discoverable_on">Il tuo dispositivo apparirà ad altri come destinatario</string>
+    <string name="settings_discoverable_off">Il tuo dispositivo non sarà rilevabile</string>
 </resources>
