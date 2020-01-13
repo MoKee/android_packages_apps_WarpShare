@@ -37,7 +37,6 @@
     <string name="send_confirm">إرسال</string>
     <string name="status_waiting_for_confirm">في انتظار التأكيد…</string>
     <string name="status_sending">إرسال…</string>
-    <string name="status_sending_progress">يتم الإرسال… %1$s / %2$s</string>
     <string name="status_rejected">مرفوض</string>
     <string name="toast_no_file">لا يمكن إرسال ملف</string>
     <string name="toast_completed">تم إرسال الملف</string>
@@ -51,13 +50,7 @@
     <string name="notif_recv_transfer_request_reject">رفض</string>
     <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">إلغاء</string>
-    <string name="notif_recv_transfer_done_desc">انقر لتصفح الملفات المستلمة</string>
     <string name="notif_recv_transfer_done_share">مشاركة</string>
-    <string name="notif_recv_transfer_failed_title">فشل الإستلام</string>
-    <string name="notif_recv_transfer_failed_desc">أخفق استلام الملفات من %s</string>
     <string name="settings">الإعدادات</string>
-    <string name="settings_name">عرض الاسم</string>
     <string name="settings_discoverable">قابل للاكتشاف</string>
-    <string name="settings_discoverable_on">سيظهر جهازك للآخرين كمستلم</string>
-    <string name="settings_discoverable_off">لن يكون جهازك قابلاً للاكتشاف</string>
 </resources>
