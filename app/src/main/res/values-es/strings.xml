@@ -16,13 +16,7 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="app_name">WarpShare</string>
     <string name="menu_settings">Ajustes…</string>
-    <string name="introduction">WarpShare puede enviar archivos rápidamente a otros cercanos, sin ningún uso de datos móviles.</string>
-    <string name="hint_perm">Para usar WarpShare, se requieren varios permisos.</string>
-    <string name="button_perm">Conceder permisos…</string>
-    <string name="hint_wifi">Para usar WarpShare, activa el Wi-Fi y conéctate a la misma red.</string>
-    <string name="button_wifi">Abrir ajustes de Wi-Fi…</string>
     <string name="send_cancel">Cancelar</string>
     <string name="send_confirm">Enviar</string>
     <string name="status_waiting_for_confirm">Esperando confirmación…</string>
