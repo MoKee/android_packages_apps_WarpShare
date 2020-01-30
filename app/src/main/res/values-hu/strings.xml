@@ -65,7 +65,7 @@
     <string name="notif_recv_transfer_failed_desc">A fájl fogadása meghiúsult a következőtől: %s</string>
     <string name="settings">Beállítások</string>
     <string name="settings_name">Megjelenítési név</string>
-    <string name="settings_discoverable">Felfedezhetőség</string>
+    <string name="settings_discoverable">Felfedezhető</string>
     <string name="settings_discoverable_on">Készüléke láthatóvá válik mások számára, mint fogadó</string>
     <string name="settings_discoverable_off">Készüléke nem lesz felfedezhető mások számára</string>
 </resources>
