@@ -61,6 +61,12 @@
     </plurals>
     <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Отмена</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%1$d файл получен от %2$s</item>
+        <item quantity="few">%1$d файла получено от %2$s</item>
+        <item quantity="many">%1$d файлов получено от %2$s</item>
+        <item quantity="other">%1$d файлов получено от %2$s</item>
+    </plurals>
     <string name="notif_recv_transfer_done_desc">Нажмите, чтобы просмотреть полученные файлы</string>
     <string name="notif_recv_transfer_done_share">Отправить</string>
     <string name="notif_recv_transfer_failed_title">Получение прервано</string>
