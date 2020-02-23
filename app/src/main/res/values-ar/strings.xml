@@ -36,6 +36,7 @@
     <string name="send_confirm">إرسال</string>
     <string name="status_waiting_for_confirm">في انتظار التأكيد…</string>
     <string name="status_sending">إرسال…</string>
+    <string name="status_sending_progress">إرسال… %1$s / %2$s</string>
     <string name="status_rejected">مرفوض</string>
     <string name="toast_no_file">لا يمكن إرسال ملف</string>
     <string name="toast_completed">تم إرسال الملف</string>
@@ -45,6 +46,24 @@
     <string name="notif_recv_active_title">جهازك قابل للاكتشاف</string>
     <string name="notif_recv_active_desc">شخص قريب على وشك إرسال بعض الملفات</string>
     <string name="notif_recv_transfer_request_title">نقل الملفات</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="zero">%1$s يريد أن يرسل لك %2$d ملف
+
+%1$s يريد أن يرسل لك %2$d ملفات</item>
+        <item quantity="one">%1$s يريد أن يرسل لك %2$d ملف
+%1$s يريد أن يرسل لك %2$d ملفات</item>
+        <item quantity="two">%1$s يريدان أن يرسلا لك %2$d ملف
+%1$s يريدان أن يرسلا لك %2$d ملفات</item>
+        <item quantity="few">%1$sيريدون أن يرسلوا لك %2$d ملف
+
+%1$s يريدون أن يرسلوا لك %2$d ملفات</item>
+        <item quantity="many">%1$s يريدون أن يرسلوا لك %2$d ملف
+
+%1$s يريدون أن يرسلوا لك %2$d ملفات</item>
+        <item quantity="other">%1$s يريدون أن يرسلوا لك %2$d ملف
+
+%1$s يريدون أن يرسلوا لك%2$d ملفات</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">قبول</string>
     <string name="notif_recv_transfer_request_reject">رفض</string>
     <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>

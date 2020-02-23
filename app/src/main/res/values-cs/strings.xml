@@ -17,9 +17,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name">WarpShare</string>
     <string name="menu_settings">Nastavení…</string>
+    <string name="introduction">WarpShare může rychle odesílat soubory ostatním v okolí bez použití mobilních dat.</string>
+    <string name="hint_perm">Pro použití WarpShare je vyžadováno několik oprávnění.</string>
     <string name="button_perm">Udělit oprávnění…</string>
+    <string name="hint_wifi">Pro použití WarpShare je nutné zapnout Wi-Fi a připojit se ke stejné síti.</string>
     <string name="button_wifi">Otevřít nastavení Wi-Fi…</string>
+    <string name="hint_bt">Pro použití WarpShare je nutné zapnout bluetooth.</string>
     <string name="button_bt">Zapnout Bluetooth…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">Odeslat %d soubor do…</item>
+        <item quantity="few">Odeslat %d soubory do…</item>
+        <item quantity="many">Odeslat %d souborů do…</item>
+        <item quantity="other">Odeslat %d souborů do…</item>
+    </plurals>
     <string name="send_cancel">Zrušit</string>
     <string name="send_confirm">Odeslat</string>
     <string name="status_waiting_for_confirm">Čekání na potvrzení…</string>
