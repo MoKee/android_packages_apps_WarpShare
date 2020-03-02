@@ -15,9 +15,64 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Ustawienia…</string>
+    <string name="introduction">WarpShare może szybko wysyłać pliki do innych osób w pobliżu, bez użycia danych mobilnych.</string>
+    <string name="hint_perm">Aby korzystać z WarpShare, wymagane jest kilka uprawnień.</string>
+    <string name="button_perm">Przyznaj uprawnienia…</string>
+    <string name="hint_wifi">Aby korzystać z WarpShare, włącz Wi-Fi i połącz się z tą samą siecią.</string>
+    <string name="button_wifi">Otwórz ustawienia Wi-Fi…</string>
+    <string name="hint_bt">Aby korzystać z WarpShare, włącz Bluetooth.</string>
+    <string name="button_bt">Włącz Bluetooth…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">Wyślij %d plik do…</item>
+        <item quantity="few">Wyślij %d plików do…</item>
+        <item quantity="many">Wyślij %d plików do…</item>
+        <item quantity="other">Wyślij %d plików do…</item>
+    </plurals>
     <string name="send_cancel">Anuluj</string>
+    <string name="send_confirm">Wyślij</string>
+    <string name="status_waiting_for_confirm">Oczekiwanie na potwierdzenie…</string>
+    <string name="status_sending">Wysyłanie…</string>
+    <string name="status_sending_progress">Wysyłanie… %1$s / %2$s</string>
+    <string name="status_rejected">Odrzucono</string>
+    <string name="toast_no_file">Nie można wysłać żadnego pliku</string>
+    <string name="toast_completed">Plik wysłany</string>
+    <string name="toast_rejected">Odbiorca odrzucony</string>
+    <string name="notif_recv_service_channel">Widoczność</string>
+    <string name="notif_recv_transfer_channel">Przesyłanie plików</string>
+    <string name="notif_recv_active_title">Twoje urządzenie jest wykrywalne</string>
+    <string name="notif_recv_active_desc">Ktoś w pobliżu wkrótce wysyśle pliki</string>
+    <string name="notif_recv_transfer_request_title">Przesyłanie plików</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%1$s chce wysłać Ci %2$d plik</item>
+        <item quantity="few">%1$s chce wysłać Ci %2$d plików</item>
+        <item quantity="many">%1$s chce wysłać Ci %2$d plików</item>
+        <item quantity="other">%1$s chce wysłać Ci %2$d plików</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Zaakceptuj</string>
+    <string name="notif_recv_transfer_request_reject">Odrzuć</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">Odbieranie pliku %1$d z %2$s…</item>
+        <item quantity="few">Odbieranie %1$d plików z %2$s…</item>
+        <item quantity="many">Odbieranie %1$d plików z %2$s…</item>
+        <item quantity="other">Odbieranie %1$d plików z %2$s…</item>
+    </plurals>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Anuluj</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%1$d plik odebrany od %2$s</item>
+        <item quantity="few">%1$d plików odebranych od %2$s</item>
+        <item quantity="many">%1$d plików odebranych od %2$s</item>
+        <item quantity="other">%1$d plików odebranych od %2$s</item>
+    </plurals>
+    <string name="notif_recv_transfer_done_desc">Dotknij, aby przeglądać otrzymane pliki</string>
     <string name="notif_recv_transfer_done_share">Udostępnij</string>
+    <string name="notif_recv_transfer_failed_title">Odbieranie przerwane</string>
+    <string name="notif_recv_transfer_failed_desc">Nie udało się odebrać plików z %s</string>
     <string name="settings">Ustawienia</string>
+    <string name="settings_name">Nazwa wyświetlana</string>
+    <string name="settings_discoverable">Widoczność</string>
+    <string name="settings_discoverable_on">Twoje urządzenie wyświetli się innym jako odbiorca</string>
+    <string name="settings_discoverable_off">Twoje urządzenie jest niewykrywalne</string>
 </resources>

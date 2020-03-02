@@ -15,13 +15,56 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
     <string name="menu_settings">Ajustes…</string>
+    <string name="introduction">WarpShare puede enviar archivos rápidamente a otros cercanos, sin ningún uso de datos móviles.</string>
+    <string name="hint_perm">Para usar WarpShare, se requieren varios permisos.</string>
+    <string name="button_perm">Conceder permisos…</string>
+    <string name="hint_wifi">Para usar WarpShare, activa el Wi-Fi y conéctate a la misma red.</string>
+    <string name="button_wifi">Abrir ajustes de Wi-Fi…</string>
+    <string name="hint_bt">Para usar WarpShare, por favor activa el Bluetooth.</string>
+    <string name="button_bt">Activar Bluetooth…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">Enviar %d archivo a…</item>
+        <item quantity="other">Enviar %d archivos a…</item>
+    </plurals>
     <string name="send_cancel">Cancelar</string>
     <string name="send_confirm">Enviar</string>
     <string name="status_waiting_for_confirm">Esperando confirmación…</string>
     <string name="status_sending">Enviando…</string>
+    <string name="status_sending_progress">Enviando… %1$s / %2$s</string>
+    <string name="status_rejected">Rechazado</string>
+    <string name="toast_no_file">No se puede enviar ningún archivo</string>
+    <string name="toast_completed">Archivos enviados</string>
+    <string name="toast_rejected">Receptor rechazado</string>
+    <string name="notif_recv_service_channel">Visible</string>
+    <string name="notif_recv_transfer_channel">Transferencia de archivos</string>
+    <string name="notif_recv_active_title">Tu dispositivo es detectable</string>
+    <string name="notif_recv_active_desc">Alguien cerca está a punto de enviar algunos archivos</string>
+    <string name="notif_recv_transfer_request_title">Transferencia de archivos</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%1$s quiere enviarte %2$d archivo</item>
+        <item quantity="other">%1$s quiere enviarte %2$d archivos</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Aceptar</string>
+    <string name="notif_recv_transfer_request_reject">Rechazar</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">Recibiendo %1$d archivo de %2$s…</item>
+        <item quantity="other">Recibiendo %1$d archivos de %2$s…</item>
+    </plurals>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Cancelar</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%1$d archivo recibido de %2$s</item>
+        <item quantity="other">%1$d archivos recibidos de %2$s</item>
+    </plurals>
+    <string name="notif_recv_transfer_done_desc">Pulsa para buscar archivos recibidos</string>
     <string name="notif_recv_transfer_done_share">Compartir</string>
+    <string name="notif_recv_transfer_failed_title">Recibimiento abortado</string>
+    <string name="notif_recv_transfer_failed_desc">Error al recibir archivos de %s</string>
     <string name="settings">Configuración</string>
+    <string name="settings_name">Nombre para mostrar</string>
+    <string name="settings_discoverable">Visible</string>
+    <string name="settings_discoverable_on">Tu dispositivo aparecerá a otros como destinatario</string>
+    <string name="settings_discoverable_off">Tu dispositivo no será detectable</string>
 </resources>
