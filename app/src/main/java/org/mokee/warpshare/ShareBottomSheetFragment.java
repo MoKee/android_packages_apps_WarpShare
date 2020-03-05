@@ -152,17 +152,17 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
 
         mDiscoveringView = view.findViewById(R.id.discovering);
 
-        final ClipData clipData = mParent.getIntent().getClipData();
-        if (clipData == null) {
-            Log.w(TAG, "ClipData should not be null");
-            handleSendFailed();
-            mParent.finish();
-            return;
-        }
-
         final String type = mParent.getIntent().getType();
-        for (int i = 0; i < clipData.getItemCount(); i++) {
-            final Entity entity = new Entity(getContext(), clipData.getItemAt(i).getUri(), type);
+        final ClipData clipData = mParent.getIntent().getClipData();
+        if (clipData != null) {
+            for (int i = 0; i < clipData.getItemCount(); i++) {
+                final Entity entity = new Entity(getContext(), clipData.getItemAt(i).getUri(), type);
+                if (entity.ok()) {
+                    mEntities.add(entity);
+                }
+            }
+        } else {
+            final Entity entity = new Entity(getContext(), mParent.getIntent().getData(), type);
             if (entity.ok()) {
                 mEntities.add(entity);
             }
