@@ -147,10 +147,16 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         final RecyclerView peersView = view.findViewById(R.id.peers);
         peersView.setAdapter(mAdapter);
 
+        mSendButton = view.findViewById(R.id.send);
+        mSendButton.setOnClickListener(v -> sendFile(mPeers.get(mPeerPicked), mEntities));
+
+        mDiscoveringView = view.findViewById(R.id.discovering);
+
         final ClipData clipData = mParent.getIntent().getClipData();
         if (clipData == null) {
             Log.w(TAG, "ClipData should not be null");
             handleSendFailed();
+            mParent.finish();
             return;
         }
 
@@ -166,11 +172,6 @@ public class ShareBottomSheetFragment extends BottomSheetDialogFragment
         final String titleText = getResources().getQuantityString(R.plurals.send_files_to, count, count);
         final TextView titleView = view.findViewById(R.id.title);
         titleView.setText(titleText);
-
-        mSendButton = view.findViewById(R.id.send);
-        mSendButton.setOnClickListener(v -> sendFile(mPeers.get(mPeerPicked), mEntities));
-
-        mDiscoveringView = view.findViewById(R.id.discovering);
 
         if (mEntities.isEmpty()) {
             Log.w(TAG, "No file was selected");
