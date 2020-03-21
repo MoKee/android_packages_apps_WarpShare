@@ -15,9 +15,64 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Налаштування…</string>
+    <string name="introduction">WarpShare може швидко надсилати файли іншим користувачам без використання мобільних даних.</string>
+    <string name="hint_perm">Для використання WarpShare потрібні деякі дозволи.</string>
+    <string name="button_perm">Надати дозволи…</string>
+    <string name="hint_wifi">Щоб використовувати WarpShare, увімкніть Wi-Fi і підключіться до однієї мережі.</string>
+    <string name="button_wifi">Відкрити налаштування Wi-Fi…</string>
+    <string name="hint_bt">Для використання WarpShare, будь ласка, включіть Bluetooth.</string>
+    <string name="button_bt">Увімкнути Bluetooth…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">Надіслати %d файл…</item>
+        <item quantity="few">Надіслати %d файлів…</item>
+        <item quantity="many">Надіслати %d файлів…</item>
+        <item quantity="other">Надіслати %d файлів…</item>
+    </plurals>
     <string name="send_cancel">Скаcувати</string>
+    <string name="send_confirm">Відправити</string>
+    <string name="status_waiting_for_confirm">Чекаємо підтвердження…</string>
+    <string name="status_sending">Надсилання…</string>
+    <string name="status_sending_progress">Надсилання… %1$s / %2$s</string>
+    <string name="status_rejected">Відхилено</string>
+    <string name="toast_no_file">Файл не може бути відправлений</string>
+    <string name="toast_completed">Файли надіслано</string>
+    <string name="toast_rejected">Одержувач відхилив</string>
+    <string name="notif_recv_service_channel">Видимий</string>
+    <string name="notif_recv_transfer_channel">Передача файлів</string>
+    <string name="notif_recv_active_title">Пристрій видимий</string>
+    <string name="notif_recv_active_desc">Дехто поруч збирається відправити файли</string>
+    <string name="notif_recv_transfer_request_title">Передача файлів</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%1$s хоче надіслати вам %2$d файл</item>
+        <item quantity="few">%1$s хоче надіслати вам %2$d файлів</item>
+        <item quantity="many">%1$s хоче надіслати вам %2$d файлів</item>
+        <item quantity="other">%1$s хоче надіслати вам %2$d файлів</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Приймаю</string>
+    <string name="notif_recv_transfer_request_reject">Відхилити</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">Отримання файлу %1$d з %2$s…</item>
+        <item quantity="few">Отримання %1$d файлів з %2$s…</item>
+        <item quantity="many">Отримання %1$d файлів з %2$s…</item>
+        <item quantity="other">Отримання %1$d файлів з %2$s…</item>
+    </plurals>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Скаcувати</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%1$d файл отримано від %2$s</item>
+        <item quantity="few">%1$d файлів отримано від %2$s</item>
+        <item quantity="many">%1$d файлів отримано від %2$s</item>
+        <item quantity="other">%1$d файлів отримано від %2$s</item>
+    </plurals>
+    <string name="notif_recv_transfer_done_desc">Натисніть, щоб переглянути отримані файли</string>
     <string name="notif_recv_transfer_done_share">Поділитися</string>
+    <string name="notif_recv_transfer_failed_title">Отримання перервано</string>
+    <string name="notif_recv_transfer_failed_desc">Не вдалося отримати файли від %s</string>
     <string name="settings">Налаштування</string>
+    <string name="settings_name">Відображуване ім\'я</string>
+    <string name="settings_discoverable">Видимий</string>
+    <string name="settings_discoverable_on">Ваш пристрій буде відображатися іншим користувачам</string>
+    <string name="settings_discoverable_off">Ваш пристрій не буде відображатися іншим користувачам</string>
 </resources>
