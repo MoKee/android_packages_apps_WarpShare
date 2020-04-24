@@ -15,9 +15,52 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Cài đặt...</string>
+    <string name="introduction">WarpShare có thể nhanh chóng gửi các tệp cho những người khác ở gần mà không cần sử dụng dữ liệu di động.</string>
+    <string name="hint_perm">Để sử dụng WarpShare, cần có một số quyền.</string>
+    <string name="button_perm">Cấp quyền...</string>
+    <string name="hint_wifi">Để sử dụng WarpShare, vui lòng bật Wi-Fi và kết nối với cùng một mạng.</string>
+    <string name="button_wifi">Mở cài đặt Wi-Fi...</string>
+    <string name="hint_bt">Để sử dụng WarpShare, vui lòng bật Bluetooth.</string>
+    <string name="button_bt">Bật Bluetooth…</string>
+    <plurals name="send_files_to">
+        <item quantity="other">Gửi %d tập tin tới...</item>
+    </plurals>
     <string name="send_cancel">Hủy</string>
+    <string name="send_confirm">Gửi</string>
+    <string name="status_waiting_for_confirm">Chờ xác nhận...</string>
+    <string name="status_sending">Đang gửi…</string>
+    <string name="status_sending_progress">Đang gửi... %1$s / %2$s</string>
+    <string name="status_rejected">Bị từ chối</string>
+    <string name="toast_no_file">Không có tập tin nào có thể gửi</string>
+    <string name="toast_completed">Đã gửi tệp</string>
+    <string name="toast_rejected">Người nhận từ chối</string>
+    <string name="notif_recv_service_channel">Đã tìm thấy</string>
+    <string name="notif_recv_transfer_channel">Truyền tệp</string>
+    <string name="notif_recv_active_title">Thiết bị của bạn có thể được tìm thấy</string>
+    <string name="notif_recv_active_desc">Ai đó gần đây sắp gửi một số tập tin</string>
+    <string name="notif_recv_transfer_request_title">Truyền tệp</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="other">%1$s muốn gửi cho bạn tệp %2$d</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Chấp nhận</string>
+    <string name="notif_recv_transfer_request_reject">Từ chối</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="other">Đang nhận tệp %1$d từ %2$s...</item>
+    </plurals>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Hủy</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="other">Tệp %1$d nhận được từ %2$s</item>
+    </plurals>
+    <string name="notif_recv_transfer_done_desc">Nhấn để duyệt các tập tin đã nhận</string>
     <string name="notif_recv_transfer_done_share">Chia sẻ</string>
+    <string name="notif_recv_transfer_failed_title">Nhận bị hủy bỏ</string>
+    <string name="notif_recv_transfer_failed_desc">Không thể nhận tệp từ %s</string>
     <string name="settings">Cài đặt</string>
+    <string name="settings_name">Tên hiển thị</string>
+    <string name="settings_discoverable">Đã tìm thấy</string>
+    <string name="settings_discoverable_on">Thiết bị của bạn sẽ xuất hiện cho người khác với tư cách là người nhận</string>
+    <string name="settings_discoverable_off">Thiết bị của bạn sẽ không thể được tìm thấy</string>
 </resources>
