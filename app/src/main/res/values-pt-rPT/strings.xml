@@ -15,7 +15,12 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Definições…</string>
+    <string name="button_perm">Conceder permissões…</string>
     <string name="send_cancel">Cancelar</string>
+    <string name="send_confirm">Enviar</string>
+    <string name="status_rejected">Rejeitado</string>
     <string name="notif_recv_transfer_request_accept">Aceitar</string>
     <string name="notif_recv_transfer_progress_cancel">Cancelar</string>
     <string name="notif_recv_transfer_done_share">Partilhar</string>
