@@ -18,4 +18,6 @@
     <string name="send_cancel">ரத்துசெய்</string>
     <string name="notif_recv_transfer_request_accept">ஏற்கிறேன்</string>
     <string name="notif_recv_transfer_progress_cancel">ரத்துசெய்</string>
+    <string name="notif_recv_transfer_done_share">பகிர்</string>
+    <string name="settings">அமைப்புகள்</string>
 </resources>
