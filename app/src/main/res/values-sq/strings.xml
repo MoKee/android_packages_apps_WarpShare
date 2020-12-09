@@ -15,6 +15,7 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="introduction">WarpShare mund të dërgojë me shpejtësi skedarë te të tjerët afër, pa ndonjë përdorim të të dhënave celulare.</string>
     <string name="send_cancel">Anullo</string>
     <string name="notif_recv_transfer_request_accept">Prano</string>
     <string name="notif_recv_transfer_progress_cancel">Anullo</string>
