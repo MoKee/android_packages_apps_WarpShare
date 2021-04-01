@@ -15,9 +15,64 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">WarpShare</string>
+    <string name="menu_settings">Nastavenia…</string>
+    <string name="introduction">WarpShare môže rýchlo odosielať súbory ostatným v okolí bez použitia mobilných dát.</string>
+    <string name="hint_perm">Na použitie WarpShare sa vyžaduje niekoľko oprávnení.</string>
+    <string name="button_perm">Udeliť oprávnenia…</string>
+    <string name="hint_wifi">Na použitie WarpShare je nutné zapnúť Wi-Fi a pripojiť sa k rovnakej sieti.</string>
+    <string name="button_wifi">Otvoriť nastavenie Wi-Fi ...</string>
+    <string name="hint_bt">Na použitie WarpShare je nutné zapnúť Bluetooth.</string>
+    <string name="button_bt">Zapínanie Bluetooth…</string>
+    <plurals name="send_files_to">
+        <item quantity="one">Odoslať %d súbor do…</item>
+        <item quantity="few">Odoslať %d súbory do…</item>
+        <item quantity="many">Odoslať %d súborov do…</item>
+        <item quantity="other">Odoslať %d súborov do…</item>
+    </plurals>
     <string name="send_cancel">Zrušiť</string>
+    <string name="send_confirm">Odoslať</string>
+    <string name="status_waiting_for_confirm">Čakanie na potvrdenie...</string>
+    <string name="status_sending">Odosielam...</string>
+    <string name="status_sending_progress">Odosielam… %1$s / %2$s</string>
+    <string name="status_rejected">Odmietnuté</string>
+    <string name="toast_no_file">Nemožno odoslať žiadny súbor</string>
+    <string name="toast_completed">Súbory boli odoslané</string>
+    <string name="toast_rejected">Príjemca bol odmietnutý</string>
+    <string name="notif_recv_service_channel">Viditeľné</string>
+    <string name="notif_recv_transfer_channel">Prenos súborov</string>
+    <string name="notif_recv_active_title">Vaše zariadenie je viditeľné</string>
+    <string name="notif_recv_active_desc">Niekto v blízkosti sa vám chystá odoslať nejaké súbory</string>
+    <string name="notif_recv_transfer_request_title">Prenos súborov</string>
+    <plurals name="notif_recv_transfer_request_desc">
+        <item quantity="one">%1$s vám chce poslať %2$d súbor</item>
+        <item quantity="few">%1$s vám chce poslať %2$d súbory</item>
+        <item quantity="many">%1$s vám chce poslať %2$d súborov</item>
+        <item quantity="other">%1$s vám chce poslať %2$d súborov</item>
+    </plurals>
     <string name="notif_recv_transfer_request_accept">Prijať</string>
+    <string name="notif_recv_transfer_request_reject">Odmietnuť</string>
+    <plurals name="notif_recv_transfer_progress_title">
+        <item quantity="one">Preberanie %1$d súboru od %2$s…</item>
+        <item quantity="few">Preberanie %1$d súborov od %2$s…</item>
+        <item quantity="many">Preberanie %1$d súborov od %2$s…</item>
+        <item quantity="other">Preberanie %1$d súborov od %2$s…</item>
+    </plurals>
+    <string name="notif_recv_transfer_progress_desc">%1$d / %2$d</string>
     <string name="notif_recv_transfer_progress_cancel">Zrušiť</string>
+    <plurals name="notif_recv_transfer_done_title">
+        <item quantity="one">%1$d súbor prijatý od %2$s</item>
+        <item quantity="few">%1$d súbory prijaté od %2$s</item>
+        <item quantity="many">%1$d súborov prijatých od %2$s</item>
+        <item quantity="other">%1$d súborov prijatých od %2$s</item>
+    </plurals>
+    <string name="notif_recv_transfer_done_desc">Kliknutím pozrieť prijaté súbory</string>
     <string name="notif_recv_transfer_done_share">Zdieľať</string>
+    <string name="notif_recv_transfer_failed_title">Preberanie prerušené</string>
+    <string name="notif_recv_transfer_failed_desc">Nepodarilo sa prijať súbory od %s</string>
     <string name="settings">Nastavenia</string>
+    <string name="settings_name">Zobrazovaný názov</string>
+    <string name="settings_discoverable">Viditeľné</string>
+    <string name="settings_discoverable_on">Vaše zariadenie sa ostatným zobrazí ako príjemca</string>
+    <string name="settings_discoverable_off">Vaše zariadenie nebude viditeľné</string>
 </resources>
