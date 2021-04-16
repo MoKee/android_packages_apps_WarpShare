@@ -47,6 +47,7 @@
         <item quantity="other">%1$s quer enviar-lhe %2$d ficheiros</item>
     </plurals>
     <string name="notif_recv_transfer_request_accept">Aceitar</string>
+    <string name="notif_recv_transfer_request_reject">Rejeitar</string>
     <plurals name="notif_recv_transfer_progress_title">
         <item quantity="one">Recebeu %1$d ficheiro de %2$s...</item>
         <item quantity="other">Recebeu %1$d ficheiros de %2$s...</item>
