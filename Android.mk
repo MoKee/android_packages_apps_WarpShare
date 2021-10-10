@@ -111,6 +111,8 @@ LOCAL_SRC_FILES_64 := JP2ForAndroid/lib64/libopenjpeg.so
 LOCAL_SRC_FILES_32 := JP2ForAndroid/lib/libopenjpeg.so
 LOCAL_MULTILIB := both
 
+LOCAL_CHECK_ELF_FILES := false
+
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 LOCAL_MODULE_SUFFIX := .so
@@ -145,6 +147,8 @@ LOCAL_MODULE := libcdp_one_sdk_android.1.3.0
 LOCAL_SRC_FILES_64 := ProjectRome/lib64/libcdp_one_sdk_android.1.3.0.so
 LOCAL_SRC_FILES_32 := ProjectRome/lib/libcdp_one_sdk_android.1.3.0.so
 LOCAL_MULTILIB := both
+
+LOCAL_CHECK_ELF_FILES := false
 
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
