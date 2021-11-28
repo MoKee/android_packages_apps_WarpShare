@@ -18,6 +18,6 @@
     <string name="send_cancel">Ακύρωση</string>
     <string name="notif_recv_transfer_request_accept">Αποδοχή</string>
     <string name="notif_recv_transfer_progress_cancel">Ακύρωση</string>
-    <string name="notif_recv_transfer_done_share">Κοινή χρήση</string>
+    <string name="notif_recv_transfer_done_share">שיתוף</string>
     <string name="settings">Ρυθμίσεις</string>
 </resources>

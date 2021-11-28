@@ -67,7 +67,7 @@
         <item quantity="other">%1$d файлов получено от %2$s</item>
     </plurals>
     <string name="notif_recv_transfer_done_desc">Нажмите, чтобы просмотреть полученные файлы</string>
-    <string name="notif_recv_transfer_done_share">Отправить</string>
+    <string name="notif_recv_transfer_done_share">Поделиться</string>
     <string name="notif_recv_transfer_failed_title">Получение прервано</string>
     <string name="notif_recv_transfer_failed_desc">Не удалось получить файлы из %s</string>
     <string name="settings">Настройки</string>

@@ -37,9 +37,9 @@
     <string name="status_sending_progress">Wysyłanie… %1$s / %2$s</string>
     <string name="status_rejected">Odrzucono</string>
     <string name="toast_no_file">Nie można wysłać żadnego pliku</string>
-    <string name="toast_completed">Plik wysłany</string>
-    <string name="toast_rejected">Odbiorca odrzucony</string>
-    <string name="notif_recv_service_channel">Widoczność</string>
+    <string name="toast_completed">Pliki przesłane pomyślnie</string>
+    <string name="toast_rejected">Odbiorca odrzucił transfer</string>
+    <string name="notif_recv_service_channel">Wykrywalne</string>
     <string name="notif_recv_transfer_channel">Przesyłanie plików</string>
     <string name="notif_recv_active_title">Twoje urządzenie jest wykrywalne</string>
     <string name="notif_recv_active_desc">Ktoś w pobliżu wkrótce wysyśle pliki</string>
@@ -71,8 +71,8 @@
     <string name="notif_recv_transfer_failed_title">Odbieranie przerwane</string>
     <string name="notif_recv_transfer_failed_desc">Nie udało się odebrać plików z %s</string>
     <string name="settings">Ustawienia</string>
-    <string name="settings_name">Nazwa wyświetlana</string>
-    <string name="settings_discoverable">Widoczność</string>
+    <string name="settings_name">Nazwa użytkownika</string>
+    <string name="settings_discoverable">Wykrywalne</string>
     <string name="settings_discoverable_on">Twoje urządzenie wyświetli się innym jako odbiorca</string>
     <string name="settings_discoverable_off">Twoje urządzenie jest niewykrywalne</string>
 </resources>

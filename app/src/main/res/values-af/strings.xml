@@ -18,6 +18,6 @@
     <string name="send_cancel">Kanselleer</string>
     <string name="notif_recv_transfer_request_accept">Aanvaar</string>
     <string name="notif_recv_transfer_progress_cancel">Kanselleer</string>
-    <string name="notif_recv_transfer_done_share">Deel</string>
+    <string name="notif_recv_transfer_done_share">Deling</string>
     <string name="settings">Instellings</string>
 </resources>
