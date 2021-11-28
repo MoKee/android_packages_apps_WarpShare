@@ -18,6 +18,6 @@
     <string name="send_cancel">Отмени</string>
     <string name="notif_recv_transfer_request_accept">Приемам</string>
     <string name="notif_recv_transfer_progress_cancel">Отмени</string>
-    <string name="notif_recv_transfer_done_share">Споделяне</string>
+    <string name="notif_recv_transfer_done_share">Сподели</string>
     <string name="settings">Настройки</string>
 </resources>

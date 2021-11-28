@@ -15,32 +15,8 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string name="app_name">WarpShare</string>
-    <string name="menu_settings">Cilësimet...</string>
     <string name="introduction">WarpShare mund të dërgojë me shpejtësi skedarë te të tjerët afër, pa ndonjë përdorim të të dhënave celulare.</string>
-    <string name="hint_perm">Për të përdorur WarpShare, kërkohen disa leje.</string>
-    <string name="button_perm">Jepni lejet..</string>
-    <string name="hint_wifi">Për të përdorur WarpShare, aktivizo Wi-Fi dhe lidhu me të njëjtin rrjet.</string>
-    <string name="button_wifi">Hap cilësimet Wi-Fi</string>
-    <string name="hint_bt">Për të përdorur WarpShare, ju lutemi ndizni Bluetooth.</string>
-    <string name="button_bt">Aktivizo \"Bluetooth-in\"</string>
-    <plurals name="send_files_to">
-        <item quantity="one">Dërgo %d skedar te</item>
-        <item quantity="other">Dërgo %d skedar te..</item>
-    </plurals>
     <string name="send_cancel">Anullo</string>
-    <string name="send_confirm">Dërgo</string>
-    <string name="status_waiting_for_confirm">Në pritje të konfirmimit...</string>
-    <string name="status_sending">Duke dërguar...</string>
-    <string name="status_sending_progress">Duke dërguar...  %1$s / %2$s</string>
-    <string name="status_rejected">Refuzohet</string>
-    <string name="toast_no_file">Asnjë skedar nuk mund të dërgohet</string>
-    <string name="toast_completed">Skedari u dërgua</string>
-    <string name="toast_rejected">Marrësi u refuzua</string>
-    <string name="notif_recv_service_channel">I zbulueshëm</string>
-    <string name="notif_recv_transfer_channel">Transferimi i skedarit</string>
-    <string name="notif_recv_active_title">Pajisja juaj është e zbulueshme</string>
-    <string name="notif_recv_active_desc">Dikush afër do të dërgojë disa skedarë</string>
     <string name="notif_recv_transfer_request_accept">Prano</string>
     <string name="notif_recv_transfer_progress_cancel">Anullo</string>
     <string name="notif_recv_transfer_done_share">Ndaj</string>

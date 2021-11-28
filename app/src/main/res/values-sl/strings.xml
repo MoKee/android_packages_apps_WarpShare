@@ -18,6 +18,6 @@
     <string name="send_cancel">Prekliči</string>
     <string name="notif_recv_transfer_request_accept">Sprejmi</string>
     <string name="notif_recv_transfer_progress_cancel">Prekliči</string>
-    <string name="notif_recv_transfer_done_share">Souporaba</string>
+    <string name="notif_recv_transfer_done_share">Skupna raba</string>
     <string name="settings">Nastavitve</string>
 </resources>

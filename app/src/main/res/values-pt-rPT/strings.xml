@@ -21,7 +21,7 @@
     <string name="hint_perm">Para utilizar o WarpShare, várias permissões são necessárias.</string>
     <string name="button_perm">Conceder permissões…</string>
     <string name="hint_wifi">Para utilizar o WarpShare, ative o Wi-Fi e conecte-se à mesma rede.</string>
-    <string name="button_wifi">Abrir definições Wi-Fi...</string>
+    <string name="button_wifi">Abrir definições do Wi-Fi...</string>
     <string name="hint_bt">Para utilizar o WarpShare, por favor ligue o Bluetooth.</string>
     <string name="button_bt">Ligar Bluetooth...</string>
     <plurals name="send_files_to">
