@@ -476,7 +476,7 @@ public class ReceiverService extends Service implements AirDropManager.ReceiverL
             if (segments.length != 2) continue;
             final String type = segments[0];
             final String subtype = segments[1];
-            if (type.equals("*") && !subtype.equals("*")) continue;
+            if ("*".equals(type) && !"*".equals(subtype)) continue;
 
             if (generalType == null) {
                 generalType = type;
