@@ -22,6 +22,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.preference.PreferenceManager;
+import java.security.SecureRandom;
 
 import org.mokee.warpshare.ConfigManager;
 
@@ -51,7 +52,7 @@ class AirDropConfigManager {
 
     private String generateId() {
         byte[] id = new byte[6];
-        new Random().nextBytes(id);
+        new SecureRandom().nextBytes(id);
         return ByteString.of(id).hex();
     }
 
